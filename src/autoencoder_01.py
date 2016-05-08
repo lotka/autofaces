@@ -156,7 +156,7 @@ sess = tf.Session()
 start_dim = 200
 input_size = mnist.train.images.shape[1]
 x = tf.placeholder(tf.float32, [None, input_size])
-sizes = [700,400,200,50,10]
+sizes = [400,10]
 autoencoder = create(x,sizes)
 init = tf.initialize_all_variables()
 sess.run(init)
