@@ -5,3 +5,4 @@
 *.pyc
 *ipynb_check
 src/MNIST_data/
+MNIST_data/
