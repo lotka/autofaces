@@ -1,3 +1,4 @@
 *.aux
 *.log
-*MNIST_data/*
+*.pyc
+src/MNIST_data/

@@ -4,11 +4,16 @@ import matplotlib.pyplot as plt
 import math
 import random
 
+# Get the data
+from tensorflow.examples.tutorials.mnist import input_data
+mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+
+# Create the network
 def create(x,y, layer_sizes):
 
     # Build the encoding layers
     next_layer_input = x
-    alpha = tf.Variable(1.0,trainable=False)
+    alpha = tf.Variable(0.5,trainable=False)
 
     encoding_matrices = []
     for dim in layer_sizes:
@@ -32,6 +37,12 @@ def create(x,y, layer_sizes):
     # The fully encoded x value is now stored in the next_layer_input
     encoded_x = next_layer_input
 
+    input_dim = int(encoded_x.get_shape()[1])
+    output_dim = int(y.get_shape()[1])
+    W = tf.Variable(tf.random_uniform([input_dim,output_dim],-1.0 / math.sqrt(input_dim), 1.0 / math.sqrt(input_dim)))
+    b = tf.Variable(tf.zeros([output_dim]))
+    class_layer = tf.nn.relu(tf.matmul(encoded_x,W) + b)
+
     # build the reconstruction layers by reversing the reductions
     layer_sizes.reverse()
     encoding_matrices.reverse()
@@ -47,30 +58,37 @@ def create(x,y, layer_sizes):
     # the fully encoded and reconstructed value of x is here:
     reconstructed_x = next_layer_input
 
-    # alpha = 0.5
+    # Cost function for the auto encoder
+    auto_cost = tf.sqrt(tf.reduce_mean(tf.square(x-reconstructed_x)))
+
+    # Cost function for the classifier
+    class_cost = tf.sqrt(tf.reduce_mean(tf.square(y-class_layer)))
+
     return {
+        'class' :  class_layer,
         'encoded': encoded_x,
         'decoded': reconstructed_x,
-        'cost' : tf.sqrt(tf.reduce_mean(tf.square(x-reconstructed_x)))*(1-alpha)+tf.sqrt(tf.reduce_mean(tf.square(y-encoded_x)))*alpha,
+        'cost' : auto_cost*(1-alpha)+class_cost*alpha,
         'alpha' : alpha
     }
 
-from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 sess = tf.Session()
 input_size = mnist.train.images.shape[1]
 x = tf.placeholder(tf.float32, [None, input_size])
 y = tf.placeholder(tf.float32,[None,10])
-sizes = [500,400,300,10]
+
+sizes = [500,400,300,50]
+
 autoencoder = create(x,y,sizes)
+
 init = tf.initialize_all_variables()
 sess.run(init)
 train_step = tf.train.GradientDescentOptimizer(0.5).minimize(autoencoder['cost'])
 
 x_axis = np.zeros(0)
 y_axis = np.zeros(0)
-# do 1000 training steps
-for i in range(100):
+# do 1000 training stepscomp
+for i in range(4000):
     batch_xs, batch_ys = mnist.train.next_batch(100)
     sess.run(train_step, feed_dict={x: batch_xs, y: batch_ys})
     if i % 100 == 0:
@@ -107,8 +125,8 @@ def compareall(sess,data):
         plt.imshow(output)
     plt.show()
 
-compare(sess,mnist,2)
-compareall(sess,mnist)
-plt.figure()
-plt.plot(x_axis,y_axis)
-plt.show()
+# compare(sess,mnist,2)
+# compareall(sess,mnist)
+# plt.figure()
+# plt.plot(x_axis,y_axis)
+# plt.show()
