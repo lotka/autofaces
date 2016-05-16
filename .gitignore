@@ -1,4 +1,7 @@
 *.aux
+*~
+*.pdf
 *.log
 *.pyc
+*ipynb_check
 src/MNIST_data/
