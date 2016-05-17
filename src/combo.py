@@ -3,10 +3,36 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import random
+from tqdm import tqdm
 
 # Get the data
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+
+def compare(sess,data,i):
+    input = data.train.images[i]
+    output = sess.run(autoencoder['output_decoded'],{x:[input]})
+    input = np.array(input).reshape(28,28)
+    output = np.array(output).reshape(28,28)
+    fig = plt.figure()
+    plt.subplot(211)
+    plt.imshow(input,cmap='gray')
+    plt.subplot(212)
+    plt.imshow(output,cmap='gray')
+    plt.show()
+
+def compareall(sess,data):
+    plt.figure()
+    for i in xrange(10):
+        input = data.train.images[i]
+        output = sess.run(autoencoder['output_decoded'],{x:[input]})
+        input = np.array(input).reshape(28,28)
+        output = np.array(output).reshape(28,28)
+        plt.subplot(2,10,i+1)
+        plt.imshow(input)
+        plt.subplot(2,10,10+i+1)
+        plt.imshow(output)
+    plt.show()
 
 # Create the network
 def create(x,y, layer_sizes):
@@ -65,68 +91,68 @@ def create(x,y, layer_sizes):
     class_cost = tf.sqrt(tf.reduce_mean(tf.square(y-class_layer)))
 
     return {
-        'class' :  class_layer,
-        'encoded': encoded_x,
-        'decoded': reconstructed_x,
-        'cost' : auto_cost*(1-alpha)+class_cost*alpha,
+        'output_class' :  class_layer,
+        'output_encoded': encoded_x,
+        'output_decoded': reconstructed_x,
+        'cost_total' : auto_cost*(1-alpha)+class_cost*alpha,
+        'cost_class' : class_cost,
+        'cost_autoencoder' : auto_cost,
         'alpha' : alpha
     }
 
-sess = tf.Session()
-input_size = mnist.train.images.shape[1]
-x = tf.placeholder(tf.float32, [None, input_size])
-y = tf.placeholder(tf.float32,[None,10])
+def main(auto_switch):
+    sess = tf.Session()
+    input_size = mnist.train.images.shape[1]
 
-sizes = [500,400,300,50]
+    x = tf.placeholder(tf.float32, [None, input_size])
+    y = tf.placeholder(tf.float32,[None,10])
+    sizes = [500,400,200,50]
 
-autoencoder = create(x,y,sizes)
+    autoencoder = create(x,y,sizes)
+    init = tf.initialize_all_variables()
+    sess.run(init)
+    dual_train_step  = tf.train.GradientDescentOptimizer(0.5).minimize(autoencoder['cost_total'])
+    class_train_step = tf.train.GradientDescentOptimizer(0.5).minimize(autoencoder['cost_class'])
+    auto_train_step  = tf.train.GradientDescentOptimizer(0.5).minimize(autoencoder['cost_autoencoder'])
 
-init = tf.initialize_all_variables()
-sess.run(init)
-train_step = tf.train.GradientDescentOptimizer(0.5).minimize(autoencoder['cost'])
+    x_axis = np.zeros(0)
+    y_axis = np.zeros(0)
+    N = 10000
+    if auto_switch:
+        for i in tqdm(range(N)):
+            # print i,'\r'
+            # Train autoencoder
+            batch_xs, batch_ys = mnist.train.next_batch(100)
+            sess.run(auto_train_step, feed_dict={x: batch_xs, y: batch_ys})
 
-x_axis = np.zeros(0)
-y_axis = np.zeros(0)
-# do 1000 training stepscomp
-for i in range(4000):
-    batch_xs, batch_ys = mnist.train.next_batch(100)
-    sess.run(train_step, feed_dict={x: batch_xs, y: batch_ys})
-    if i % 100 == 0:
-        c = sess.run(autoencoder['cost'], feed_dict={x: batch_xs, y: batch_ys})
-        print i, " cost", c, sess.run(autoencoder['alpha'])
-        x_axis = np.append(x_axis,i)
-        y_axis = np.append(y_axis,c)
-        # print i, " original", batch[0]
-        # print i, " decoded", sess.run(autoencoder['decoded'], feed_dict={x: batch})
+    # do 1000 training stepscomp
+    print 'i\ttot\tclass\tauto'
+    for i in tqdm(range(N)):
+        # Train classifier
+        batch_xs, batch_ys = mnist.train.next_batch(100)
+        sess.run(class_train_step, feed_dict={x: batch_xs, y: batch_ys})
 
+        if i % 100 == 0:
+            batch_xs, batch_ys = mnist.validation.next_batch(100)
+            c = sess.run(autoencoder['cost_total'], feed_dict={x: batch_xs, y: batch_ys})
+            print i,
+            print c,
+            print sess.run(autoencoder['cost_class'], feed_dict={x: batch_xs, y: batch_ys}),
+            print sess.run(autoencoder['cost_autoencoder'], feed_dict={x: batch_xs, y: batch_ys})
+            x_axis = np.append(x_axis,i)
+            y_axis = np.append(y_axis,c)
+            # print i, " original", batch[0]
+            # print i, " decoded", sess.run(autoencoder['decoded'], feed_dict={x: batch})
 
-def compare(sess,data,i):
-    input = data.train.images[i]
-    output = sess.run(autoencoder['decoded'],{x:[input]})
-    input = np.array(input).reshape(28,28)
-    output = np.array(output).reshape(28,28)
-    fig = plt.figure()
-    plt.subplot(211)
-    plt.imshow(input,cmap='gray')
-    plt.subplot(212)
-    plt.imshow(output,cmap='gray')
-    plt.show()
+    # compare(sess,mnist,2)
+    # compareall(sess,mnist)
+    # plt.figure()
+    # plt.plot(x_axis,y_axis)
+    # plt.show()
 
-def compareall(sess,data):
-    plt.figure()
-    for i in xrange(10):
-        input = data.train.images[i]
-        output = sess.run(autoencoder['decoded'],{x:[input]})
-        input = np.array(input).reshape(28,28)
-        output = np.array(output).reshape(28,28)
-        plt.subplot(2,10,i+1)
-        plt.imshow(input)
-        plt.subplot(2,10,10+i+1)
-        plt.imshow(output)
-    plt.show()
+    import metric
+    reload(metric)
+    metric.metric(autoencoder,sess,y,mnist,x)
 
-# compare(sess,mnist,2)
-# compareall(sess,mnist)
-# plt.figure()
-# plt.plot(x_axis,y_axis)
-# plt.show()
+main(True)
+main(False)
