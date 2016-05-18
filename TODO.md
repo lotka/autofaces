@@ -6,6 +6,7 @@
 
 
 * Literature review
+* READ THIS LOOKS GOOD http://ufldl.stanford.edu/wiki/index.php/UFLDL_Tutorial
 * Data reporting system. I think pickle will be good so that I can re print the data nicely.
 # Complete
 * Ask seb about autoencoder/classifier competition

@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-# from sklearn import metrics
+import sys
 
 def safe_div(x,y):
     if y == 0.0 and x == 0.0:
@@ -8,7 +8,7 @@ def safe_div(x,y):
     else:
         return x/y
 
-def metric(autoencoder,sess,y,mnist,x):
+def metric(autoencoder,sess,y,mnist,x,log_file=None):
     pred = autoencoder['output_class']
     correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
@@ -20,6 +20,11 @@ def metric(autoencoder,sess,y,mnist,x):
     y_true = np.argmax(test_label,1)
 
     confuse =  np.zeros((10,10),dtype=int)
+
+    if log_file != None:
+        log = open(log_file, "w")
+        sys.stdout = log
+        sys.stderr = log
 
     N = len(y_true)
     for i in xrange(N):
@@ -37,5 +42,12 @@ def metric(autoencoder,sess,y,mnist,x):
 
     print 'avg\t',round(tot_recall/float(10),2),'\t', round(tot_prec/float(10),2)
     print confuse
+
+    if log_file != None:
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+
+    log.close()
+
 
     return
