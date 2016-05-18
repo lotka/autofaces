@@ -9,7 +9,7 @@ from tqdm import tqdm
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 
-def compare(sess,data,i):
+def compare(sess,data,i,autoencoder):
     input = data.train.images[i]
     output = sess.run(autoencoder['output_decoded'],{x:[input]})
     input = np.array(input).reshape(28,28)
@@ -21,7 +21,7 @@ def compare(sess,data,i):
     plt.imshow(output,cmap='gray')
     plt.show()
 
-def compareall(sess,data):
+def compareall(sess,data,autoencoder,x):
     plt.figure()
     for i in xrange(10):
         input = data.train.images[i]
@@ -117,35 +117,31 @@ def main(auto_switch):
 
     x_axis = np.zeros(0)
     y_axis = np.zeros(0)
-    N = 10000
-    if auto_switch:
-        for i in tqdm(range(N)):
-            # print i,'\r'
-            # Train autoencoder
-            batch_xs, batch_ys = mnist.train.next_batch(100)
-            sess.run(auto_train_step, feed_dict={x: batch_xs, y: batch_ys})
+    N = 1000
 
     # do 1000 training stepscomp
-    print 'i\ttot\tclass\tauto'
+    # print 'i\ttot\tclass\tauto'
     for i in tqdm(range(N)):
         # Train classifier
         batch_xs, batch_ys = mnist.train.next_batch(100)
         sess.run(class_train_step, feed_dict={x: batch_xs, y: batch_ys})
+        if auto_switch:
+            sess.run(auto_train_step, feed_dict={x: batch_xs, y: batch_ys})
 
         if i % 100 == 0:
             batch_xs, batch_ys = mnist.validation.next_batch(100)
             c = sess.run(autoencoder['cost_total'], feed_dict={x: batch_xs, y: batch_ys})
-            print i,
-            print c,
-            print sess.run(autoencoder['cost_class'], feed_dict={x: batch_xs, y: batch_ys}),
-            print sess.run(autoencoder['cost_autoencoder'], feed_dict={x: batch_xs, y: batch_ys})
+            # print i,
+            # print c,
+            # print sess.run(autoencoder['cost_class'], feed_dict={x: batch_xs, y: batch_ys}),
+            # print sess.run(autoencoder['cost_autoencoder'], feed_dict={x: batch_xs, y: batch_ys})
             x_axis = np.append(x_axis,i)
             y_axis = np.append(y_axis,c)
             # print i, " original", batch[0]
             # print i, " decoded", sess.run(autoencoder['decoded'], feed_dict={x: batch})
 
     # compare(sess,mnist,2)
-    # compareall(sess,mnist)
+    compareall(sess,mnist,autoencoder,x)
     # plt.figure()
     # plt.plot(x_axis,y_axis)
     # plt.show()
@@ -154,5 +150,5 @@ def main(auto_switch):
     reload(metric)
     metric.metric(autoencoder,sess,y,mnist,x)
 
-main(True)
-main(False)
+main(auto_switch=True)
+main(auto_switch=False)

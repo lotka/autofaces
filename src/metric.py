@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from sklearn import metrics
+# from sklearn import metrics
 
 def safe_div(x,y):
     if y == 0.0 and x == 0.0:
