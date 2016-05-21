@@ -115,13 +115,14 @@ def main(arg):
 
     alternating,pre_training_batches,combined_cost_function,iteration,batch_size,run_id = arg
 
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.1)
-    sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
+    #gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=1.0)
+    #sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
+    sess = tf.Session()
     input_size = mnist.train.images.shape[1]
 
     x = tf.placeholder(tf.float32, [None, input_size])
     y = tf.placeholder(tf.float32,[None,10])
-    sizes = [500,400,200,50]
+    sizes = [700,600,500,400,300,200,100,50]
 
     autoencoder = create(x,y,sizes)
     init = tf.initialize_all_variables()
@@ -189,7 +190,7 @@ def main(arg):
     # plt.show()
     plt.legend()
     plt.savefig('graph' + str(run_id))
-
+    np.savetxt('costs'+str(run_id)+'.dat',np.array([x_axis,c1_axis,c2_axis,c3_axis]))
     metric.metric(autoencoder,sess,y,mnist,x,'log'+str(run_id)+'.txt')
     sess.close()
 
@@ -204,8 +205,6 @@ args.append((False, 0,False,iteration,100,4))
 args.append((False, 0,True,iteration,100,5))
 args.append((False, pre_train_size,False,iteration,100,6))
 args.append((False, pre_train_size,True,iteration,100,7))
-
-
 
 for a in args:
     main(a)
