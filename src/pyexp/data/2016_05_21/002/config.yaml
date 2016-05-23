@@ -1,0 +1,18 @@
+experiments:
+  1:
+    alternate: true
+    family_name: Gale
+  2:
+    alternate: false
+    family_name: Poo
+global:
+  autoencoder:
+  - 700
+  - 400
+  - 300
+  batch_size: 100
+  classifier:
+  - 300
+  - 10
+  iterations: 10000
+  test: null

@@ -1,0 +1,15 @@
+experiments:
+  1:
+    alternate: true
+    class_cost: class_cost
+  2:
+global:
+  autoencoder:
+  - 700
+  - 400
+  - 300
+  batch_size: 100
+  classifier:
+  - 300
+  - 10
+  iterations: 10000
