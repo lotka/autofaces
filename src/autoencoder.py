@@ -24,11 +24,14 @@ import matplotlib.pyplot as plt
 import math
 import random
 
-def create(x, layer_sizes):
+def create(x,rho_hat,layer_sizes):
 
     # Build the encoding layers
     next_layer_input = x
 
+    rho = []
+    cost_kl = tf.Variable(0.0)
+    j = 0
     encoding_matrices = []
     for dim in layer_sizes:
         print next_layer_input.get_shape()
@@ -44,6 +47,10 @@ def create(x, layer_sizes):
         encoding_matrices.append(W)
 
         output = tf.nn.relu(tf.matmul(next_layer_input,W) + b)
+        rho.append(tf.reduce_mean(output))
+        cost_kl += tf.abs( rho[-1]-rho_hat[j] )
+        j += 1
+        print 'AOSUHFOIASHFOIA', len(rho)
 
         # the input into the next layer is the output of this layer
         next_layer_input = output
@@ -58,21 +65,25 @@ def create(x, layer_sizes):
 
     for i, dim in enumerate(layer_sizes[1:] + [ int(x.get_shape()[1])]) :
         # we are using tied weights, so just lookup the encoding matrix for this step and transpose it
+        print next_layer_input.get_shape()
         W = tf.transpose(encoding_matrices[i])
         b = tf.Variable(tf.zeros([dim]))
         output = tf.nn.relu(tf.matmul(next_layer_input,W) + b)
         next_layer_input = output
+        rho.append(tf.reduce_mean(output))
+        cost_kl += tf.abs( rho[-1]-rho_hat[j] )
+        j += 1
+        print 'AOSUHFOIASHFOIA', len(rho)
 
     # the fully encoded and reconstructed value of x is here:
     reconstructed_x = next_layer_input
 
-    """
-    So here I need to add an extra term which maps the encoded layer onto the labels
-    """
     return {
+        'rho' : rho,
+        'cost_kl': cost_kl,
         'encoded': encoded_x,
         'decoded': reconstructed_x,
-        'cost' : tf.sqrt(tf.reduce_mean(tf.square(x-reconstructed_x)))
+        'cost' : tf.sqrt(tf.reduce_mean(tf.square(x-reconstructed_x)))+cost_kl
     }
 
 def simple_test():
@@ -153,11 +164,11 @@ def deep_test():
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 sess = tf.Session()
-start_dim = 200
 input_size = mnist.train.images.shape[1]
 x = tf.placeholder(tf.float32, [None, input_size])
 sizes = [400,10]
-autoencoder = create(x,sizes)
+rho_hat = tf.placeholder(tf.float32, [(len(sizes))*2])
+autoencoder = create(x,rho_hat,sizes)
 init = tf.initialize_all_variables()
 sess.run(init)
 train_step = tf.train.GradientDescentOptimizer(0.5).minimize(autoencoder['cost'])
@@ -167,10 +178,12 @@ y_axis = np.zeros(0)
 # do 1000 training steps
 for i in range(1000):
     batch_xs, batch_ys = mnist.train.next_batch(100)
-    sess.run(train_step, feed_dict={x: batch_xs})
+    r = sess.run(autoencoder['rho'],feed_dict={x: batch_xs})
+    sess.run(train_step, feed_dict={x: batch_xs, rho_hat: r})
     if i % 100 == 0:
-        c = sess.run(autoencoder['cost'], feed_dict={x: batch_xs})
-        print i, " cost", c
+        c = sess.run(autoencoder['cost'], feed_dict={x: batch_xs, rho_hat: r})
+        print i, " cost", c,
+        print sess.run(autoencoder['cost_kl'], feed_dict={x: batch_xs, rho_hat: r})
         x_axis = np.append(x_axis,i)
         y_axis = np.append(y_axis,c)
         # print i, " original", batch[0]
@@ -189,6 +202,7 @@ def compare(sess,data,i):
     plt.imshow(output,cmap='gray')
     plt.show()
 
+exit()
 compare(sess,mnist,2)
 plt.figure()
 plt.plot(x_axis,y_axis)
