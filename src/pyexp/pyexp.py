@@ -5,10 +5,9 @@ from time import gmtime, strftime
 pyexp
 """
 
-
-
 class PyExp:
-    def __init__(self,config=None,config_file=None):
+    def __init__(self,config=None,config_file=None,path = 'data'):
+        print 'Setting up folder structure.'
 
         """
         Configure config files
@@ -34,8 +33,6 @@ class PyExp:
         """
 
         ts = strftime("%Y_%m_%d", gmtime())
-
-        path = 'data'
         if not os.path.isdir(path):
             os.mkdir(path)
 
@@ -61,13 +58,19 @@ class PyExp:
             self.exp_path = os.path.join(path,prefix(i))
 
         os.mkdir(self.exp_path)
-        print self.config
         self.save_config()
+
+    def __getitem__(self,key):
+        # if type(key) == int:
+        #     return self.config['experiments'][key]
+        if key in self.config['global']:
+            return self.config['global'][key]
+        else:
+            return self.config[key]
 
 
     def save_config(self):
+        print 'Saving config file to', self.exp_path
         with open(os.path.join(self.exp_path,'config.yaml'), 'w') as outfile:
             outfile.write(yaml.dump(self.config, default_flow_style=False))
             outfile.close()
-
-PyExp(config_file='test.yaml')
