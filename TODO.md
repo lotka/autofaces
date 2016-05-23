@@ -1,14 +1,11 @@
-# TODO:
-* Big plan for thursday
-    * Create mangled MNIST data set
-    * Figure out if using it improves the classification
-    * Experiments:
-
-
+# TODO: FOR FRIDAY
 * Literature review
-* READ THIS LOOKS GOOD http://ufldl.stanford.edu/wiki/index.php/UFLDL_Tutorial
-* Data reporting system. I think pickle will be good so that I can re print the data nicely.
+* Use that paper to add convolutions
+* ROC shit
+* Move away from MNIST
+* Data reporting system.
 # Complete
+* READ THIS LOOKS GOOD http://ufldl.stanford.edu/wiki/index.php/UFLDL_Tutorial
 * Ask seb about autoencoder/classifier competition
 
 
