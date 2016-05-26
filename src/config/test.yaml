@@ -1,0 +1,15 @@
+global:
+    autoencoder: [700,400,300]
+    classifier: [300,10]
+    iterations: 1
+    batch_size: 100
+    test:
+runs:
+    1:
+        pre_training_batches: 0
+        alternating: True
+        combined_cost_function: False
+    2:
+        pre_training_batches: 0
+        alternating: True
+        combined_cost_function: False
