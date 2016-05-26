@@ -1,6 +1,7 @@
 import numpy as np
-import seb_data.data_array as data_array
-import misc.python_helper as pyh
+import data_array as data_array
+import python_helper as pyh
+import socket
 
 
 """
@@ -29,7 +30,10 @@ disfa_id_subj_all = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17, 18, 21, 
 disfa_basedir = {}
 disfa_basedir['win'] = ['\\\\fs-vol-hmi.doc.ic.ac.uk\\hmi\\projects\\sebastian\\DISFA']
 disfa_basedir['darwin'] = ['/Users/sebbi/Google Drive/Research/data/DISFA']
-disfa_basedir['linux'] = ['/vol/hmi/projects/sebastian/DISFA']
+if socket.gethostname() == 'ux305':
+    disfa_basedir['linux'] = ['/home/luka/Documents/DISFA']
+else:
+    disfa_basedir['linux'] = ['/vol/hmi/projects/sebastian/DISFA']
 disfa_basedir = pyh.get_path_multi_os(disfa_basedir)
 
 s = data_array.FileArray()
