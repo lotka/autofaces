@@ -1,6 +1,7 @@
 import os
 import yaml
 from time import gmtime, strftime
+import subprocess
 """
 pyexp
 """
@@ -58,6 +59,12 @@ class PyExp:
             self.exp_path = os.path.join(path,prefix(i))
 
         os.mkdir(self.exp_path)
+
+        """
+        Get git commit
+        """
+        label = subprocess.check_output(["git", "describe","--always"]).rstrip()
+        self.config['global']['commit'] = label
         self.save_config()
 
     def __getitem__(self,key):
@@ -67,6 +74,9 @@ class PyExp:
             return self.config['global'][key]
         else:
             return self.config[key]
+
+    def get_path(self):
+        return self.exp_path
 
 
     def save_config(self):
