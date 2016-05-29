@@ -1,9 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import sys
 plt.style.use('bmh')
 
-path = 'data/2016_05_29/010'
+def prefix(i,zeros):
+    s = str(i)
+    while(len(s) < zeros):
+        s = '0' + s
+    return s
+
+path = 'data/2016_05_29/' + prefix(sys.argv[1],3)
 ssv_path = os.path.join(path,'numerical_data')
 
 x_axis = np.loadtxt(os.path.join(ssv_path,'x_axis.ssv'))
@@ -47,7 +54,7 @@ def au(x_axis,auac_axis,prefix):
                 if np.isnan(auac_axis[k,i,j]):
                     auac_axis[k,i,j] = 0.0
 
-    scaling_factor = 1000
+    scaling_factor = 100
     if N > scaling_factor:
         nN = N/scaling_factor
         nxaxis = np.zeros(nN)

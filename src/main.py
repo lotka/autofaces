@@ -83,12 +83,14 @@ def main(data,experiment):
         print 'Network', experiment['network'], 'not known.'
         exit()
 
+    keep_prob = tf.placeholder(tf.float32)
+    flat_1_dropped = tf.nn.dropout(flat_1, keep_prob)
 
     W1 = weight_variable([s,3072])
     b1 = bias_variable([3072])
     print 'Fully connected matrix 1 : ', W1.get_shape(), 'with bias',b1.get_shape()
 
-    full_1 = tf.nn.relu(tf.matmul(flat_1,W1)+b1)
+    full_1 = tf.nn.relu(tf.matmul(flat_1_dropped,W1)+b1)
     print ' full_1', full_1.get_shape()
 
     W2 = weight_variable([3072,12])
@@ -150,6 +152,7 @@ def main(data,experiment):
     N = experiment['iterations']
     random_batch = experiment['batch_randomisation']
     batch_size = experiment['batch_size']
+    dropout_rate = experiment['dropout_rate']
     x_axis = np.zeros(N)
     lmsq_axis = np.zeros((2,N))
     cent_axis = np.zeros((2,N))
@@ -167,28 +170,29 @@ def main(data,experiment):
         print i
 
         batch_x, batch_y = data.train.next_batch(batch_size,random_batch)
-        train = {x: batch_x, y_: batch_y}
+        train = {x: batch_x, y_: batch_y, keep_prob : dropout_rate}
 
         t_batch_x, t_batch_y = data.test.next_batch(batch_size,random_batch)
-        test = {x: t_batch_x, y_: t_batch_y}
+        test = {x: t_batch_x, y_: t_batch_y, keep_prob : 1.0}
 
         x_axis[i] = i
 
-        sess.run(train_step, feed_dict={x: batch_x, y_: batch_y})
-        lmsq_axis[0,i],cent_axis[0,i],accu_axis[0,i] = sess.run([lmsq_loss,cross_entropy,accuracy], feed_dict={x: t_batch_x, y_: t_batch_y})
-        lmsq_axis[1,i],cent_axis[1,i],accu_axis[1,i] = sess.run([lmsq_loss,cross_entropy,accuracy], feed_dict={x: batch_x, y_: batch_y})
+        sess.run(train_step, feed_dict=train)
+        lmsq_axis[0,i],cent_axis[0,i],accu_axis[0,i] = sess.run([lmsq_loss,cross_entropy,accuracy], feed_dict=test)
+        lmsq_axis[1,i],cent_axis[1,i],accu_axis[1,i] = sess.run([lmsq_loss,cross_entropy,accuracy], feed_dict=train)
         print i,'   \t',
         print round(lmsq_axis[0,i],2),' ',
         print round(lmsq_axis[1,i],2),' ',
         print round(cent_axis[0,i],2),' ',
         print round(cent_axis[1,i],2),' '
-        y_out = sess.run(y_conv, feed_dict={x: batch_x, y_: batch_y})
+        train_y_out = sess.run(y_conv, feed_dict={x: batch_x, y_: batch_y, keep_prob: 1.0})
+        test_y_out = sess.run(y_conv, feed_dict=train)
         # print y_out
         # print batch_y
         # print ref
-        train_res, train_conf = metric.multi_eval(y_out,batch_y)
+        train_res, train_conf = metric.multi_eval(train_y_out,batch_y)
         train_auac_axis[i,:,:] = train_res
-        test_res, test_conf = metric.multi_eval(y_out,t_batch_y)
+        test_res, test_conf = metric.multi_eval(test_y_out,t_batch_y)
         test_auac_axis[i,:,:] = test_res
 
         train_confusion.append(train_conf)

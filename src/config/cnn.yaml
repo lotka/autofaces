@@ -1,13 +1,14 @@
 global:
-    iterations: 1000
+    iterations: 10000
     batch_size: 1000
     batch_randomisation: True
-    network: convolution_gudi_2015
-    # network: 'fullyconnected_subnetwork_gudi_2015'
+    # network: convolution_gudi_2015
+    network: 'fullyconnected_subnetwork_gudi_2015'
     ignore_empty_labels: True
     cost_function: cross_entropy
     threshold: 0.5
     image_size: 48
+    dropout_rate: 1.0
 data:
     # disfa or mnist (mnist is currently broken)
     dataset: disfa
