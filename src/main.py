@@ -73,13 +73,15 @@ def main(data,experiment):
         h_conv3 = tf.nn.relu(conv2d(h_conv2, W_conv3,padding="VALID") + b_conv3)
         print ' output : ', h_conv3.get_shape()
         s = 128*15*15
-        print ' flatten to ', s
-        flat_1 = tf.reshape(x_, [-1,s])
-    if experiment['network'] == 'fullyconnected_subnetwork_gudi_2015':
+        flat_1 = tf.reshape(h_conv3, [-1,s])
+        print ' flatten to ', flat_1.get_shape()
+    elif experiment['network'] == 'fullyconnected_subnetwork_gudi_2015':
         s = 48*48
         print ' flatten to ', s
         flat_1 = tf.reshape(x_, [-1,s])
-    # print h_conv3_flat.get_shape()
+    else:
+        print 'Network', experiment['network'], 'not known.'
+        exit()
 
 
     W1 = weight_variable([s,3072])
@@ -87,6 +89,7 @@ def main(data,experiment):
     print 'Fully connected matrix 1 : ', W1.get_shape(), 'with bias',b1.get_shape()
 
     full_1 = tf.nn.relu(tf.matmul(flat_1,W1)+b1)
+    print ' full_1', full_1.get_shape()
 
     W2 = weight_variable([3072,12])
     b2 = bias_variable([12])
@@ -94,14 +97,18 @@ def main(data,experiment):
     print 'Fully connected matrix 2 : ', W2.get_shape(), 'with bias',b2.get_shape()
 
     tmp = tf.nn.softmax(tf.matmul(full_1,W2) + b2)
-    y_conv = tf.transpose(tf.mul(tf.reduce_sum(tf.cast(y_,tf.float32),1),tf.transpose(tmp)))
-    # y_conv = tmp
-    #*tf.reduce_sum(y_,1))
+    if experiment['ignore_empty_labels']:
+        y_conv = tf.transpose(tf.mul(tf.reduce_sum(tf.cast(y_,tf.float32),1),tf.transpose(tmp)))
+    else:
+        y_conv = tmp
 
     print 'Output shape : ', y_conv.get_shape()
 
 
     THRESHOLD = experiment['threshold']
+    """
+    Accuracy dodgyness
+    """
     a = tf.cast(tf.greater(y_conv,THRESHOLD),tf.float32)
     b = tf.cast(tf.greater(y_,THRESHOLD),tf.float32)
     c = tf.abs(a-b)
@@ -151,29 +158,30 @@ def main(data,experiment):
     test_auac_axis = np.zeros((N,12,4))
     train_confusion = []
     test_confusion = []
-    print 'i    test    train    test    train    test    train'
-    print 'i    lmsq    lmsq    cent    cent    accu    accu'
+    print 'i    test    train    test    train'
+    print 'i    lmsq    lmsq    cent    cent'
     ref = sess.run(tf.reduce_sum(data.train.next_batch(-1,False)[1],0))
     # raw_input('Fuck off')
     path = experiment.get_path()
     for i in xrange(N):
         print i
+
         batch_x, batch_y = data.train.next_batch(batch_size,random_batch)
-        t_batch_x, t_batch_y = data.test.next_batch(batch_size,random_batch)
         train = {x: batch_x, y_: batch_y}
+
+        t_batch_x, t_batch_y = data.test.next_batch(batch_size,random_batch)
         test = {x: t_batch_x, y_: t_batch_y}
-        sess.run(train_step, feed_dict={x: batch_x, y_: batch_y})
+
         x_axis[i] = i
-        e = [lmsq_loss,cross_entropy,accuracy]
-        lmsq_axis[0,i],cent_axis[0,i],accu_axis[0,i] = sess.run(e, feed_dict={x: t_batch_x, y_: t_batch_y})
-        lmsq_axis[1,i],cent_axis[1,i],accu_axis[1,i] = sess.run(e, feed_dict={x: batch_x, y_: batch_y})
-        # print i,'   \t',
-        # print round(lmsq_axis[0,i],2),' ',
-        # print round(lmsq_axis[1,i],2),' ',
-        # print round(cent_axis[0,i],2),' ',
-        # print round(cent_axis[1,i],2),' ',
-        # print round(accu_axis[0,i],2),' ',
-        # print round(accu_axis[1,i],2),' '
+
+        sess.run(train_step, feed_dict={x: batch_x, y_: batch_y})
+        lmsq_axis[0,i],cent_axis[0,i],accu_axis[0,i] = sess.run([lmsq_loss,cross_entropy,accuracy], feed_dict={x: t_batch_x, y_: t_batch_y})
+        lmsq_axis[1,i],cent_axis[1,i],accu_axis[1,i] = sess.run([lmsq_loss,cross_entropy,accuracy], feed_dict={x: batch_x, y_: batch_y})
+        print i,'   \t',
+        print round(lmsq_axis[0,i],2),' ',
+        print round(lmsq_axis[1,i],2),' ',
+        print round(cent_axis[0,i],2),' ',
+        print round(cent_axis[1,i],2),' '
         y_out = sess.run(y_conv, feed_dict={x: batch_x, y_: batch_y})
         # print y_out
         # print batch_y

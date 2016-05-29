@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 plt.style.use('bmh')
 
-path = 'data/2016_05_29/014'
+path = 'data/2016_05_29/010'
 ssv_path = os.path.join(path,'numerical_data')
 
 x_axis = np.loadtxt(os.path.join(ssv_path,'x_axis.ssv'))
@@ -47,21 +47,23 @@ def au(x_axis,auac_axis,prefix):
                 if np.isnan(auac_axis[k,i,j]):
                     auac_axis[k,i,j] = 0.0
 
+    scaling_factor = 1000
+    if N > scaling_factor:
+        nN = N/scaling_factor
+        nxaxis = np.zeros(nN)
+        smoothed = np.zeros((nN,classes,calcs))
 
-    nN = N/1000
-    nxaxis = np.zeros(nN)
-    smoothed = np.zeros((nN,classes,calcs))
-
-    for i in xrange(classes):
-        for j in xrange(calcs):
-            for n in xrange(nN):
-                l = n*100
-                r = (n+1)*100
-                if r == N:
-                    nxaxis[n] = x_axis[r-1]
-                else:
-                    nxaxis[n] = x_axis[r]
-                smoothed[n,i,j] = auac_axis[l:r,i,j].mean()
+        for i in xrange(classes):
+            for j in xrange(calcs):
+                for n in xrange(nN):
+                    l = n*scaling_factor
+                    r = (n+1)*scaling_factor
+                    if r == N:
+                        nxaxis[n] = x_axis[r-1]
+                    else:
+                        nxaxis[n] = x_axis[r]
+                    smoothed[n,i,j] = auac_axis[l:r,i,j].mean()
+        x_axis, auac_axis = (nxaxis, smoothed)
 
     f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex='col', sharey='row')
     axes = [ax1, ax2,ax3, ax4]
@@ -69,7 +71,7 @@ def au(x_axis,auac_axis,prefix):
     for i in xrange(classes):
         for j in xrange(len(axes)):
             axes[j].set_title(titles[j])
-            axes[j].plot(nxaxis, smoothed[:,i,j],label=str(i))
+            axes[j].plot(x_axis, auac_axis[:,i,j],label=str(i))
             axes[j].set_ylim(-0.1,1.1)
     art = []
     lgd = plt.legend(loc=9, bbox_to_anchor=(-0.1, -0.1), ncol=4)

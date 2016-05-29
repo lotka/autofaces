@@ -1,15 +1,19 @@
 global:
-    iterations: 1
-    batch_size: 5
+    iterations: 1000
+    batch_size: 1000
     batch_randomisation: True
-    network: 'fullyconnected_subnetwork_gudi_2015'
+    network: convolution_gudi_2015
+    # network: 'fullyconnected_subnetwork_gudi_2015'
     ignore_empty_labels: True
-    cost_function: 'cross_entropy'
+    cost_function: cross_entropy
     threshold: 0.5
     image_size: 48
 data:
+    # disfa or mnist (mnist is currently broken)
     dataset: disfa
-    number_of_subjects: 3
-    train_prop : 1
-    valid_prop : 1
-    test_prop : 1
+    # -1 Means all the subjects
+    number_of_subjects: -1
+    # Sizes of each set relative to each other
+    train_prop : 5
+    valid_prop : 5
+    test_prop : 5
