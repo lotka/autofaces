@@ -10,4 +10,4 @@ MNIST_data/
 *.blg
 *data/
 *mnist_logs*
-*.dropbox
+*.dropbox*
