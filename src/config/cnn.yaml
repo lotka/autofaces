@@ -1,15 +1,15 @@
 global:
-    autoencoder: [700,400,300]
-    classifier: [300,10]
-    iterations: 100
-    batch_size: 100
-    test:
-runs:
-    1:
-        pre_training_batches: 0
-        alternating: True
-        combined_cost_function: False
-    2:
-        pre_training_batches: 0
-        alternating: True
-        combined_cost_function: False
+    iterations: 1
+    batch_size: 5
+    batch_randomisation: True
+    network: 'fullyconnected_subnetwork_gudi_2015'
+    ignore_empty_labels: True
+    cost_function: 'cross_entropy'
+    threshold: 0.5
+    image_size: 48
+data:
+    dataset: disfa
+    number_of_subjects: 3
+    train_prop : 1
+    valid_prop : 1
+    test_prop : 1
