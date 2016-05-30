@@ -10,7 +10,7 @@ def prefix(i,zeros):
         s = '0' + s
     return s
 
-path = 'data/2016_05_29/' + prefix(sys.argv[1],3)
+path = 'tbd/2016_05_30/' + prefix(sys.argv[1],3)
 ssv_path = os.path.join(path,'numerical_data')
 
 x_axis = np.loadtxt(os.path.join(ssv_path,'x_axis.ssv'))
