@@ -59,6 +59,7 @@ class PyExp:
             self.exp_path = os.path.join(path,prefix(i))
 
         os.mkdir(self.exp_path)
+        os.mkdir(os.path.join(self.exp_path,'images'))
 
         """
         Get git commit
@@ -66,6 +67,16 @@ class PyExp:
         label = subprocess.check_output(["git", "describe","--always"]).rstrip()
         self.config['global']['commit'] = label
         self.save_config()
+
+        """
+        Write NOT_FINISHED file
+        """
+        self.not_finished_file = os.path.join(self.exp_path,'NOT_FINISHED')
+        print 'OPENING ', self.not_finished_file
+        f = open(self.not_finished_file,'w')
+        f.write('THIS FILE MEANS THIS RUN DID NOT REACH COMPLETION')
+        f.close()
+
 
     def __getitem__(self,key):
         # if type(key) == int:
@@ -84,3 +95,12 @@ class PyExp:
         with open(os.path.join(self.exp_path,'config.yaml'), 'w') as outfile:
             outfile.write(yaml.dump(self.config, default_flow_style=False))
             outfile.close()
+
+    def finished(self):
+        os.remove(self.not_finished_file)
+        finished_file = os.path.join(self.exp_path,'FINISHED')
+        f = open(finished_file,'w')
+        f.write('RUN FINISHED')
+        f.close()
+        print 'Finished run with path: '
+        print self.exp_path

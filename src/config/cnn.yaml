@@ -1,22 +1,30 @@
 global:
-    iterations: 200
-    batch_size: 1000
+    path: data
+    iterations: 20000
+    batch_size: 100
     batch_randomisation: True
     network: convolution_gudi_2015
     # network: 'fullyconnected_subnetwork_gudi_2015'
-    ignore_empty_labels: True
+    ignore_empty_labels: False
     cost_function: cross_entropy
     threshold: 0.5
-    image_size: 48
-    dropout_rate: 0.3
+    dropout_rate: 0.1
+    # adam or gradientdescentoptimizer
     optimizer: adam
-    learning_rate: 0.01
+    learning_rate: 0.0001
+convolutions:
+    bias_start: 0.2
+    weights_start_type: std_dev # (range,constant,std_dev)
+    weights_constant: 0.0
+    weights_uniform_range : [-0.5,0.5]
+    weights_std_dev: 0.2
 data:
-    # disfa or mnist (mnist is currently broken)
+    # disfa or mnist
     dataset: disfa
     # -1 Means all the subjects
-    number_of_subjects: 3
+    number_of_subjects: -1
     # Sizes of each set relative to each other
     train_prop : 1
     valid_prop : 1
     test_prop : 1
+    random_batches : True

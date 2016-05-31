@@ -1,8 +1,11 @@
+#!/usr/bin/python
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
 import sys
-plt.style.use('bmh')
+# plt.style.use('bmh')
 
 def prefix(i,zeros):
     s = str(i)
@@ -10,7 +13,7 @@ def prefix(i,zeros):
         s = '0' + s
     return s
 
-path = 'tbd/2016_05_30/' + prefix(sys.argv[1],3)
+path = 'data/2016_05_31/' + prefix(sys.argv[1],3)
 ssv_path = os.path.join(path,'numerical_data')
 
 x_axis = np.loadtxt(os.path.join(ssv_path,'x_axis.ssv'))
@@ -54,7 +57,7 @@ def au(x_axis,auac_axis,prefix):
                 if np.isnan(auac_axis[k,i,j]):
                     auac_axis[k,i,j] = 0.0
 
-    scaling_factor = 100
+    scaling_factor = 10000000000
     if N > scaling_factor:
         nN = N/scaling_factor
         nxaxis = np.zeros(nN)

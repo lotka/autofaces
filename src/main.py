@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import tensorflow as tf
 reload(tf)
 import numpy as np
@@ -49,7 +50,8 @@ def conv_vis(i,sess,hconv,w,path,x,batch_x,keep_prob):
     v  = vis_conv(vv1,ix,iy,ch,cy,cx)
     plt.figure(figsize = (8,8))
     plt.imshow(v,cmap="Greys_r",interpolation='nearest')
-    plt.savefig(os.path.join(path,'weights_'+prefix(i,4)+'.png'),dpi=400)
+    plt.colorbar()
+    plt.savefig(os.path.join(path,'images/conv_weights_'+prefix(i,4)+'.png'),dpi=400)
 
     #  h_conv1 - processed image
     print vv2.shape
@@ -59,7 +61,10 @@ def conv_vis(i,sess,hconv,w,path,x,batch_x,keep_prob):
     v  = vis_conv(vv2,ix,iy,ch,cy,cx)
     plt.figure(figsize = (8,8))
     plt.imshow(v,cmap="Greys_r",interpolation='nearest')
-    plt.savefig(os.path.join(path,'images_'+prefix(i,4)+'.png'),dpi=400)
+    plt.colorbar()
+    plt.savefig(os.path.join(path,'images/conv_out_'+prefix(i,4)+'.png'),dpi=400)
+
+    plt.close('all')
 
 
 def prefix(i,zeros):
@@ -68,17 +73,25 @@ def prefix(i,zeros):
         s = '0' + s
     return s
 
-def main(data,experiment):
+def main(data,experiment,input_dim,output_dim):
 
-    def weight_variable(shape):
-      # initial = tf.truncated_normal(shape, stddev=0.1)
-      # return tf.Variable(initial)
-      return tf.Variable(tf.random_uniform(shape, -1.0 / math.sqrt(shape[0]), 1.0 / math.sqrt(shape[0])))
+    def weight_variable(shape,name):
+        config = experiment['convolutions']
+        if config['weights_start_type'] == 'range':
+            a,b = config['weights_uniform_range']
+            initial = tf.random_uniform(shape,a,b,name=name)
+        elif config['weights_start_type'] == 'constant':
+            initial = tf.constant(config['weights_constant'],shape=shape)
+        elif config['weights_start_type'] == 'std_dev':
+            initial = tf.truncated_normal(shape, stddev=config['weights_std_dev'])
+
+        return tf.Variable(initial,name=name)
 
     def bias_variable(shape):
-      # initial = tf.constant(0.1, shape=shape)
-      # return tf.Variable(initial)
-      return tf.Variable(tf.constant(0.1,shape=shape))
+        # initial = tf.constant(0.1, shape=shape)
+        # return tf.Variable(initial)
+        start_value = experiment['convolutions']['bias_start']
+        return tf.Variable(tf.constant(start_value,shape=shape))
 
     def conv2d(x, W,padding='SAME'):
         return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding=padding)
@@ -86,9 +99,10 @@ def main(data,experiment):
     def max_pool_layer(x,ksize,strides,layer_name,padding):
         with tf.name_scope(layer_name):
             activations = tf.nn.max_pool(x, ksize=ksize,strides=strides, padding=padding)
-            print layer_name +  ' with size: ', size, ' with stride ', strides
+            print layer_name +  ' with size: ', ksize, ' with stride ', strides
             print ' output : ', activations.get_shape()
             return activations
+
     def variable_summaries(var, name):
         """Attach a lot of summaries to a Tensor."""
         with tf.name_scope('summaries'):
@@ -106,8 +120,9 @@ def main(data,experiment):
         with tf.name_scope(layer_name):
             # This Variable will hold the state of the weights for the layer
             with tf.name_scope('weights'):
-                weights = weight_variable([input_dim, output_dim])
-                variable_summaries(weights, layer_name + '/weights')
+                name = layer_name + '/weights'
+                weights = weight_variable([input_dim, output_dim],name)
+                variable_summaries(weights,name)
             with tf.name_scope('biases'):
                 biases = bias_variable([output_dim])
                 variable_summaries(biases, layer_name + '/biases')
@@ -116,6 +131,11 @@ def main(data,experiment):
                 tf.histogram_summary(layer_name + '/pre_activations', preactivate)
             activations = act(preactivate, 'activation')
             tf.histogram_summary(layer_name + '/activations', activations)
+
+            print layer_name +  ' Shape: ', weights.get_shape(), ' with bias ', biases.get_shape()
+            shape = activations.get_shape()
+            print ' output : ', shape
+
             return activations
 
     def put_kernels_on_grid (kernel, (grid_Y, grid_X), pad=1):
@@ -145,7 +165,6 @@ def main(data,experiment):
         # print [grid_X, Y * grid_Y, X, 3]
         # print kernel.get_shape()
         x3 = tf.reshape(x2, tf.pack([grid_X, Y * grid_Y, X, NumChannels]))
-        print 'OWFJAOISJFOIAJSFOIJASF'
         # switch X and Y axes
         x4 = tf.transpose(x3, (0, 2, 1, 3))
         # organize grid on X axis
@@ -170,8 +189,9 @@ def main(data,experiment):
         with tf.name_scope(layer_name):
             # This Variable will hold the state of the weights for the layer
             with tf.name_scope('weights'):
-                weights = weight_variable(convolution_shape)
-                variable_summaries(weights, layer_name + '/weights')
+                name = layer_name + '/weights'
+                weights = weight_variable(convolution_shape,name)
+                variable_summaries(weights,name)
             with tf.name_scope('biases'):
                 biases = bias_variable([convolution_shape[-1]])
                 variable_summaries(biases, layer_name + '/biases')
@@ -193,7 +213,6 @@ def main(data,experiment):
 
             cx = 0
             cy = 0
-            print 'channels=',channels
             if channels==32:
                 cx = 8
                 cy = 4
@@ -204,12 +223,10 @@ def main(data,experiment):
                 cx = 16
                 cy = 8
 
-            print 'waaaaaaaaaaaaaaaaaaaat'
-            print channels,cx,cy
             assert channels == cx*cy
             assert cx != 0 and cy != 0
 
-            if True:
+            if False:
                 ## Prepare for visualization
                 # Take only convolutions of first image, discard convolutions for other images.
                 V = tf.slice(activations, (0, 0, 0, 0), (1, -1, -1, -1), name='slice_'+layer_name)
@@ -221,7 +238,7 @@ def main(data,experiment):
                 V = tf.reshape(V, (-1, img_size, img_size, 1))
                 tf.image_summary('a_'+ layer_name, V)
 
-            if True:
+            if False:
                 V = tf.slice(activations,(0,0,0,0),(1,-1,-1,-1))
                 V = tf.reshape(V,(iy,ix,channels))
 
@@ -237,9 +254,9 @@ def main(data,experiment):
                 V = tf.reshape(V,[1,cy*iy,cx*ix,1])
                 tf.image_summary('b_'+ layer_name, V)
 
-            if layer_name == 'Convolution_1':
-                grid = put_kernels_on_grid(weights, (8, 8),pad=2)
-                tf.image_summary('c_'+ layer_name, grid)
+            # if layer_name == 'Convolution_1':
+            #     grid = put_kernels_on_grid(weights, (8, 8),pad=2)
+            #     tf.image_summary('c_'+ layer_name, grid)
             # if layer_name == 'Convolution_2':
             #     grid = put_kernels_on_grid(weights, (8, 8),pad=1)
             #     tf.image_summary(layer_name + '/features', grid)
@@ -249,10 +266,15 @@ def main(data,experiment):
 
             return activations,weights
 
-    size = experiment['image_size']
-    x = tf.placeholder(np.float32, shape=[None, size,size],name='input')
-    x_ = tf.reshape(x, [-1,size,size,1])
-    y_ = tf.placeholder(np.float32, shape=[None, 12])
+    if type(input_dim) == type([]):
+        shape_1 = [None, input_dim[0],input_dim[1]]
+        shape_2 = [-1,input_dim[0],input_dim[1],1]
+    else:
+        shape_1 = [None, input_dim]
+        shape_2 = [-1,np.sqrt(input_dim),np.sqrt(input_dim),1]
+    x = tf.placeholder(np.float32, shape=shape_1,name='input')
+    x_ = tf.reshape(x, shape_2)
+    y_ = tf.placeholder(np.float32, shape=[None, output_dim])
 
     print 'Input: ', x_.get_shape()
     print 'Outut: ', y_.get_shape()
@@ -260,13 +282,13 @@ def main(data,experiment):
     if experiment['network'] == 'convolution_gudi_2015':
         h_conv1,w1 = cnn_layer(x_,[5, 5, 1, 64], 'VALID', 'Convolution_1')
         h_pool1 = max_pool_layer(h_conv1, ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding='SAME',layer_name='Max_Pool_1')
-        # h_conv2,_ = cnn_layer(h_pool1,[5, 5, 64, 64], 'VALID', 'Convolution_2')
-        # h_conv3,_ = cnn_layer(h_conv2,[4, 4, 64, 128], 'VALID', 'Convolution_3')
+        h_conv2,_ = cnn_layer(h_pool1,[5, 5, 64, 64], 'VALID', 'Convolution_2')
+        h_conv3,_ = cnn_layer(h_conv2,[4, 4, 64, 128], 'VALID', 'Convolution_3')
 
         with tf.name_scope('flatten'):
-            s = 128*15*15
-            s = 22*22*64
-            flat_1 = tf.reshape(h_pool1, [-1,s])
+            prev_shape = h_conv3.get_shape()
+            s = int(prev_shape[1])*int(prev_shape[2])*int(prev_shape[3])
+            flat_1 = tf.reshape(h_conv3, [-1,s])
             print ' flatten to ', flat_1.get_shape()
     elif experiment['network'] == 'fullyconnected_subnetwork_gudi_2015':
         with tf.name_scope('flatten'):
@@ -281,8 +303,8 @@ def main(data,experiment):
         keep_prob = tf.placeholder(tf.float32)
         flat_1_dropped = tf.nn.dropout(flat_1, keep_prob)
 
-    h_full_1 = nn_layer(flat_1_dropped,s,3072,'fully_connected_1')
-    y_conv_unweighted = nn_layer(h_full_1,3072,12,'output',act=tf.nn.softmax)
+    # h_full_1 = nn_layer(flat_1_dropped,s,3072,'fully_connected_1')
+    y_conv_unweighted = nn_layer(flat_1_dropped,s,output_dim,'output',act=tf.nn.softmax)
     if experiment['ignore_empty_labels']:
         with tf.name_scope('sparse_weights'):
             y_conv = tf.transpose(tf.mul(tf.reduce_sum(tf.cast(y_,tf.float32),1),tf.transpose(y_conv_unweighted)))
@@ -355,51 +377,42 @@ def main(data,experiment):
     random_batch = experiment['batch_randomisation']
     batch_size = experiment['batch_size']
     dropout_rate = experiment['dropout_rate']
-    test_period = 5
+    test_period = 10
     nN = N/test_period
     x_axis = np.zeros(nN)
     lmsq_axis = np.zeros((2,nN))
     cent_axis = np.zeros((2,nN))
     accu_axis = np.zeros((2,nN))
 
-    train_auac_axis = np.zeros((nN,12,4))
-    test_auac_axis = np.zeros((nN,12,4))
+    train_auac_axis = np.zeros((nN,output_dim,4))
+    test_auac_axis = np.zeros((nN,output_dim,4))
     train_confusion = []
     test_confusion = []
     print 'i    test    train    test    train'
     print 'i    lmsq    lmsq    cent    cent'
-    ref = sess.run(tf.reduce_sum(data.train.next_batch(-1,False)[1],0))
-    # raw_input('Fuck off')
-
+    # ref = sess.run(tf.reduce_sum(data.train.next_batch(-1,False)[1],0))
 
     for i in xrange(N):
 
         print ':',i
 
-        batch_x, batch_y = data.train.next_batch(batch_size,random_batch)
+        batch_x, batch_y = data.train.next_batch(batch_size)
         train = {x: batch_x, y_: batch_y, keep_prob : dropout_rate}
+        _train = {x: batch_x, y_: batch_y, keep_prob : 1.0}
         if (i+1) % test_period == 0:
-            conv_vis(i,sess,h_conv1,w1,path,x,batch_x,keep_prob)
             j = i/test_period
             print '-->', j
-            t_batch_x, t_batch_y = data.test.next_batch(batch_size,random_batch)
+            t_batch_x, t_batch_y = data.test.next_batch(batch_size)
             _test = {x: t_batch_x, y_: t_batch_y, keep_prob : 1.0}
-
-            batch_x, batch_y = data.test.next_batch(batch_size,random_batch)
-            _train = {x: batch_x, y_: batch_y, keep_prob : 1.0}
 
             x_axis[j] = i
 
-            # Big list of ops
-            ops = [merged,lmsq_loss,cross_entropy,accuracy,y_conv]
+            out = sess.run([lmsq_loss,cross_entropy,accuracy,y_conv], feed_dict=_test)
+            lmsq_axis[0,j],cent_axis[0,j],accu_axis[0,j],test_y_out = out
 
-            out = sess.run(ops, feed_dict=_test)
-            summary,lmsq_axis[0,j],cent_axis[0,j],accu_axis[0,j],test_y_out = out
-            test_writer.add_summary(summary, i)
-
-            out = sess.run(ops, feed_dict=_train)
-            summary,lmsq_axis[1,j],cent_axis[1,j],accu_axis[1,j],train_y_out = out
-            train_writer.add_summary(summary, i)
+            out = sess.run([lmsq_loss,cross_entropy,accuracy,y_conv], feed_dict=_train)
+            lmsq_axis[1,j],cent_axis[1,j],accu_axis[1,j],train_y_out = out
+            # train_writer.add_summary(summary, i)
 
 
             print i,'   \t',
@@ -416,20 +429,30 @@ def main(data,experiment):
 
             train_confusion.append(train_conf)
             test_confusion.append(test_conf)
-        else:  # Record train set summaries, and train
-            if i % 100 == 99:  # Record execution stats
-                run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-                run_metadata = tf.RunMetadata()
-                summary, _ = sess.run([merged, train_step],
-                                  feed_dict=train,
-                                  options=run_options,
-                                  run_metadata=run_metadata)
-                train_writer.add_run_metadata(run_metadata, 'step%d' % i)
-                train_writer.add_summary(summary, i)
-                print('Adding run metadata for', i)
-            else:  # Record a summary
-                summary, _ = sess.run([merged, train_step], feed_dict=train)
-                train_writer.add_summary(summary, i)
+
+            conv_vis(i,sess,h_conv1,w1,path,x,batch_x,keep_prob)
+
+            run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+            run_metadata = tf.RunMetadata()
+
+            summary = sess.run(merged,
+                               feed_dict=_train,
+                               options=run_options,
+                               run_metadata=run_metadata)
+            train_writer.add_run_metadata(run_metadata, 'step%d' % i)
+            train_writer.add_summary(summary, i)
+
+            summary = sess.run(merged,
+                               feed_dict=_test,
+                               options=run_options,
+                               run_metadata=run_metadata)
+            test_writer.add_run_metadata(run_metadata, 'step%d' % i)
+            test_writer.add_summary(summary, i)
+            print(experiment.get_path(), ' Adding run metadata for', i)
+        else:  # Record a summary
+            sess.run(train_step, feed_dict=train)
+            summary = sess.run(merged, feed_dict=_train)
+            train_writer.add_summary(summary, i)
 
 
     # for i in xrange(N):
@@ -483,15 +506,18 @@ def main(data,experiment):
              )
 
 
-experiment =  PyExp(config_file='config/cnn.yaml',path='tbd')
+experiment =  PyExp(config_file='config/cnn.yaml',path='data')
 if experiment['data']['dataset'] == 'disfa':
     import disfa
     data = disfa.Disfa(number_of_subjects=experiment['data']['number_of_subjects'],
                        train_prop=experiment['data']['train_prop'],
                        valid_prop=experiment['data']['valid_prop'],
-                       test_prop=experiment['data']['test_prop'])
-    main(data,experiment)
+                       test_prop=experiment['data']['test_prop'],
+                       random_batches=experiment['data']['random_batches'])
+    main(data,experiment,[48,48],12)
 else:
     from tensorflow.examples.tutorials.mnist import input_data
     mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
-    main(mnist,experiment)
+    main(mnist,experiment,28**2,10)
+
+experiment.finished()

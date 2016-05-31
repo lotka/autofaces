@@ -1,9 +1,6 @@
 # TODO: FOR FRIDAY
 * Literature review
-* Use that paper to add convolutions
-* ROC shit
 * Move away from MNIST
-* Data reporting system.
 # Complete
 * READ THIS LOOKS GOOD http://ufldl.stanford.edu/wiki/index.php/UFLDL_Tutorial
 * Ask seb about autoencoder/classifier competition
@@ -45,6 +42,7 @@ Extend the classification layer:
 LAST:
 
 pre-au eval, auc,accuracy, confuion matrix per class 12x2x2 tensor2
+subtract mean face or mean pixel?
 higher resoltion
 upper/lower face
 pre-train,convert VGG16

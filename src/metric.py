@@ -71,6 +71,7 @@ def confuse_2d(y_true,y_pred):
     return prec,recall,f1,confuse
 
 def multi_eval(y_pred,y_true,verbose=False):
+
     yp_shape = y_pred.shape
     yt_shape = y_true.shape
     assert yp_shape == yt_shape
@@ -79,10 +80,16 @@ def multi_eval(y_pred,y_true,verbose=False):
 
     for r in xrange(runs):
         for c in xrange(classes):
-            if y_pred_binary[r,c] > 0.5:
+            # y_pred.mean()+y_pred.std()
+            if y_pred_binary[r,c] > 0.1:
                 y_pred_binary[r,c] = 1.0
             else:
                 y_pred_binary[r,c] = 0.0
+
+            if y_true[r,c] > 0.1:
+                y_true[r,c] = 1.0
+            else:
+                y_true[r,c] = 0.0
 
     y_pred = y_pred.astype(float)
     y_true = y_true.astype(int)
