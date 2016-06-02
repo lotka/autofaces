@@ -1,26 +1,31 @@
 global:
+    dump_frames: True
     path: data
-    iterations: 20000
-    batch_size: 100
+    iterations: 400
+    batch_size: 1000
     batch_randomisation: True
     network: convolution_gudi_2015
-    # network: 'fullyconnected_subnetwork_gudi_2015'
+    # networks
+    #  'fullyconnected_subnetwork_gudi_2015'
+    #  'convolution_gudi_2015'
     ignore_empty_labels: False
+    # lmsq or cross_entropy
     cost_function: cross_entropy
     threshold: 0.5
-    dropout_rate: 0.1
-    # adam or gradientdescentoptimizer
+    dropout_rate: 0.05
+    # adam or grad
     optimizer: adam
-    learning_rate: 0.0001
+    # Warning grad needs higher learning rates than adam (100x)
+    learning_rate: 0.001
 convolutions:
-    bias_start: 0.2
+    bias_start: 0.1
     weights_start_type: std_dev # (range,constant,std_dev)
     weights_constant: 0.0
     weights_uniform_range : [-0.5,0.5]
     weights_std_dev: 0.2
 data:
     # disfa or mnist
-    dataset: disfa
+    dataset: mnist
     # -1 Means all the subjects
     number_of_subjects: -1
     # Sizes of each set relative to each other
@@ -28,3 +33,9 @@ data:
     valid_prop : 1
     test_prop : 1
     random_batches : True
+    # left,right,top,bottom
+    crop: [0.1,0.1,0.5,0.2]
+    resize_scale: 0.6
+    # Defaults:
+    # crop: [0,0,0,0]
+    # resize_scale: 1.0

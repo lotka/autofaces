@@ -86,6 +86,10 @@ class PyExp:
         else:
             return self.config[key]
 
+    def update(self,key,new_val):
+        self.config[key]=new_val
+        self.save_config()
+
     def get_path(self):
         return self.exp_path
 
@@ -97,6 +101,7 @@ class PyExp:
             outfile.close()
 
     def finished(self):
+        self.save_config()
         os.remove(self.not_finished_file)
         finished_file = os.path.join(self.exp_path,'FINISHED')
         f = open(finished_file,'w')

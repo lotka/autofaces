@@ -16,6 +16,7 @@ from pyexp.pyexp import PyExp
 import math
 import sys
 import math
+from os.path import join
 
 def conv_vis(i,sess,hconv,w,path,x,batch_x,keep_prob):
     # to visualize 1st conv layer Weights
@@ -51,7 +52,7 @@ def conv_vis(i,sess,hconv,w,path,x,batch_x,keep_prob):
     plt.figure(figsize = (8,8))
     plt.imshow(v,cmap="Greys_r",interpolation='nearest')
     plt.colorbar()
-    plt.savefig(os.path.join(path,'images/conv_weights_'+prefix(i,4)+'.png'),dpi=400)
+    plt.savefig(join(path,'images/conv_weights_'+prefix(i,4)+'.png'),dpi=400)
 
     #  h_conv1 - processed image
     print vv2.shape
@@ -62,7 +63,7 @@ def conv_vis(i,sess,hconv,w,path,x,batch_x,keep_prob):
     plt.figure(figsize = (8,8))
     plt.imshow(v,cmap="Greys_r",interpolation='nearest')
     plt.colorbar()
-    plt.savefig(os.path.join(path,'images/conv_out_'+prefix(i,4)+'.png'),dpi=400)
+    plt.savefig(join(path,'images/conv_out_'+prefix(i,4)+'.png'),dpi=400)
 
     plt.close('all')
 
@@ -73,24 +74,24 @@ def prefix(i,zeros):
         s = '0' + s
     return s
 
-def main(data,experiment,input_dim,output_dim):
+def main(data,config):
 
     def weight_variable(shape,name):
-        config = experiment['convolutions']
-        if config['weights_start_type'] == 'range':
-            a,b = config['weights_uniform_range']
+        conf = config['convolutions']
+        if conf['weights_start_type'] == 'range':
+            a,b = conf['weights_uniform_range']
             initial = tf.random_uniform(shape,a,b,name=name)
-        elif config['weights_start_type'] == 'constant':
-            initial = tf.constant(config['weights_constant'],shape=shape)
-        elif config['weights_start_type'] == 'std_dev':
-            initial = tf.truncated_normal(shape, stddev=config['weights_std_dev'])
+        elif conf['weights_start_type'] == 'constant':
+            initial = tf.constant(conf['weights_constant'],shape=shape)
+        elif conf['weights_start_type'] == 'std_dev':
+            initial = tf.truncated_normal(shape, stddev=conf['weights_std_dev'])
 
         return tf.Variable(initial,name=name)
 
     def bias_variable(shape):
         # initial = tf.constant(0.1, shape=shape)
         # return tf.Variable(initial)
-        start_value = experiment['convolutions']['bias_start']
+        start_value = config['convolutions']['bias_start']
         return tf.Variable(tf.constant(start_value,shape=shape))
 
     def conv2d(x, W,padding='SAME'):
@@ -265,47 +266,50 @@ def main(data,experiment,input_dim,output_dim):
             #     tf.image_summary(layer_name + '/features', grid)
 
             return activations,weights
-
+    input_dim = config['data']['image_shape']
+    output_dim = config['data']['label_size']
     if type(input_dim) == type([]):
         shape_1 = [None, input_dim[0],input_dim[1]]
         shape_2 = [-1,input_dim[0],input_dim[1],1]
     else:
         shape_1 = [None, input_dim]
-        shape_2 = [-1,np.sqrt(input_dim),np.sqrt(input_dim),1]
+        shape_2 = [-1,int(np.sqrt(input_dim)),int(np.sqrt(input_dim)),1]
     x = tf.placeholder(np.float32, shape=shape_1,name='input')
-    x_ = tf.reshape(x, shape_2)
+    x_ = tf.reshape(x, shape=shape_2)
     y_ = tf.placeholder(np.float32, shape=[None, output_dim])
 
     print 'Input: ', x_.get_shape()
     print 'Outut: ', y_.get_shape()
-    convolution_network = False
-    if experiment['network'] == 'convolution_gudi_2015':
+
+    if config['network'] == 'convolution_gudi_2015':
         h_conv1,w1 = cnn_layer(x_,[5, 5, 1, 64], 'VALID', 'Convolution_1')
-        h_pool1 = max_pool_layer(h_conv1, ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding='SAME',layer_name='Max_Pool_1')
-        h_conv2,_ = cnn_layer(h_pool1,[5, 5, 64, 64], 'VALID', 'Convolution_2')
-        h_conv3,_ = cnn_layer(h_conv2,[4, 4, 64, 128], 'VALID', 'Convolution_3')
+        # h_pool1 = max_pool_layer(h_conv1, ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding='SAME',layer_name='Max_Pool_1')
+        # h_conv2,_ = cnn_layer(h_pool1,[5, 5, 64, 64], 'VALID', 'Convolution_2')
+        # h_conv3,_ = cnn_layer(h_conv2,[4, 4, 64, 128], 'VALID', 'Convolution_3')
 
         with tf.name_scope('flatten'):
-            prev_shape = h_conv3.get_shape()
+            prev_shape = h_conv1.get_shape()
             s = int(prev_shape[1])*int(prev_shape[2])*int(prev_shape[3])
-            flat_1 = tf.reshape(h_conv3, [-1,s])
+            flat_1 = tf.reshape(h_conv1, [-1,s])
             print ' flatten to ', flat_1.get_shape()
-    elif experiment['network'] == 'fullyconnected_subnetwork_gudi_2015':
+    elif config['network'] == 'fullyconnected_subnetwork_gudi_2015':
         with tf.name_scope('flatten'):
-            s = 48*48
+            prev_shape = x_.get_shape()
+            s = int(prev_shape[1])*int(prev_shape[2])*int(prev_shape[3])
+            print s
             print ' flatten to ', s
             flat_1 = tf.reshape(x_, [-1,s])
     else:
-        print 'Network', experiment['network'], 'not known.'
+        print 'Network', config['network'], 'not known.'
         exit()
 
     with tf.name_scope('dropout'):
         keep_prob = tf.placeholder(tf.float32)
         flat_1_dropped = tf.nn.dropout(flat_1, keep_prob)
 
-    # h_full_1 = nn_layer(flat_1_dropped,s,3072,'fully_connected_1')
-    y_conv_unweighted = nn_layer(flat_1_dropped,s,output_dim,'output',act=tf.nn.softmax)
-    if experiment['ignore_empty_labels']:
+    h_full_1 = nn_layer(flat_1_dropped,s,100,'fully_connected_1')
+    y_conv_unweighted = nn_layer(h_full_1,100,output_dim,'output',act=tf.nn.softmax)
+    if config['ignore_empty_labels']:
         with tf.name_scope('sparse_weights'):
             y_conv = tf.transpose(tf.mul(tf.reduce_sum(tf.cast(y_,tf.float32),1),tf.transpose(y_conv_unweighted)))
     else:
@@ -314,7 +318,7 @@ def main(data,experiment,input_dim,output_dim):
     print 'Output shape : ', y_conv.get_shape()
 
 
-    THRESHOLD = experiment['threshold']
+    THRESHOLD = config['threshold']
     """
     Accuracy dodgyness
     """
@@ -333,13 +337,13 @@ def main(data,experiment,input_dim,output_dim):
             cross_entropy = -tf.reduce_sum(y_*tf.log(tf.clip_by_value(y_conv,1e-10,1.0)))
             tf.scalar_summary('loss/cross entropy', cross_entropy)
 
-        r = experiment['learning_rate']
-        if experiment['cost_function'] == 'cross_entropy':
+        r = config['learning_rate']
+        if config['cost_function'] == 'cross_entropy':
             loss = cross_entropy
         else:
             loss = lmsq_loss
 
-        if experiment['optimizer'] == 'adam':
+        if config['optimizer'] == 'adam':
             train_step = tf.train.AdamOptimizer(r).minimize(loss)
         else:
             train_step = tf.train.GradientDescentOptimizer(r).minimize(loss)
@@ -347,14 +351,14 @@ def main(data,experiment,input_dim,output_dim):
     if socket.gethostname() == 'ux305':
         sess = tf.Session()
     else:
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth=True
-        sess = tf.Session(config=config)
+        tensorflow_config = tf.ConfigProto()
+        tensorflow_config.gpu_options.allow_growth=True
+        sess = tf.Session(config=tensorflow_config)
 
-    path = experiment.get_path()
+    path = config.get_path()
     merged = tf.merge_all_summaries()
-    train_writer = tf.train.SummaryWriter(os.path.join(path,'train'),sess.graph)
-    test_writer = tf.train.SummaryWriter(os.path.join(path,'test'))
+    train_writer = tf.train.SummaryWriter(join(path,'train'),sess.graph)
+    validation_writer = tf.train.SummaryWriter(join(path,'validation'))
 
     init = tf.initialize_all_variables()
     sess.run(init)
@@ -373,10 +377,10 @@ def main(data,experiment,input_dim,output_dim):
                 print '?',
         print
 
-    N = experiment['iterations']
-    random_batch = experiment['batch_randomisation']
-    batch_size = experiment['batch_size']
-    dropout_rate = experiment['dropout_rate']
+    N = config['iterations']
+    random_batch = config['batch_randomisation']
+    batch_size = config['batch_size']
+    dropout_rate = config['dropout_rate']
     test_period = 10
     nN = N/test_period
     x_axis = np.zeros(nN)
@@ -385,10 +389,10 @@ def main(data,experiment,input_dim,output_dim):
     accu_axis = np.zeros((2,nN))
 
     train_auac_axis = np.zeros((nN,output_dim,4))
-    test_auac_axis = np.zeros((nN,output_dim,4))
+    validation_auac_axis = np.zeros((nN,output_dim,4))
     train_confusion = []
-    test_confusion = []
-    print 'i    test    train    test    train'
+    validation_confusion = []
+    print 'i    validation    train    validation    train'
     print 'i    lmsq    lmsq    cent    cent'
     # ref = sess.run(tf.reduce_sum(data.train.next_batch(-1,False)[1],0))
 
@@ -402,13 +406,13 @@ def main(data,experiment,input_dim,output_dim):
         if (i+1) % test_period == 0:
             j = i/test_period
             print '-->', j
-            t_batch_x, t_batch_y = data.test.next_batch(batch_size)
-            _test = {x: t_batch_x, y_: t_batch_y, keep_prob : 1.0}
+            vbatch_x, vbatch_y = data.validation.next_batch(batch_size)
+            _validation = {x: vbatch_x, y_: vbatch_y, keep_prob : 1.0}
 
             x_axis[j] = i
 
-            out = sess.run([lmsq_loss,cross_entropy,accuracy,y_conv], feed_dict=_test)
-            lmsq_axis[0,j],cent_axis[0,j],accu_axis[0,j],test_y_out = out
+            out = sess.run([lmsq_loss,cross_entropy,accuracy,y_conv], feed_dict=_validation)
+            lmsq_axis[0,j],cent_axis[0,j],accu_axis[0,j],validation_y_out = out
 
             out = sess.run([lmsq_loss,cross_entropy,accuracy,y_conv], feed_dict=_train)
             lmsq_axis[1,j],cent_axis[1,j],accu_axis[1,j],train_y_out = out
@@ -424,13 +428,14 @@ def main(data,experiment,input_dim,output_dim):
             train_res, train_conf = metric.multi_eval(train_y_out,batch_y)
             train_auac_axis[j,:,:] = train_res
 
-            test_res, test_conf = metric.multi_eval(test_y_out,t_batch_y)
-            test_auac_axis[j,:,:] = test_res
+            validation_res, validation_conf = metric.multi_eval(validation_y_out,vbatch_y)
+            validation_auac_axis[j,:,:] = validation_res
 
             train_confusion.append(train_conf)
-            test_confusion.append(test_conf)
+            validation_confusion.append(validation_conf)
 
-            conv_vis(i,sess,h_conv1,w1,path,x,batch_x,keep_prob)
+            if 'h_conv1' in locals():
+                conv_vis(i,sess,h_conv1,w1,path,x,batch_x,keep_prob)
 
             run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
             run_metadata = tf.RunMetadata()
@@ -443,81 +448,94 @@ def main(data,experiment,input_dim,output_dim):
             train_writer.add_summary(summary, i)
 
             summary = sess.run(merged,
-                               feed_dict=_test,
+                               feed_dict=_validation,
                                options=run_options,
                                run_metadata=run_metadata)
-            test_writer.add_run_metadata(run_metadata, 'step%d' % i)
-            test_writer.add_summary(summary, i)
-            print(experiment.get_path(), ' Adding run metadata for', i)
+            validation_writer.add_run_metadata(run_metadata, 'step%d' % i)
+            validation_writer.add_summary(summary, i)
+            print(config.get_path(), ' Adding run metadata for', i)
         else:  # Record a summary
             sess.run(train_step, feed_dict=train)
             summary = sess.run(merged, feed_dict=_train)
             train_writer.add_summary(summary, i)
 
 
-    # for i in xrange(N):
-    #     print i
-    #
-    #     batch_x, batch_y = data.train.next_batch(batch_size,random_batch)
-    #     train = {x: batch_x, y_: batch_y, keep_prob : dropout_rate}
-    #
-    #     t_batch_x, t_batch_y = data.test.next_batch(batch_size,random_batch)
-    #     test = {x: t_batch_x, y_: t_batch_y, keep_prob : 1.0}
-    #
-    #     x_axis[i] = i
-    #
-    #     sess.run(train_step, feed_dict=train)
-    #     lmsq_axis[0,i],cent_axis[0,i],accu_axis[0,i] = sess.run([lmsq_loss,cross_entropy,accuracy], feed_dict=test)
-    #     lmsq_axis[1,i],cent_axis[1,i],accu_axis[1,i] = sess.run([lmsq_loss,cross_entropy,accuracy], feed_dict=train)
-    #     print i,'   \t',
-    #     print round(lmsq_axis[0,i],2),' ',
-    #     print round(lmsq_axis[1,i],2),' ',
-    #     print round(cent_axis[0,i],2),' ',
-    #     print round(cent_axis[1,i],2),' '
-    #     train_y_out = sess.run(y_conv, feed_dict={x: batch_x, y_: batch_y, keep_prob: 1.0})
-    #     test_y_out = sess.run(y_conv, feed_dict=train)
-    #     # print y_out
-    #     # print batch_y
-    #     # print ref
-    #     train_res, train_conf = metric.multi_eval(train_y_out,batch_y)
-    #     train_auac_axis[i,:,:] = train_res
-    #     test_res, test_conf = metric.multi_eval(test_y_out,t_batch_y)
-    #     test_auac_axis[i,:,:] = test_res
-    #
-    #     train_confusion.append(train_conf)
-    #     test_confusion.append(test_conf)
-    #
-    #     # print res,
-    #     # print
+
+    thresholds = 20
+    threshold_values = np.linspace(0,thresholds,thresholds)/float(thresholds)
+    test_threshold_data = np.zeros((thresholds,output_dim,4))
+    batch_x, batch_y = data.test.next_batch(-1)
+    f = {x: batch_x, y_: batch_y, keep_prob : 1.0}
+    y_out = sess.run(y_conv, feed_dict=f)
+    for i in xrange(thresholds):
+        print threshold_values[i]
+        results, confusion = metric.multi_eval(y_out,
+                                               batch_y,
+                                               threshold_values[i])
+        test_threshold_data[i,:,:] = results
+
+
+
+
+
+
+    """
+    Save the model
+    """
+    saver = tf.train.Saver()
+    p = join(config.get_path(),'model')
+    if not os.path.isdir(p):
+        os.mkdir(p)
+
+    save_path = saver.save(sess, join(p,'model.ckpt'))
+    print("Model saved in file: %s" % save_path)
     sess.close()
 
-    ssv_path = os.path.join(path,'numerical_data')
+    """
+    Save results
+    """
+
+    ssv_path = join(path,'numerical_data')
     if not os.path.isdir(ssv_path):
         os.mkdir(ssv_path)
-    np.savetxt(os.path.join(ssv_path,'x_axis.ssv'),x_axis)
-    np.savetxt(os.path.join(ssv_path,'lmsq.ssv'),lmsq_axis)
-    np.savetxt(os.path.join(ssv_path,'cross_entropy.ssv'),cent_axis)
-    np.savetxt(os.path.join(ssv_path,'naive_accuracy.ssv'),accu_axis)
-    np.savez(os.path.join(ssv_path,'per_au_accuracy.npz'),
+    np.savetxt(join(ssv_path,'x_axis.ssv'),x_axis)
+    np.savetxt(join(ssv_path,'lmsq.ssv'),lmsq_axis)
+    np.savetxt(join(ssv_path,'cross_entropy.ssv'),cent_axis)
+    np.savetxt(join(ssv_path,'naive_accuracy.ssv'),accu_axis)
+    np.savez(join(ssv_path,'per_au_accuracy.npz'),
              train_metrics=train_auac_axis,
-             test_metrics=test_auac_axis,
+             validation_metrics=validation_auac_axis,
              train_confusion=train_confusion,
-             test_confusion=test_confusion
+             validation_confusion=validation_confusion,
+             threshold_values=threshold_values,
+             test_threshold_data=test_threshold_data
              )
 
 
-experiment =  PyExp(config_file='config/cnn.yaml',path='data')
-if experiment['data']['dataset'] == 'disfa':
+config =  PyExp(config_file='config/cnn.yaml',path='data')
+if config['data']['dataset'] == 'disfa':
     import disfa
-    data = disfa.Disfa(number_of_subjects=experiment['data']['number_of_subjects'],
-                       train_prop=experiment['data']['train_prop'],
-                       valid_prop=experiment['data']['valid_prop'],
-                       test_prop=experiment['data']['test_prop'],
-                       random_batches=experiment['data']['random_batches'])
-    main(data,experiment,[48,48],12)
+    data = disfa.Disfa(config['data'])
+    config.update('data',data.config)
+
+    if config['dump_frames']:
+        im,lb = data.train.next_batch(1000)
+        for i in xrange(10):
+            plt.figure()
+            # print i,im[i].shape[0]*im[i].shape[1], 48**2
+            print i, lb[i]
+            plt.imshow(im[i],vmax=10.0,vmin=-10.0)#,cmap="Greys_r",interpolation='nearest')
+            plt.colorbar()
+            plt.title(str(lb[i]))
+            plt.savefig(join(config.get_path(),'images/face_'+str(i)+'.png'),dpi=100)
+            plt.close('all')
+
+    main(data,config)
 else:
     from tensorflow.examples.tutorials.mnist import input_data
     mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
-    main(mnist,experiment,28**2,10)
+    config['data']['image_shape'] = int(28**2)
+    config['data']['label_size'] = int(10)
+    main(mnist,config)
 
-experiment.finished()
+config.finished()

@@ -13,7 +13,7 @@ def prefix(i,zeros):
         s = '0' + s
     return s
 
-path = 'data/2016_05_31/' + prefix(sys.argv[1],3)
+path = 'data/2016_06_02/' + prefix(sys.argv[1],3)
 ssv_path = os.path.join(path,'numerical_data')
 
 x_axis = np.loadtxt(os.path.join(ssv_path,'x_axis.ssv'))
@@ -21,12 +21,14 @@ lmsq_axis = np.loadtxt(os.path.join(ssv_path,'lmsq.ssv'))
 cent_axis = np.loadtxt(os.path.join(ssv_path,'cross_entropy.ssv'))
 accu_axis = np.loadtxt(os.path.join(ssv_path,'naive_accuracy.ssv'))
 per_au = np.load(os.path.join(ssv_path,'per_au_accuracy.npz'))
-test_auac_axis = per_au['test_metrics']
+validation_auac_axis = per_au['validation_metrics']
 train_auac_axis = per_au['train_metrics']
+threshold_values = per_au['threshold_values']
+test_threshold_data = per_au['test_threshold_data']
 
 plt.figure()
 plt.title('Least mean squared error')
-plt.plot(x_axis,lmsq_axis[0,:],label='test')
+plt.plot(x_axis,lmsq_axis[0,:],label='validation')
 plt.plot(x_axis,lmsq_axis[1,:],label='train')
 plt.ylim(-0.1,1.1)
 plt.legend()
@@ -34,7 +36,7 @@ plt.savefig(os.path.join(path,'lmsq.png'),dpi=400)
 
 plt.figure()
 plt.title('Cross entropy')
-plt.plot(x_axis,cent_axis[0,:],label='test')
+plt.plot(x_axis,cent_axis[0,:],label='validation')
 plt.plot(x_axis,cent_axis[1,:],label='train')
 plt.legend()
 plt.ylim(-1.0,cent_axis.max()+1.0)
@@ -42,7 +44,7 @@ plt.savefig(os.path.join(path,'cross_entropy.png'),dpi=400)
 
 plt.figure()
 plt.title('Naive accuracy')
-plt.plot(x_axis,accu_axis[0,:],label='test')
+plt.plot(x_axis,accu_axis[0,:],label='validation')
 plt.plot(x_axis,accu_axis[1,:],label='train')
 plt.ylim(-0.1,1.1)
 plt.legend()
@@ -97,4 +99,6 @@ def au(x_axis,auac_axis,prefix):
         bbox_inches="tight")
 
 au(x_axis,train_auac_axis,'train')
-au(x_axis,test_auac_axis,'test')
+au(x_axis,validation_auac_axis,'validation')
+print threshold_values
+au(threshold_values,test_threshold_data,'test')

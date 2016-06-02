@@ -70,10 +70,12 @@ def confuse_2d(y_true,y_pred):
         f1 = hmean([prec,recall])
     return prec,recall,f1,confuse
 
-def multi_eval(y_pred,y_true,verbose=False):
+def multi_eval(y_pred,y_true,threshold=0.6):
 
     yp_shape = y_pred.shape
     yt_shape = y_true.shape
+    print yp_shape
+    print yt_shape
     assert yp_shape == yt_shape
     runs, classes = yt_shape
     y_pred_binary = y_pred.copy()
@@ -81,12 +83,12 @@ def multi_eval(y_pred,y_true,verbose=False):
     for r in xrange(runs):
         for c in xrange(classes):
             # y_pred.mean()+y_pred.std()
-            if y_pred_binary[r,c] > 0.1:
+            if y_pred_binary[r,c] > threshold:
                 y_pred_binary[r,c] = 1.0
             else:
                 y_pred_binary[r,c] = 0.0
 
-            if y_true[r,c] > 0.1:
+            if y_true[r,c] > threshold:
                 y_true[r,c] = 1.0
             else:
                 y_true[r,c] = 0.0
@@ -100,8 +102,16 @@ def multi_eval(y_pred,y_true,verbose=False):
     confusion_matrices = []
     for i in xrange(classes):
         prec,recall,f1,confuse = confuse_2d(y_true[:,i],y_pred_binary[:,i])
-        fpr, tpr, thresholds = roc_curve(y_true[:,i],y_pred[:,i])
-        roc_auc = auc(fpr, tpr)
+        a = y_true[:,i].sum() != 0
+        b = y_true[:,i].sum() != len(y_true[:,i])
+        c = y_pred[:,i].sum() != 0
+        d = y_pred[:,i].sum() != len(y_pred[:,i])
+        if a and b and c and d:
+            # print 'SUMS', y_true[:,i].sum(), y_pred[:,i].sum()
+            fpr, tpr, thresholds = roc_curve(y_true[:,i],y_pred[:,i])
+            roc_auc = auc(fpr, tpr)
+        else:
+            roc_auc = 0
         res[i,0] = prec
         res[i,1] = recall
         res[i,2] = f1
