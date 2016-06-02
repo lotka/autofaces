@@ -70,12 +70,10 @@ def confuse_2d(y_true,y_pred):
         f1 = hmean([prec,recall])
     return prec,recall,f1,confuse
 
-def multi_eval(y_pred,y_true,threshold=0.6):
+def multi_eval(y_pred,y_true,threshold=0.4):
 
     yp_shape = y_pred.shape
     yt_shape = y_true.shape
-    print yp_shape
-    print yt_shape
     assert yp_shape == yt_shape
     runs, classes = yt_shape
     y_pred_binary = y_pred.copy()
@@ -88,7 +86,7 @@ def multi_eval(y_pred,y_true,threshold=0.6):
             else:
                 y_pred_binary[r,c] = 0.0
 
-            if y_true[r,c] > threshold:
+            if y_true[r,c] > 0.3:
                 y_true[r,c] = 1.0
             else:
                 y_true[r,c] = 0.0
@@ -107,7 +105,6 @@ def multi_eval(y_pred,y_true,threshold=0.6):
         c = y_pred[:,i].sum() != 0
         d = y_pred[:,i].sum() != len(y_pred[:,i])
         if a and b and c and d:
-            # print 'SUMS', y_true[:,i].sum(), y_pred[:,i].sum()
             fpr, tpr, thresholds = roc_curve(y_true[:,i],y_pred[:,i])
             roc_auc = auc(fpr, tpr)
         else:

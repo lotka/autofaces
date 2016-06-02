@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import etc
 import tensorflow as tf
 reload(tf)
 import numpy as np
@@ -47,7 +48,7 @@ def conv_vis(i,sess,hconv,w,path,x,batch_x,keep_prob):
     ch = int(shape[3])
     cy = 8   # grid from channels:  32 = 4x8
     cx = 8
-    print ix,iy,cs,ch,cy,cx
+    # print ix,iy,cs,ch,cy,cx
     v  = vis_conv(vv1,ix,iy,ch,cy,cx)
     plt.figure(figsize = (8,8))
     plt.imshow(v,cmap="Greys_r",interpolation='nearest')
@@ -55,7 +56,7 @@ def conv_vis(i,sess,hconv,w,path,x,batch_x,keep_prob):
     plt.savefig(join(path,'images/conv_weights_'+prefix(i,4)+'.png'),dpi=400)
 
     #  h_conv1 - processed image
-    print vv2.shape
+    # print vv2.shape
     ix = vv2.shape[0]
     iy = vv2.shape[1]
     ch = vv2.shape[2]
@@ -392,20 +393,29 @@ def main(data,config):
     validation_auac_axis = np.zeros((nN,output_dim,4))
     train_confusion = []
     validation_confusion = []
-    print 'i    validation    train    validation    train'
-    print 'i    lmsq    lmsq    cent    cent'
-    # ref = sess.run(tf.reduce_sum(data.train.next_batch(-1,False)[1],0))
 
-    for i in xrange(N):
+    def nice_seconds(t):
+        if t < 60.0:
+            result = str(round(t,1)) + ' seconds'
+        elif t < 60**2:
+            result = str(round(t/60.0,1)) + ' minutes'
+        elif t < 60**3:
+            result = str(round(t/(60.0**2),1)) + ' hours'
+        else:
+            result = str(t/(round(24.0*60.0**2,1))) + ' days'
+        return result
 
-        print ':',i
+    for i, pi in etc.range(N,info_frequency=5):
+        if pi:
+            e = pi.elapsed_time
+            r = pi.time_remaining()
+            print  i,'/',N,'Time elapsed:', nice_seconds(e), 'time remaining:', nice_seconds(r)
 
         batch_x, batch_y = data.train.next_batch(batch_size)
         train = {x: batch_x, y_: batch_y, keep_prob : dropout_rate}
         _train = {x: batch_x, y_: batch_y, keep_prob : 1.0}
         if (i+1) % test_period == 0:
             j = i/test_period
-            print '-->', j
             vbatch_x, vbatch_y = data.validation.next_batch(batch_size)
             _validation = {x: vbatch_x, y_: vbatch_y, keep_prob : 1.0}
 
@@ -417,13 +427,6 @@ def main(data,config):
             out = sess.run([lmsq_loss,cross_entropy,accuracy,y_conv], feed_dict=_train)
             lmsq_axis[1,j],cent_axis[1,j],accu_axis[1,j],train_y_out = out
             # train_writer.add_summary(summary, i)
-
-
-            print i,'   \t',
-            print round(lmsq_axis[0,j],2),' ',
-            print round(lmsq_axis[1,j],2),' ',
-            print round(cent_axis[0,j],2),' ',
-            print round(cent_axis[1,j],2),' '
 
             train_res, train_conf = metric.multi_eval(train_y_out,batch_y)
             train_auac_axis[j,:,:] = train_res
@@ -454,6 +457,11 @@ def main(data,config):
             validation_writer.add_run_metadata(run_metadata, 'step%d' % i)
             validation_writer.add_summary(summary, i)
             print(config.get_path(), ' Adding run metadata for', i)
+            print i,'   \t',
+            print round(lmsq_axis[0,j],2),' ',
+            print round(lmsq_axis[1,j],2),' ',
+            print round(cent_axis[0,j],2),' ',
+            print round(cent_axis[1,j],2),' '
         else:  # Record a summary
             sess.run(train_step, feed_dict=train)
             summary = sess.run(merged, feed_dict=_train)
@@ -464,19 +472,25 @@ def main(data,config):
     thresholds = 20
     threshold_values = np.linspace(0,thresholds,thresholds)/float(thresholds)
     test_threshold_data = np.zeros((thresholds,output_dim,4))
-    batch_x, batch_y = data.test.next_batch(-1)
-    f = {x: batch_x, y_: batch_y, keep_prob : 1.0}
-    y_out = sess.run(y_conv, feed_dict=f)
+
+
+
+    batches = int(data.test.labels.shape[0]/100)
+    y_out = np.zeros((data.test.labels.shape[0],data.test.labels.shape[1]))
+    for i in xrange(100):
+        l = batches*i
+        if i == 99:
+            r = data.test.labels.shape[0]
+        else:
+            r = batches*(i+1)
+        f = {x: data.test.images[l:r,:,:], y_: data.test.labels[l:r,:], keep_prob : 1.0}
+        y_out[l:r,:] = sess.run(y_conv, feed_dict=f)
+
     for i in xrange(thresholds):
-        print threshold_values[i]
         results, confusion = metric.multi_eval(y_out,
-                                               batch_y,
+                                               data.test.labels,
                                                threshold_values[i])
         test_threshold_data[i,:,:] = results
-
-
-
-
 
 
     """
