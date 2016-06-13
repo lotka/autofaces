@@ -287,6 +287,7 @@ def main(data,config):
         # h_pool1 = max_pool_layer(h_conv1, ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding='SAME',layer_name='Max_Pool_1')
         # h_conv2,_ = cnn_layer(h_pool1,[5, 5, 64, 64], 'VALID', 'Convolution_2')
         # h_conv3,_ = cnn_layer(h_conv2,[4, 4, 64, 128], 'VALID', 'Convolution_3')
+        # http://stats.stackexchange.com/questions/65877/convergence-of-neural-network-weights
 
         with tf.name_scope('flatten'):
             prev_shape = h_conv1.get_shape()
@@ -308,8 +309,8 @@ def main(data,config):
         keep_prob = tf.placeholder(tf.float32)
         flat_1_dropped = tf.nn.dropout(flat_1, keep_prob)
 
-    h_full_1 = nn_layer(flat_1_dropped,s,100,'fully_connected_1')
-    y_conv_unweighted = nn_layer(h_full_1,100,output_dim,'output',act=tf.nn.softmax)
+    h_full_1 = nn_layer(flat_1_dropped,s,3072,'fully_connected_1')
+    y_conv_unweighted = nn_layer(h_full_1,3072,output_dim,'output',act=tf.nn.softmax)
     if config['ignore_empty_labels']:
         with tf.name_scope('sparse_weights'):
             y_conv = tf.transpose(tf.mul(tf.reduce_sum(tf.cast(y_,tf.float32),1),tf.transpose(y_conv_unweighted)))

@@ -13,7 +13,7 @@ def prefix(i,zeros):
         s = '0' + s
     return s
 
-path = 'data/2016_06_02/' + prefix(sys.argv[1],3)
+path = '' + prefix(sys.argv[1],3)
 ssv_path = os.path.join(path,'numerical_data')
 
 x_axis = np.loadtxt(os.path.join(ssv_path,'x_axis.ssv'))
@@ -33,6 +33,7 @@ plt.plot(x_axis,lmsq_axis[1,:],label='train')
 plt.ylim(-0.1,1.1)
 plt.legend()
 plt.savefig(os.path.join(path,'lmsq.png'),dpi=400)
+plt.savefig(os.path.join(path,'lmsq.pdf'))
 
 plt.figure()
 plt.title('Cross entropy')
@@ -41,6 +42,7 @@ plt.plot(x_axis,cent_axis[1,:],label='train')
 plt.legend()
 plt.ylim(-1.0,cent_axis.max()+1.0)
 plt.savefig(os.path.join(path,'cross_entropy.png'),dpi=400)
+plt.savefig(os.path.join(path,'cross_entropy.pdf'))
 
 plt.figure()
 plt.title('Naive accuracy')
@@ -49,6 +51,7 @@ plt.plot(x_axis,accu_axis[1,:],label='train')
 plt.ylim(-0.1,1.1)
 plt.legend()
 plt.savefig(os.path.join(path,'accuracy.png'),dpi=400)
+plt.savefig(os.path.join(path,'accuracy.pdf'))
 
 def au(x_axis,auac_axis,prefix):
 
@@ -96,6 +99,9 @@ def au(x_axis,auac_axis,prefix):
     plt.setp(labels, rotation=30, fontsize=10)
     plt.savefig(
         os.path.join(path,prefix+'_per_au.png'),dpi=400, additional_artists=art,
+        bbox_inches="tight")
+    plt.savefig(
+        os.path.join(path,prefix+'_per_au.pdf'),additional_artists=art,
         bbox_inches="tight")
 
 au(x_axis,train_auac_axis,'train')

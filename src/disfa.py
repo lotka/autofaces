@@ -42,6 +42,9 @@ class Batch:
                 idx = self.idx[:n]
             else:
                 idx = np.random.randint(0,self.N,size=n)
+                """
+                USE random.choice!
+                """
 
             res =  self.images[idx,:,:], self.labels[idx,:]
         else:

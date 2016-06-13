@@ -1,7 +1,7 @@
 global:
     dump_frames: True
     path: data
-    iterations: 200
+    iterations: 1800
     ignore_empty_labels: True
     batch_size: 1000
     batch_randomisation: True
@@ -28,7 +28,7 @@ data:
     # disfa or mnist
     dataset: disfa
     # -1 Means all the subjects
-    number_of_subjects: 12
+    number_of_subjects: -1
     # Sizes of each set relative to each other
     train_prop : 5
     valid_prop : 2
