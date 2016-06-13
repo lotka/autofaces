@@ -29,7 +29,7 @@ class Batch:
         if type == 'validation':
             self.idx = np.random.randint(0,self.N,size=self.N)
 
-        print 'NUMBER OF SAMPELS IN BATCH:'
+        print 'NUMBER OF SAMPLES IN BATCH:'
         print self.N
 
     def next_batch(self,n,overwrite_random=False):
@@ -41,7 +41,8 @@ class Batch:
             if self.type == 'validation':
                 idx = self.idx[:n]
             else:
-                idx = np.random.randint(0,self.N,size=n)
+                # idx = np.random.randint(0,self.N,size=n)
+                idx = np.random.choice(self.N,n,replace=False)
                 """
                 USE random.choice!
                 """
@@ -77,9 +78,6 @@ class Disfa:
         if option == 'pixel':
             return (images - np.ones(images.shape)*images.mean())/images.std()
         else:
-            """
-            UNTESTED
-            """
             N = images.shape[0]
             mean_face = images.mean(axis=0)
             stdd_face = images.std(axis=0)
@@ -140,7 +138,7 @@ class Disfa:
         all_labels, labels_id_array = data_array.IndicesCollection(disfa.disfa_ic_all).getitem(disfa.disfa['AUall'])
 
         """
-        Note: I load all the labels because it was easier to write and they are very small
+        Note: I load all the labels because it was easier to write and they have a small footprint
         """
 
         all_labels = all_labels.astype(float)
