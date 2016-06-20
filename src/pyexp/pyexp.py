@@ -7,7 +7,7 @@ pyexp
 """
 
 class PyExp:
-    def __init__(self,config=None,config_file=None,path = 'data'):
+    def __init__(self,config=None,config_file=None,path = 'data',make_new=True):
         print 'Setting up folder structure.'
 
         """
@@ -28,54 +28,54 @@ class PyExp:
                     self.config = yaml.load(stream)
                 except yaml.YAMLError as exc:
                     print exc
+        if make_new:
+            """
+            Setup folder structures
+            """
 
-        """
-        Setup folder structures
-        """
+            ts = strftime("%Y_%m_%d", gmtime())
+            if not os.path.isdir(path):
+                os.mkdir(path)
 
-        ts = strftime("%Y_%m_%d", gmtime())
-        if not os.path.isdir(path):
-            os.mkdir(path)
+            path = os.path.join(path,ts)
+            if not os.path.isdir(path):
+                os.mkdir(path)
 
-        path = os.path.join(path,ts)
-        if not os.path.isdir(path):
-            os.mkdir(path)
+            def prefix(i):
+                assert i < 1000
 
-        def prefix(i):
-            assert i < 1000
-
-            if i < 10:
-                return '00' + str(i)
-            if i < 100:
-                return '0' + str(i)
-            else:
-                return str(i)
+                if i < 10:
+                    return '00' + str(i)
+                if i < 100:
+                    return '0' + str(i)
+                else:
+                    return str(i)
 
 
-        i = 1
-        self.exp_path = os.path.join(path,prefix(i))
-        while os.path.isdir(self.exp_path):
-            i += 1
+            i = 1
             self.exp_path = os.path.join(path,prefix(i))
+            while os.path.isdir(self.exp_path):
+                i += 1
+                self.exp_path = os.path.join(path,prefix(i))
 
-        os.mkdir(self.exp_path)
-        os.mkdir(os.path.join(self.exp_path,'images'))
+            os.mkdir(self.exp_path)
+            os.mkdir(os.path.join(self.exp_path,'images'))
 
-        """
-        Get git commit
-        """
-        label = subprocess.check_output(["git", "describe","--always"]).rstrip()
-        self.config['global']['commit'] = label
-        self.save_config()
+            """
+            Get git commit
+            """
+            label = subprocess.check_output(["git", "describe","--always"]).rstrip()
+            self.config['global']['commit'] = label
+            self.save_config()
 
-        """
-        Write NOT_FINISHED file
-        """
-        self.not_finished_file = os.path.join(self.exp_path,'NOT_FINISHED')
-        print 'OPENING ', self.not_finished_file
-        f = open(self.not_finished_file,'w')
-        f.write('THIS FILE MEANS THIS RUN DID NOT REACH COMPLETION')
-        f.close()
+            """
+            Write NOT_FINISHED file
+            """
+            self.not_finished_file = os.path.join(self.exp_path,'NOT_FINISHED')
+            print 'OPENING ', self.not_finished_file
+            f = open(self.not_finished_file,'w')
+            f.write('THIS FILE MEANS THIS RUN DID NOT REACH COMPLETION')
+            f.close()
 
 
     def __getitem__(self,key):
@@ -86,9 +86,10 @@ class PyExp:
         else:
             return self.config[key]
 
-    def update(self,key,new_val):
+    def update(self,key,new_val,save=True):
         self.config[key]=new_val
-        self.save_config()
+        if save:
+            self.save_config()
 
     def get_path(self):
         return self.exp_path

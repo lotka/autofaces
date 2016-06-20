@@ -2,6 +2,7 @@
 import os
 import sys
 import shutil
+from os.path import join
 
 def prefix(i,zeros):
     s = str(i)
@@ -11,15 +12,15 @@ def prefix(i,zeros):
 
 def get_immediate_subdirectories(a_dir):
     return [name for name in os.listdir(a_dir)
-            if os.path.isdir(os.path.join(a_dir, name))]
+            if os.path.isdir(join(a_dir, name))]
 
 top = sys.argv[1]
 for dates in get_immediate_subdirectories(top):
-    sub = os.path.join(top,dates)
+    sub = join(top,dates)
     runs = get_immediate_subdirectories(sub)
     for r in runs:
-        sub_sub = os.path.join(sub,r)
-        lock = os.path.join(sub_sub,'NOT_FINISHED')
+        sub_sub = join(sub,r)
+        lock = join(sub_sub,'NOT_FINISHED')
         if os.path.isfile(lock):
             print 'DELETING ',sub_sub
             shutil.rmtree(sub_sub)
@@ -27,12 +28,15 @@ for dates in get_immediate_subdirectories(top):
     runs = get_immediate_subdirectories(sub)
     numbers = []
     for r in runs:
-        numbers.append(int(r))
+        try:
+            numbers.append(int(r))
+        except ValueError:
+            print 'Could not parse folders ', join(sub,r)
     if numbers != []:
         for i in xrange(1,max(numbers)+1):
-            d =  os.path.join(sub,prefix(i,3))
+            d =  join(sub,prefix(i,3))
             if not os.path.isdir(d) and (i-1 < len(runs)):
                 print 'Moving',runs[i-1],'to', prefix(i,3)
-                shutil.move(os.path.join(sub,runs[i-1]), d)
+                shutil.move(join(sub,runs[i-1]), d)
 
 print 'Tidy up complete :)'

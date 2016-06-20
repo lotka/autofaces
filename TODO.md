@@ -51,14 +51,12 @@ pre-train,convert VGG16
 
 write up experiment disfa/005
 
-split subjects first and then load
 
 For this experiment /home/luka/v/lm1015-tmp/data/2016_06_02/disfa/005 do 3 experiments:
 remove intensity from training, make it binary
 include intensity 1
 and then both
 
-what are the precision and recall doing at the boundaries
 
 include confusion matrices for all
 test
@@ -69,16 +67,12 @@ get AU statistics for each run to make it easier to debug/understand output
 
 plot binary graph to see how well prediction works over time in each subject video
 
-
-
-
+#done
+split subjects first and then load
+what are the precision and recall doing at the boundaries
 ------------
-
-
-lmsq
-cross_entropy
-prec
-recall
-f1
-auc
-confusion matrix 2x2
+MEETING TODO:
+* For testing and validation do not exclude the all zero frames
+* see if the binary softmax actually improved the performance
+* early stopping, dump the model at the best point
+-----

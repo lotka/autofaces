@@ -1,42 +1,59 @@
 global:
-    dump_frames: True
+    dump_frames: False
     path: data
-    iterations: 1800
-    ignore_empty_labels: True
-    batch_size: 1000
-    batch_randomisation: True
+    iterations: 1000
+    # defunct:
+    # ignore_empty_labels: False
+    batch_size: 100
     network: convolution_gudi_2015
     # networks
     #  'fullyconnected_subnetwork_gudi_2015'
     #  'convolution_gudi_2015'
+
     # lmsq or cross_entropy
     cost_function: cross_entropy
+
     threshold: 0.5
-    dropout_rate: 0.05
+    dropout_rate: 0.7
+
     # adam or grad
     optimizer: adam
+
     # Warning grad needs higher learning rates than adam (100x)
     learning_rate: 0.001
-convolutions:
+weights:
     bias_start: 0.1
-    weights_start_type: std_dev # (range,constant,std_dev)
+
+    # can be range, constant or std_dev
+    weights_start_type: std_dev
+
+    # constant
     weights_constant: 0.0
+
+    # range
     weights_uniform_range : [-0.5,0.5]
+
+    # std_dev
     weights_std_dev: 0.2
 data:
-    remove_empty_labels: True
-    # disfa or mnist
     dataset: disfa
-    # -1 Means all the subjects
-    number_of_subjects: -1
-    # Sizes of each set relative to each other
-    train_prop : 5
-    valid_prop : 2
-    test_prop : 5
-    random_batches : True
+    threshold: 1
+    remove_empty_labels: False
+    # disfa or mnist
+    # [1,2,3,4,5,6,7,8,9,10,11,12,13,16,17,18,21,23,24,25,26,27,28,29,30,31,32]
+    train_subjects : [1,2,3,4,5,6,7,8,9,10,11,12,13,16]
+    validation_subjects : [30,31,32,27,28,29]
+    test_subjects  : [30,31,32,27,28,29]
+    batch_randomisation: True
+
+
     # left,right,top,bottom
+    AUs: [6,7,8,9,10,11]
     crop: [0.1,0.1,0.5,0.2]
     resize_scale: 0.6
     # Defaults:
     # crop: [0,0,0,0]
-    # resize_scale: 1.0
+    # resize_scale: 0.5
+
+    normalisation_type: face
+    normalisation_between_zero_and_one: True

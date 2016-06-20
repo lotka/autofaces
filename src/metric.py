@@ -81,12 +81,12 @@ def multi_eval(y_pred,y_true,threshold=0.4):
     for r in xrange(runs):
         for c in xrange(classes):
             # y_pred.mean()+y_pred.std()
-            if y_pred_binary[r,c] > threshold:
+            if y_pred_binary[r,c] >= threshold:
                 y_pred_binary[r,c] = 1.0
             else:
                 y_pred_binary[r,c] = 0.0
 
-            if y_true[r,c] > 0.3:
+            if y_true[r,c] >= 0.5:
                 y_true[r,c] = 1.0
             else:
                 y_true[r,c] = 0.0
