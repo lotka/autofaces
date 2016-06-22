@@ -72,7 +72,7 @@ split subjects first and then load
 what are the precision and recall doing at the boundaries
 ------------
 MEETING TODO:
-* For testing and validation do not exclude the all zero frames
+<!-- * For testing and validation do not exclude the all zero frames -->
 * see if the binary softmax actually improved the performance
 * early stopping, dump the model at the best point
 -----
