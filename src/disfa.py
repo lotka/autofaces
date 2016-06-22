@@ -149,11 +149,12 @@ class Batch:
         h1 = hash_config(self.config)
         h2 = hash_config(subjects)
         h3 = 0
+        h4 = hash_config(self.image_region_config)
 
         with open('disfa.py','r') as file:
             h3 = hash(file.read())
 
-        h = h1 ^ h2 ^ h3
+        h = h1 ^ h2 ^ h3 ^ h4
         hash_folder = join(config['path'],'hashed_datasets')
         hash_file = join(hash_folder,batch_type+'_'+str(h))
 

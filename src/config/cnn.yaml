@@ -2,7 +2,7 @@ global:
     binary_softmax: True
     dump_frames: False
     path: data
-    iterations: 4000
+    iterations: 600
     # defunct:
     # ignore_empty_labels: False
     batch_size: 100
@@ -49,7 +49,7 @@ data:
     # validation_subjects : [2]
     # test_subjects  : [3]
     batch_randomisation: True
-    image_region: full
+    image_region: mouth
     mouth:
       resize_scale: 0.6
       AUs: [6,7,8,9,10,11]
@@ -60,3 +60,6 @@ data:
 
     normalisation_type: face
     normalisation_between_minus_one_and_one: False
+results:
+    early_stop_iteration: -1
+

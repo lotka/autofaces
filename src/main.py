@@ -1,45 +1,40 @@
 #!/usr/bin/python
 import etc
 import tensorflow as tf
+
 reload(tf)
 import numpy as np
-import h5py
 import metric
 import os
-from scipy import ndimage
-import scipy
 import socket
 from sklearn.metrics import roc_curve, auc
 import matplotlib
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from pyexp.pyexp import PyExp
-import math
-import sys
-import math
 from os.path import join
-from tqdm import tqdm
-from model import cnn,expand_labels
+from model import cnn, expand_labels
 
-def conv_vis(i,sess,hconv,w,path,x,batch_x,keep_prob):
+
+def conv_vis(i, sess, hconv, w, path, x, batch_x, keep_prob):
     # to visualize 1st conv layer Weights
     vv1 = sess.run(w)
 
     # to visualize 1st conv layer output
-    vv2 = sess.run(hconv,feed_dict = {x:batch_x, keep_prob: 1.0})
-    vv2 = vv2[0,:,:,:]   # in case of bunch out - slice first img
+    vv2 = sess.run(hconv, feed_dict={x: batch_x, keep_prob: 1.0})
+    vv2 = vv2[0, :, :, :]  # in case of bunch out - slice first img
 
-
-    def vis_conv(v,ix,iy,ch,cy,cx, p = 0) :
-        v = np.reshape(v,(iy,ix,ch))
+    def vis_conv(v, ix, iy, ch, cy, cx, p=0):
+        v = np.reshape(v, (iy, ix, ch))
         # v = v[:,:,0,:]
         ix += 2
         iy += 2
-        npad = ((1,1), (1,1), (0,0))
+        npad = ((1, 1), (1, 1), (0, 0))
         v = np.pad(v, pad_width=npad, mode='constant', constant_values=p)
-        v = np.reshape(v,(iy,ix,cy,cx))
-        v = np.transpose(v,(2,0,3,1)) #cy,iy,cx,ix
-        v = np.reshape(v,(cy*iy,cx*ix))
+        v = np.reshape(v, (iy, ix, cy, cx))
+        v = np.transpose(v, (2, 0, 3, 1))  # cy,iy,cx,ix
+        v = np.reshape(v, (cy * iy, cx * ix))
         return v
 
     # W_conv1 - weights
@@ -48,50 +43,51 @@ def conv_vis(i,sess,hconv,w,path,x,batch_x,keep_prob):
     iy = int(shape[1])
     cs = int(shape[2])
     ch = int(shape[3])
-    cy = 8   # grid from channels:  32 = 4x8
+    cy = 8  # grid from channels:  32 = 4x8
     cx = 8
     # print ix,iy,cs,ch,cy,cx
-    v  = vis_conv(vv1,ix,iy,ch,cy,cx)
-    plt.figure(figsize = (8,8))
-    plt.imshow(v,cmap="Greys_r",interpolation='nearest')
+    v = vis_conv(vv1, ix, iy, ch, cy, cx)
+    plt.figure(figsize=(8, 8))
+    plt.imshow(v, cmap="Greys_r", interpolation='nearest')
     plt.colorbar()
-    plt.savefig(join(path,'images/conv_weights_'+prefix(i,4)+'.png'),dpi=400)
+    plt.savefig(join(path, 'images/conv_weights_' + prefix(i, 4) + '.png'), dpi=400)
 
     #  h_conv1 - processed image
     # print vv2.shape
     ix = vv2.shape[0]
     iy = vv2.shape[1]
     ch = vv2.shape[2]
-    v  = vis_conv(vv2,ix,iy,ch,cy,cx)
-    plt.figure(figsize = (8,8))
-    plt.imshow(v,cmap="Greys_r",interpolation='nearest')
+    v = vis_conv(vv2, ix, iy, ch, cy, cx)
+    plt.figure(figsize=(8, 8))
+    plt.imshow(v, cmap="Greys_r", interpolation='nearest')
     plt.colorbar()
-    plt.savefig(join(path,'images/conv_out_'+prefix(i,4)+'.png'),dpi=400)
+    plt.savefig(join(path, 'images/conv_out_' + prefix(i, 4) + '.png'), dpi=400)
 
     plt.close('all')
 
 
-def prefix(i,zeros):
+def prefix(i, zeros):
     s = str(i)
-    while(len(s) < zeros):
+    while (len(s) < zeros):
         s = '0' + s
     return s
 
-def save_model(sess,config,name):
+
+def save_model(sess, config, name):
     saver = tf.train.Saver()
-    p = join(config.get_path(),'models')
+    p = join(config.get_path(), 'models')
     if not os.path.isdir(p):
         os.mkdir(p)
-    p = join(p,name)
+    p = join(p, name)
     if not os.path.isdir(p):
         os.mkdir(p)
 
-    save_path = saver.save(sess, join(p,'model.ckpt'))
+    save_path = saver.save(sess, join(p, 'model.ckpt'))
     print("Model saved in file: %s" % save_path)
 
-def main(data,config):
 
-    def put_kernels_on_grid (kernel, (grid_Y, grid_X), pad=1):
+def main(data, config):
+    def put_kernels_on_grid(kernel, (grid_Y, grid_X), pad=1):
         '''Visualize conv. features as an image (mostly for the 1st layer).
         Place kernel into a grid, with some paddings between adjacent filters.
         Args:
@@ -104,7 +100,7 @@ def main(data,config):
           Tensor of shape [(Y+pad)*grid_Y, (X+pad)*grid_X, NumChannels, 1].
         '''
         # pad X and Y
-        x1 = tf.pad(kernel, tf.constant( [[pad,0],[pad,0],[0,0],[0,0]] ))
+        x1 = tf.pad(kernel, tf.constant([[pad, 0], [pad, 0], [0, 0], [0, 0]]))
 
         # X and Y dimensions, w.r.t. padding
         Y = kernel.get_shape()[0] + pad
@@ -137,30 +133,30 @@ def main(data,config):
 
         return x8
 
-    x,y_,train_step,loss, y_conv,output_dim,keep_prob,lmsq_loss,cross_entropy,accuracy= cnn(config)
+    x, y_, train_step, loss, y_conv, output_dim, keep_prob, lmsq_loss, cross_entropy, accuracy = cnn(config)
 
     if socket.gethostname() == 'ux305':
         sess = tf.Session()
     else:
         tensorflow_config = tf.ConfigProto()
-        tensorflow_config.gpu_options.allow_growth=True
+        tensorflow_config.gpu_options.allow_growth = True
         sess = tf.Session(config=tensorflow_config)
 
     path = config.get_path()
     merged = tf.merge_all_summaries()
-    train_writer = tf.train.SummaryWriter(join(path,'train'),sess.graph)
-    validation_writer = tf.train.SummaryWriter(join(path,'validation'))
+    train_writer = tf.train.SummaryWriter(join(path, 'train'), sess.graph)
+    validation_writer = tf.train.SummaryWriter(join(path, 'validation'))
 
     init = tf.initialize_all_variables()
     sess.run(init)
 
-    def roc_area(y_true, y_score,feed_dict):
+    def roc_area(y_true, y_score, feed_dict):
         for i in xrange(y_true.shape[1]):
-            trues = y_true[:,i]
-            scores = sess.run(y_score,feed_dict)[:,i]
+            trues = y_true[:, i]
+            scores = sess.run(y_score, feed_dict)[:, i]
             if trues.sum() != 0.0:
                 # print trues,scores
-                fpr, tpr, t = roc_curve(trues,scores)
+                fpr, tpr, t = roc_curve(trues, scores)
                 print fpr, tpr, t
                 roc_auc = auc(fpr, tpr)
                 print roc_auc
@@ -173,66 +169,66 @@ def main(data,config):
     dropout_rate = config['dropout_rate']
 
     test_period = 10
-    nN = N/test_period
+    nN = N / test_period
     x_axis = np.zeros(nN)
-    lmsq_axis = np.zeros((2,nN))
-    cent_axis = np.zeros((2,nN))
-    accu_axis = np.zeros((2,nN))
+    lmsq_axis = np.zeros((2, nN))
+    cent_axis = np.zeros((2, nN))
+    accu_axis = np.zeros((2, nN))
 
-    train_auac_axis = np.zeros((nN,output_dim,4))
-    validation_auac_axis = np.zeros((nN,output_dim,4))
+    train_auac_axis = np.zeros((nN, output_dim, 4))
+    validation_auac_axis = np.zeros((nN, output_dim, 4))
     train_confusion = []
     validation_confusion = []
 
     def nice_seconds(t):
         if t < 60.0:
-            result = str(round(t,1)) + ' seconds'
-        elif t < 60**2:
-            result = str(round(t/60.0,1)) + ' minutes'
-        elif t < 60**3:
-            result = str(round(t/(60.0**2),1)) + ' hours'
+            result = str(round(t, 1)) + ' seconds'
+        elif t < 60 ** 2:
+            result = str(round(t / 60.0, 1)) + ' minutes'
+        elif t < 60 ** 3:
+            result = str(round(t / (60.0 ** 2), 1)) + ' hours'
         else:
-            result = str(t/(round(24.0*60.0**2,1))) + ' days'
+            result = str(t / (round(24.0 * 60.0 ** 2, 1))) + ' days'
         return result
+
     early_model_saved = False
-    for i, pi in etc.range(N,info_frequency=5):
+    for i, pi in etc.range(N, info_frequency=5):
         if pi:
             e = pi.elapsed_time
             r = pi.time_remaining()
-            print '\r',
-            print  i,'/',N,'Time elapsed:', nice_seconds(e), 'time remaining:', nice_seconds(r)
+            print  i, '/', N, 'Time elapsed:', nice_seconds(e), 'time remaining:', nice_seconds(r)
 
         batch_x, batch_y = data.train.next_batch(batch_size)
 
         if config['binary_softmax']:
-            train = {x: batch_x, y_: expand_labels(batch_y), keep_prob : dropout_rate}
-            _train = {x: batch_x, y_: expand_labels(batch_y), keep_prob : 1.0}
+            train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: dropout_rate}
+            _train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: 1.0}
         else:
-            train = {x: batch_x, y_: batch_y, keep_prob : dropout_rate}
-            _train = {x: batch_x, y_: batch_y, keep_prob : 1.0}
+            train = {x: batch_x, y_: batch_y, keep_prob: dropout_rate}
+            _train = {x: batch_x, y_: batch_y, keep_prob: 1.0}
 
-        if (i+1) % test_period == 0:
-            j = i/test_period
+        if (i + 1) % test_period == 0:
+            j = i / test_period
             vbatch_x, vbatch_y = data.validation.next_batch(2000)
             if config['binary_softmax']:
-                _validation = {x: vbatch_x, y_: expand_labels(vbatch_y), keep_prob : 1.0}
+                _validation = {x: vbatch_x, y_: expand_labels(vbatch_y), keep_prob: 1.0}
             else:
-                _validation = {x: vbatch_x, y_: vbatch_y, keep_prob : 1.0}
+                _validation = {x: vbatch_x, y_: vbatch_y, keep_prob: 1.0}
 
             x_axis[j] = i
 
-            out = sess.run([lmsq_loss,cross_entropy,accuracy,y_conv], feed_dict=_validation)
-            lmsq_axis[0,j],cent_axis[0,j],accu_axis[0,j],validation_y_out = out
+            out = sess.run([lmsq_loss, cross_entropy, accuracy, y_conv], feed_dict=_validation)
+            lmsq_axis[0, j], cent_axis[0, j], accu_axis[0, j], validation_y_out = out
 
-            out = sess.run([lmsq_loss,cross_entropy,accuracy,y_conv], feed_dict=_train)
-            lmsq_axis[1,j],cent_axis[1,j],accu_axis[1,j],train_y_out = out
+            out = sess.run([lmsq_loss, cross_entropy, accuracy, y_conv], feed_dict=_train)
+            lmsq_axis[1, j], cent_axis[1, j], accu_axis[1, j], train_y_out = out
             # train_writer.add_summary(summary, i)
 
-            train_res, train_conf = metric.multi_eval(train_y_out,batch_y)
-            train_auac_axis[j,:,:] = train_res
+            train_res, train_conf = metric.multi_eval(train_y_out, batch_y)
+            train_auac_axis[j, :, :] = train_res
 
-            validation_res, validation_conf = metric.multi_eval(validation_y_out,vbatch_y)
-            validation_auac_axis[j,:,:] = validation_res
+            validation_res, validation_conf = metric.multi_eval(validation_y_out, vbatch_y)
+            validation_auac_axis[j, :, :] = validation_res
 
             train_confusion.append(train_conf)
             validation_confusion.append(validation_conf)
@@ -257,17 +253,21 @@ def main(data,config):
             validation_writer.add_run_metadata(run_metadata, 'step%d' % i)
             validation_writer.add_summary(summary, i)
             # print(config.get_path(), ' Adding run metadata for', i)
-            print i,'   \t',
-            print round(lmsq_axis[0,j],5),' ',
-            print round(lmsq_axis[1,j],5),' ',
-            print round(cent_axis[0,j],5),' ',
-            print round(cent_axis[1,j],5),' '
+            print i, '   \t',
+            print round(lmsq_axis[0, j], 5), ' ',
+            print round(lmsq_axis[1, j], 5), ' ',
+            print round(cent_axis[0, j], 5), ' ',
+            print round(cent_axis[1, j], 5), ' ',
+            if early_model_saved:
+                print '(early saved)'
+            else:
+                print
 
             if j > 50:
-                g = np.gradient(cent_axis[0,:])
-                z = 3
-                if g[j-z:j].mean() > -0.0 and not early_model_saved:
-                    save_model(sess,config,'early')
+                g = np.gradient(cent_axis[0, :])
+                if g[j] > -0.0 and not early_model_saved:
+                    config.config['results']['early_stop_iteration'] = x_axis[j]
+                    save_model(sess, config, 'early')
                     early_model_saved = True
 
         else:  # Record a summary
@@ -275,42 +275,41 @@ def main(data,config):
             summary = sess.run(merged, feed_dict=_train)
             train_writer.add_summary(summary, i)
 
-
-
-    thresholds = 20
-    padding = 0.1
-    threshold_values = np.linspace(-padding,thresholds+padding,thresholds)/float(thresholds)
-    test_threshold_data = np.zeros((thresholds,output_dim,4))
-
-    nBatches = int(100)
-    batches = int(data.test.labels.shape[0]/nBatches)
-    y_out = np.zeros((data.test.labels.shape[0],data.test.labels.shape[1]))
-
-    print 'Test set analysis'
-
-    for i in tqdm(xrange(nBatches)):
-        l = batches*i
-        if i == nBatches-1:
-            r = data.test.labels.shape[0]
-        else:
-            r = batches*(i+1)
-        f = {x: data.test.images[l:r], keep_prob : 1.0}
-        y_out[l:r] = sess.run(y_conv, feed_dict=f)
-        y_true = data.test.labels
-
-    test_confusion = []
-    for i in xrange(thresholds):
-        results, confusion = metric.multi_eval(y_out,
-                                               y_true,
-                                               threshold_values[i])
-        test_confusion.append(confusion)
-        test_threshold_data[i,:,:] = results
+    # print 'Test set analysis'
+    #
+    # thresholds = 20
+    # padding = 0.1
+    # threshold_values = np.linspace(-padding,thresholds+padding,thresholds)/float(thresholds)
+    # test_threshold_data = np.zeros((thresholds,output_dim,4))
+    #
+    # nBatches = int(100)
+    # batches = int(data.test.labels.shape[0]/nBatches)
+    # y_out = np.zeros((data.test.labels.shape[0],data.test.labels.shape[1]))
+    #
+    #
+    # for i in tqdm(xrange(nBatches)):
+    #     l = batches*i
+    #     if i == nBatches-1:
+    #         r = data.test.labels.shape[0]
+    #     else:
+    #         r = batches*(i+1)
+    #     f = {x: data.test.images[l:r], keep_prob : 1.0}
+    #     y_out[l:r] = sess.run(y_conv, feed_dict=f)
+    #     y_true = data.test.labels
+    #
+    # test_confusion = []
+    # for i in xrange(thresholds):
+    #     results, confusion = metric.multi_eval(y_out,
+    #                                            y_true,
+    #                                            threshold_values[i])
+    #     test_confusion.append(confusion)
+    #     test_threshold_data[i,:,:] = results
 
 
     """
     Save the model
     """
-    save_model(sess,config,'final')
+    save_model(sess, config, 'final')
 
     """
     Close the session
@@ -322,21 +321,18 @@ def main(data,config):
     Save results
     """
 
-    ssv_path = join(path,'numerical_data')
+    ssv_path = join(path, 'numerical_data')
     if not os.path.isdir(ssv_path):
         os.mkdir(ssv_path)
-    np.savetxt(join(ssv_path,'x_axis.ssv'),x_axis)
-    np.savetxt(join(ssv_path,'lmsq.ssv'),lmsq_axis)
-    np.savetxt(join(ssv_path,'cross_entropy.ssv'),cent_axis)
-    np.savetxt(join(ssv_path,'naive_accuracy.ssv'),accu_axis)
-    np.savez(join(ssv_path,'per_au_accuracy.npz'),
+    np.savetxt(join(ssv_path, 'x_axis.ssv'), x_axis)
+    np.savetxt(join(ssv_path, 'lmsq.ssv'), lmsq_axis)
+    np.savetxt(join(ssv_path, 'cross_entropy.ssv'), cent_axis)
+    np.savetxt(join(ssv_path, 'naive_accuracy.ssv'), accu_axis)
+    np.savez(join(ssv_path, 'per_au_accuracy.npz'),
              train_metrics=train_auac_axis,
              validation_metrics=validation_auac_axis,
              train_confusion=train_confusion,
-             validation_confusion=validation_confusion,
-             test_confusion=test_confusion,
-             threshold_values=threshold_values,
-             test_threshold_data=test_threshold_data
+             validation_confusion=validation_confusion
              )
 
 
@@ -345,14 +341,15 @@ if socket.gethostname() == 'ux305':
 else:
     path = '/vol/lm1015-tmp/data/'
 
-config =  PyExp(config_file='config/cnn.yaml',path=path)
+config = PyExp(config_file='config/cnn.yaml', path=path)
 if config['data']['dataset'] == 'disfa':
     import disfa
+
     data = disfa.Disfa(config['data'])
-    config.update('data',data.config)
+    config.update('data', data.config)
 
     if config['dump_frames']:
-        im,lb = data.train.next_batch(1000)
+        im, lb = data.train.next_batch(1000)
         for i in xrange(100):
             plt.figure()
             # print i,im[i].shape[0]*im[i].shape[1], 48**2
@@ -363,18 +360,19 @@ if config['data']['dataset'] == 'disfa':
             else:
                 vmax = 10.0
                 vmin = -10.0
-            plt.imshow(im[i],vmax=vmax,vmin=vmin)#,cmap="Greys_r",interpolation='nearest')
+            plt.imshow(im[i], vmax=vmax, vmin=vmin)  # ,cmap="Greys_r",interpolation='nearest')
             plt.colorbar()
             plt.title(str(lb[i]))
-            plt.savefig(join(config.get_path(),'images/face_'+str(i)+'.png'),dpi=100)
+            plt.savefig(join(config.get_path(), 'images/face_' + str(i) + '.png'), dpi=100)
             plt.close('all')
     else:
-        main(data,config)
+        main(data, config)
 else:
     from tensorflow.examples.tutorials.mnist import input_data
+
     mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
-    config['data']['image_shape'] = int(28**2)
+    config['data']['image_shape'] = int(28 ** 2)
     config['data']['label_size'] = int(10)
-    main(mnist,config)
+    main(mnist, config)
 
 config.finished()

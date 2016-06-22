@@ -71,10 +71,10 @@ with tf.Session() as sess:
     else:
         raise Exception('Can\'t find checkpoint!')
 
-    batch_x, batch_y = data.validation.next_batch(config['batch_size'])
-    lx,ly = batch_y.shape
-    y_out = sess.run(y_conv, feed_dict={x:batch_x, y_:expand_labels(batch_y),keep_prob : 1.0})
-    for i in xrange(lx):
-        print '------------------------------'
-        vecprint(batch_y[i],1)
-        vecprint(y_out[i],1)
+    # batch_x, batch_y = data.validation.next_batch(config['batch_size'])
+    # lx,ly = batch_y.shape
+    # y_out = sess.run(y_conv, feed_dict={x:batch_x, y_:expand_labels(batch_y),keep_prob : 1.0})
+    # for i in xrange(lx):
+    #     print '------------------------------'
+    #     vecprint(batch_y[i],1)
+    #     vecprint(y_out[i],1)
