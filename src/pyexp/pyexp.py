@@ -1,5 +1,7 @@
+import ruamel.yaml as yaml
+print 'wtf'
 import os
-import yaml
+
 from time import gmtime, strftime
 import subprocess
 """
@@ -8,6 +10,7 @@ pyexp
 
 class PyExp:
     def __init__(self,config=None,config_file=None,path = 'data',make_new=True):
+
         print 'Setting up folder structure.'
 
         """
@@ -25,7 +28,7 @@ class PyExp:
         if config_file != None:
             with open(config_file, 'r') as stream:
                 try:
-                    self.config = yaml.load(stream)
+                    self.config = yaml.load(stream,yaml.RoundTripLoader)
                 except yaml.YAMLError as exc:
                     print exc
         if make_new:
@@ -60,6 +63,9 @@ class PyExp:
 
             os.mkdir(self.exp_path)
             os.mkdir(os.path.join(self.exp_path,'images'))
+
+            # Save data path
+            self.config['data']['path'] = path
 
             """
             Get git commit
@@ -98,7 +104,7 @@ class PyExp:
     def save_config(self):
         print 'Saving config file to', self.exp_path
         with open(os.path.join(self.exp_path,'config.yaml'), 'w') as outfile:
-            outfile.write(yaml.dump(self.config, default_flow_style=False))
+            outfile.write(yaml.dump(self.config, default_flow_style=False,Dumper=yaml.RoundTripDumper))
             outfile.close()
 
     def finished(self):
