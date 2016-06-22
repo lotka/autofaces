@@ -188,9 +188,16 @@ def cnn(config):
     else:
         shape_1 = [None, input_dim]
         shape_2 = [-1,int(np.sqrt(input_dim)),int(np.sqrt(input_dim)),1]
+
     x = tf.placeholder(np.float32, shape=shape_1,name='Images')
     x_ = tf.reshape(x, shape=shape_2)
-    y_ = tf.placeholder(np.float32, shape=[None, output_dim*2],name='Labels')
+
+    if config['binary_softmax']:
+        g = 2
+    else:
+        g = 1
+
+    y_ = tf.placeholder(np.float32, shape=[None, output_dim*g],name='Labels')
 
     print 'Input: ', x_.get_shape()
     print 'Outut: ', y_.get_shape()
@@ -199,16 +206,20 @@ def cnn(config):
         return tf.maximum(0.01*x,x,name)
 
     if config['network'] == 'convolution_gudi_2015':
-        h_conv1,w1 = cnn_layer(x_,[5, 5, 1, 32], 'VALID', 'Convolution_1',config,act=leaky_relu)
-        # h_pool1 = max_pool_layer(h_conv1, ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding='SAME',layer_name='Max_Pool_1',config,act=leaky_relu)
-        # h_conv2,_ = cnn_layer(h_pool1,[5, 5, 64, 64], 'VALID', 'Convolution_2',config,act=leaky_relu)
-        # h_conv3,_ = cnn_layer(h_conv2,[4, 4, 64, 128], 'VALID', 'Convolution_3',config,act=leaky_relu)
+        network = []
+
+        h_conv1,w1 = cnn_layer(x_,[5, 5, 1, 64], 'VALID', 'Convolution_1',config,act=leaky_relu)
+        network.append(h_conv1)
+
+        # network.append(max_pool_layer(h_conv1, ksize=[1, 3, 3, 1],strides=[1, 2, 2, 1],padding='SAME',layer_name='Max_Pool_1'))
+        # network.append(cnn_layer(h_pool1,[5, 5, 64, 64], 'VALID', 'Convolution_2',config,act=leaky_relu)[0])
+        # network.append(cnn_layer(h_conv2,[4, 4, 64, 128], 'VALID', 'Convolution_3',config,act=leaky_relu)[0])
         # http://stats.stackexchange.com/questions/65877/convergence-of-neural-network-weights
 
         with tf.name_scope('flatten'):
-            prev_shape = h_conv1.get_shape()
+            prev_shape = network[-1].get_shape()
             s = int(prev_shape[1])*int(prev_shape[2])*int(prev_shape[3])
-            flat_1 = tf.reshape(h_conv1, [-1,s])
+            flat_1 = tf.reshape(network[-1], [-1,s])
             print ' flatten to ', flat_1.get_shape()
     elif config['network'] == 'fullyconnected_subnetwork_gudi_2015':
         with tf.name_scope('flatten'):
@@ -228,17 +239,21 @@ def cnn(config):
     s2 = 20
     h_full_1 = nn_layer(flat_1_dropped,s,s2,'fully_connected_1',config,act=leaky_relu)
 
-    cost_outputs   = []
-    metric_outputs = []
-    for i in xrange(output_dim):
-        l = nn_layer(h_full_1,s2,2,'output_'+str(i),config,act=tf.nn.softmax)
-        cost_outputs.append(l)
-        metric_outputs.append(tf.slice(l,[0,0],[-1,1]))
+    if config['binary_softmax']:
+        cost_outputs   = []
+        metric_outputs = []
+        for i in xrange(output_dim):
+            l = nn_layer(h_full_1,s2,2,'output_'+str(i),config,act=tf.nn.softmax)
+            cost_outputs.append(l)
+            metric_outputs.append(tf.slice(l,[0,0],[-1,1]))
 
-    with tf.name_scope('training'):
-        y_train = tf.concat(concat_dim=1,values=cost_outputs)
-    with tf.name_scope('inference'):
-        y_conv = tf.concat(concat_dim=1,values=metric_outputs)
+        with tf.name_scope('training'):
+            y_train = tf.concat(concat_dim=1,values=cost_outputs)
+        with tf.name_scope('inference'):
+            y_conv = tf.concat(concat_dim=1,values=metric_outputs)
+    else:
+        y_conv = nn_layer(h_full_1,s2,output_dim,'output',config,act=tf.nn.softmax)
+        y_train = y_conv
 
     # if config['ignore_empty_labels']:
     #     with tf.name_scope('sparse_weights'):

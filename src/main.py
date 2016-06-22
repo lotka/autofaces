@@ -77,6 +77,18 @@ def prefix(i,zeros):
         s = '0' + s
     return s
 
+def save_model(sess,config,name):
+    saver = tf.train.Saver()
+    p = join(config.get_path(),'models')
+    if not os.path.isdir(p):
+        os.mkdir(p)
+    p = join(p,name)
+    if not os.path.isdir(p):
+        os.mkdir(p)
+
+    save_path = saver.save(sess, join(p,'model.ckpt'))
+    print("Model saved in file: %s" % save_path)
+
 def main(data,config):
 
     def put_kernels_on_grid (kernel, (grid_Y, grid_X), pad=1):
@@ -182,7 +194,7 @@ def main(data,config):
         else:
             result = str(t/(round(24.0*60.0**2,1))) + ' days'
         return result
-
+    early_model_saved = False
     for i, pi in etc.range(N,info_frequency=5):
         if pi:
             e = pi.elapsed_time
@@ -191,12 +203,21 @@ def main(data,config):
             print  i,'/',N,'Time elapsed:', nice_seconds(e), 'time remaining:', nice_seconds(r)
 
         batch_x, batch_y = data.train.next_batch(batch_size)
-        train = {x: batch_x, y_: expand_labels(batch_y), keep_prob : dropout_rate}
-        _train = {x: batch_x, y_: expand_labels(batch_y), keep_prob : 1.0}
+
+        if config['binary_softmax']:
+            train = {x: batch_x, y_: expand_labels(batch_y), keep_prob : dropout_rate}
+            _train = {x: batch_x, y_: expand_labels(batch_y), keep_prob : 1.0}
+        else:
+            train = {x: batch_x, y_: batch_y, keep_prob : dropout_rate}
+            _train = {x: batch_x, y_: batch_y, keep_prob : 1.0}
+
         if (i+1) % test_period == 0:
             j = i/test_period
-            vbatch_x, vbatch_y = data.validation.next_batch(batch_size)
-            _validation = {x: vbatch_x, y_: expand_labels(vbatch_y), keep_prob : 1.0}
+            vbatch_x, vbatch_y = data.validation.next_batch(2000)
+            if config['binary_softmax']:
+                _validation = {x: vbatch_x, y_: expand_labels(vbatch_y), keep_prob : 1.0}
+            else:
+                _validation = {x: vbatch_x, y_: vbatch_y, keep_prob : 1.0}
 
             x_axis[j] = i
 
@@ -237,10 +258,18 @@ def main(data,config):
             validation_writer.add_summary(summary, i)
             # print(config.get_path(), ' Adding run metadata for', i)
             print i,'   \t',
-            print round(lmsq_axis[0,j],2),' ',
-            print round(lmsq_axis[1,j],2),' ',
-            print round(cent_axis[0,j],2),' ',
-            print round(cent_axis[1,j],2),' '
+            print round(lmsq_axis[0,j],5),' ',
+            print round(lmsq_axis[1,j],5),' ',
+            print round(cent_axis[0,j],5),' ',
+            print round(cent_axis[1,j],5),' '
+
+            if j > 50:
+                g = np.gradient(cent_axis[0,:])
+                z = 3
+                if g[j-z:j].mean() > -0.0 and not early_model_saved:
+                    save_model(sess,config,'early')
+                    early_model_saved = True
+
         else:  # Record a summary
             sess.run(train_step, feed_dict=train)
             summary = sess.run(merged, feed_dict=_train)
@@ -256,6 +285,9 @@ def main(data,config):
     nBatches = int(100)
     batches = int(data.test.labels.shape[0]/nBatches)
     y_out = np.zeros((data.test.labels.shape[0],data.test.labels.shape[1]))
+
+    print 'Test set analysis'
+
     for i in tqdm(xrange(nBatches)):
         l = batches*i
         if i == nBatches-1:
@@ -278,13 +310,12 @@ def main(data,config):
     """
     Save the model
     """
-    saver = tf.train.Saver()
-    p = join(config.get_path(),'model')
-    if not os.path.isdir(p):
-        os.mkdir(p)
+    save_model(sess,config,'final')
 
-    save_path = saver.save(sess, join(p,'model.ckpt'))
-    print("Model saved in file: %s" % save_path)
+    """
+    Close the session
+    """
+
     sess.close()
 
     """

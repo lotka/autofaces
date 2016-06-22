@@ -4,12 +4,15 @@ import seb.disfa as disfa
 from scipy import ndimage
 import scipy
 from tqdm import tqdm
+from copy import copy
+from os.path import join
+import os
 
 class Batch:
     def image_pre_process(self,image):
         # unpack required information
-        lc,rc,tc,bc = self.config['crop']
-        scale = self.config['resize_scale']
+        lc,rc,tc,bc = self.image_region_config['crop']
+        scale = self.image_region_config['resize_scale']
         x,y = image.shape
 
         # Calculate crop indicies
@@ -46,8 +49,7 @@ class Batch:
         else:
             raise Exception("normalisation_type not set correctly: unknown type " + option)
 
-        if self.config['normalisation_between_zero_and_one']:
-            # images = images - np.ones(images.shape)*images.min()
+        if self.config['normalisation_between_minus_one_and_one']:
             images = images/np.abs(images).max()
 
         return images
@@ -55,19 +57,16 @@ class Batch:
     def all_images_pre_process(self):
 
         # Remove undesired aus
-        if 'AUs' in self.config:
-            aus = self.config['AUs']
+        if 'AUs' in self.image_region_config:
+            aus = self.image_region_config['AUs']
             nLabels = self.labels.shape[0]
             cropped_all_labels = np.zeros((nLabels,len(aus)))
-            self.config['sample_number'] = nLabels
+            # self.config['sample_number'] = nLabels
 
             for i in xrange(nLabels):
                 cropped_all_labels[i,:] = self.labels[i,aus]
 
             self.labels = cropped_all_labels
-
-        # Save original label ordering
-        self.raw_labels = self.labels.copy()
 
         # Apply threshold
         lx,ly = self.labels.shape
@@ -93,7 +92,6 @@ class Batch:
             assert self.images.shape[0] == self.labels.shape[0]
 
 
-        self.config['label_size'] = self.labels.shape[1]
 
     def next_batch(self,n):
 
@@ -125,6 +123,7 @@ class Batch:
                  batch_type):
 
         self.batch_counter = 0
+        # copy ensures accurate hashing later on
         self.config = config
         self.batch_type = batch_type
         subjects = config[batch_type + '_subjects']
@@ -134,35 +133,75 @@ class Batch:
         subjects_set = [(i, np.s_[:]) for i in sorted(set(subjects))]
         self.labels, _ = data_array.IndicesCollection(subjects_set).getitem(disfa.disfa['AUall'])
 
-        for i,s in enumerate(subjects):
-            images = disfa.disfa['images'][s][:].astype(np.float32)
+        # Save original label ordering
+        self.raw_labels = self.labels.copy()
 
-            # Discover dimensions of images
-            if i == 0:
-                number_of_frames_per_subject = images.shape[0]
-                # Process one image to see the output
-                x,y = self.image_pre_process(images[0,:,:]).shape
+        self.image_region_config = self.config[self.config['image_region']]
 
-                # Set up variable for image data
-                self.images = np.empty((0,x,y))
-                config['image_shape'] = [x,y]
+        def hash_config(conf):
+            _conf = copy(conf)
+            bad = ['path','image_shape','label_size']
+            for x in bad:
+                if x in _conf:
+                    _conf[x] = '?'
+            return hash(frozenset(_conf))
 
-            # Allocate memory for downsized images
-            r_images = np.zeros((images.shape[0],x,y))
+        h1 = hash_config(self.config)
+        h2 = hash_config(subjects)
+        h3 = 0
 
-            # Process each image
-            for i in tqdm(xrange(images.shape[0])):
-                r_images[i,:,:] = self.image_pre_process(images[i,:,:])
+        with open('disfa.py','r') as file:
+            h3 = hash(file.read())
 
-            r_images = self.subject_pre_process(r_images)
+        h = h1 ^ h2 ^ h3
+        hash_folder = join(config['path'],'hashed_datasets')
+        hash_file = join(hash_folder,batch_type+'_'+str(h))
 
-            # append down_sized images to all_images
-            self.images = np.append(self.images,r_images,axis=0)
 
-            del r_images
+        if not os.path.isdir(hash_folder):
+            os.mkdir(hash_folder)
 
-        # Finally perform processing on all of the images as a whole
-        self.all_images_pre_process()
+        print hash_file+'.npz'
+
+        if os.path.isfile(hash_file+'.npz'):
+            d = np.load(hash_file+'.npz')
+            self.images = d['images']
+            self.labels = d['labels']
+            assert (self.images.sum() + self.labels.sum()) == d['checksum']
+            print 'LOADED FROM HASHED DATASET FILE', batch_type
+        else:
+            for i,s in enumerate(subjects):
+                images = disfa.disfa['images'][s][:].astype(np.float32)
+
+                # Discover dimensions of images
+                if i == 0:
+                    number_of_frames_per_subject = images.shape[0]
+                    # Process one image to see the output
+                    x,y = self.image_pre_process(images[0,:,:]).shape
+
+                    # Set up variable for image data
+                    self.images = np.empty((0,x,y))
+
+                # Allocate memory for downsized images
+                r_images = np.zeros((images.shape[0],x,y))
+
+                # Process each image
+                for i in tqdm(xrange(images.shape[0])):
+                    r_images[i,:,:] = self.image_pre_process(images[i,:,:])
+
+                r_images = self.subject_pre_process(r_images)
+
+                # append down_sized images to all_images
+                self.images = np.append(self.images,r_images,axis=0)
+
+                del r_images
+
+            # Finally perform processing on all of the images as a whole
+            self.all_images_pre_process()
+
+            print 'SAVING HASHFILE FOR FUTURE USE', batch_type
+            checksum = self.images.sum() + self.labels.sum()
+            np.savez(hash_file,images=self.images,labels=self.labels,checksum=checksum)
 
         self.nSamples = self.images.shape[0]
 
@@ -178,7 +217,12 @@ class Batch:
 
 class Disfa:
     def __init__(self,config):
+
+
+        self.test       = Batch(config,'test')
         self.train      = Batch(config,'train')
         self.validation = Batch(config,'validation')
-        self.test       = Batch(config,'test')
+
         self.config = config
+        self.config['image_shape'] = [self.train.images.shape[1],self.train.images.shape[2]]
+        self.config['label_size'] = self.train.labels.shape[1]

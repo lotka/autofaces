@@ -16,9 +16,9 @@ from tqdm import tqdm
 from model import cnn,expand_labels,batched_feed
 import yaml
 import disfa
-
+path = sys.argv[1]
 # Load yaml config file
-config = PyExp(config_file=sys.argv[1],make_new=False)
+config = PyExp(config_file=join(path,'config.yaml'),make_new=False)
 # Load data
 data = disfa.Disfa(config['data'])
 config.update('data',data.config,save=False)
@@ -65,7 +65,7 @@ with tf.Session() as sess:
     # Here's where you're restoring the variables w and b.
     # Note that the graph is exactly as it was when the variables were
     # saved in a prior training run.
-    ckpt = tf.train.get_checkpoint_state('data/2016_06_15/001/model')
+    ckpt = tf.train.get_checkpoint_state(join(path,'model'))
     if ckpt and ckpt.model_checkpoint_path:
         saver.restore(sess, ckpt.model_checkpoint_path)
     else:
