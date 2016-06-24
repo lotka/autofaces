@@ -98,6 +98,7 @@ def multi_eval(y_pred,y_true,threshold=0.4):
 
     res = np.zeros((classes,4))
     confusion_matrices = []
+    roc_data = []
     for i in xrange(classes):
         prec,recall,f1,confuse = confuse_2d(y_true[:,i],y_pred_binary[:,i])
         a = y_true[:,i].sum() != 0
@@ -107,12 +108,15 @@ def multi_eval(y_pred,y_true,threshold=0.4):
         if a and b and c and d:
             fpr, tpr, thresholds = roc_curve(y_true[:,i],y_pred[:,i])
             roc_auc = auc(fpr, tpr)
+            roc_data.append((fpr, tpr, thresholds))
         else:
             roc_auc = 0
+            roc_data.append(None)
+
         res[i,0] = prec
         res[i,1] = recall
         res[i,2] = f1
         res[i,3] = roc_auc
         confusion_matrices.append(confuse)
 
-    return res,confusion_matrices
+    return res,confusion_matrices,roc_data

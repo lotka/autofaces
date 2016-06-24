@@ -1,21 +1,17 @@
 #!/usr/bin/python
 import etc
 import tensorflow as tf
-
-reload(tf)
 import numpy as np
 import metric
 import os
 import socket
-from sklearn.metrics import roc_curve, auc
 import matplotlib
-
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from pyexp.pyexp import PyExp
 from os.path import join
 from model import cnn, expand_labels
-
+from sklearn.metrics import roc_curve, auc
 
 def conv_vis(i, sess, hconv, w, path, x, batch_x, keep_prob):
     # to visualize 1st conv layer Weights
@@ -224,10 +220,10 @@ def main(data, config):
             lmsq_axis[1, j], cent_axis[1, j], accu_axis[1, j], train_y_out = out
             # train_writer.add_summary(summary, i)
 
-            train_res, train_conf = metric.multi_eval(train_y_out, batch_y)
+            train_res, train_conf, _ = metric.multi_eval(train_y_out, batch_y)
             train_auac_axis[j, :, :] = train_res
 
-            validation_res, validation_conf = metric.multi_eval(validation_y_out, vbatch_y)
+            validation_res, validation_conf, _ = metric.multi_eval(validation_y_out, vbatch_y)
             validation_auac_axis[j, :, :] = validation_res
 
             train_confusion.append(train_conf)
@@ -266,7 +262,7 @@ def main(data, config):
             if j > 50:
                 g = np.gradient(cent_axis[0, :])
                 if g[j] > -0.0 and not early_model_saved:
-                    config.config['results']['early_stop_iteration'] = x_axis[j]
+                    config.config['results']['early_stop_iteration'] = int(x_axis[j])
                     save_model(sess, config, 'early')
                     early_model_saved = True
 
