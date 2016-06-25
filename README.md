@@ -16,7 +16,7 @@ ruamel.yaml
 ``` cd src/ ```
 
 
-Edit config/cnn.yaml to set up experiment parameters
+Edit `config/cnn.yaml` to set up experiment parameters
 
 
 Run an experiment:
