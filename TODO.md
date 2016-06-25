@@ -75,4 +75,15 @@ MEETING TODO:
 <!-- * For testing and validation do not exclude the all zero frames -->
 * see if the binary softmax actually improved the performance
 * early stopping, dump the model at the best point
+* vary learning rate
 -----
+
+
+
+make confusuon matrices useful in notebook.
+tidy up AU numbers
+dropout 1.0z
+compare experiments
+mean-variance normalisation, mean stddev of the image
+L2 regularization research
+example script

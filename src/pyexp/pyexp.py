@@ -1,5 +1,4 @@
 import ruamel.yaml as yaml
-print 'wtf'
 import os
 
 from time import gmtime, strftime

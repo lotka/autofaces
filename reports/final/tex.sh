@@ -4,5 +4,5 @@ bibtex report
 pdflatex main.tex
 pdflatex main.tex
 #python clean.py
-rm *.aux
-rm *.bbl *.blg *.log
+rm -rf *.aux
+rm -rf *.bbl *.blg *.log
