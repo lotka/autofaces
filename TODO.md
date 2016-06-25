@@ -82,7 +82,7 @@ MEETING TODO:
 
 make confusuon matrices useful in notebook.
 tidy up AU numbers
-dropout 1.0z
+dropout 1.0
 compare experiments
 mean-variance normalisation, mean stddev of the image
 L2 regularization research
