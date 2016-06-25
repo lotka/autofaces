@@ -239,11 +239,16 @@ def cnn(config):
     s2 = 20
     h_full_1 = nn_layer(flat_1_dropped,s,s2,'fully_connected_1',config,act=leaky_relu)
 
+    if config['final_activation'] == 'softmax':
+        final_act = tf.nn.softmax
+    else:
+        final_act = tf.nn.relu
+
     if config['binary_softmax']:
         cost_outputs   = []
         metric_outputs = []
         for i in xrange(output_dim):
-            l = nn_layer(h_full_1,s2,2,'output_'+str(i),config,act=tf.nn.softmax)
+            l = nn_layer(h_full_1,s2,2,'output_'+str(i),config,act=final_act)
             cost_outputs.append(l)
             metric_outputs.append(tf.slice(l,[0,0],[-1,1]))
 
@@ -252,7 +257,7 @@ def cnn(config):
         with tf.name_scope('inference'):
             y_conv = tf.concat(concat_dim=1,values=metric_outputs)
     else:
-        y_conv = nn_layer(h_full_1,s2,output_dim,'output',config,act=tf.nn.softmax)
+        y_conv = nn_layer(h_full_1,s2,output_dim,'output',config,act=final_act)
         y_train = y_conv
 
     # if config['ignore_empty_labels']:

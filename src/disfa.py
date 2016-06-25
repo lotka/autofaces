@@ -140,7 +140,7 @@ class Batch:
 
         def hash_config(conf):
             _conf = copy(conf)
-            bad = ['path','image_shape','label_size']
+            bad = ['path','image_shape','label_size','results']
             for x in bad:
                 if x in _conf:
                     _conf[x] = '?'
@@ -155,7 +155,7 @@ class Batch:
             h3 = hash(file.read())
 
         h = h1 ^ h2 ^ h3 ^ h4
-        hash_folder = join(config['path'],'hashed_datasets')
+        hash_folder = join(join(config['path'],'..'),'hashed_datasets')
         hash_file = join(hash_folder,batch_type+'_'+str(h))
 
 
