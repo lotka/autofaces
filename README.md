@@ -26,3 +26,5 @@ Run an experiment:
 Run the analysis on the test set:
 
 ``` python test_set_analysis.py path_to_results model```   *model*=final or early
+
+To visualize the data run the `results2.ipynb` notebook in the notebooks folder
