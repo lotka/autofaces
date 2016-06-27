@@ -1,10 +1,15 @@
 # autofaces
 
+general requirements:
+```
+python 2.7.6
+tensorflow
+```
+
 pip requirements:
 ```
 numpy
 matplotlib
-tensorflow
 tqdm
 sklearn
 yaml
@@ -26,3 +31,5 @@ Run an experiment:
 Run the analysis on the test set:
 
 ``` python test_set_analysis.py path_to_results model```   *model*=final or early
+
+To visualize the results run the `results.ipynb` notebook in the notebooks folder
