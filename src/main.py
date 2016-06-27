@@ -6,6 +6,7 @@ import metric
 import os
 import socket
 import matplotlib
+import sys
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from pyexp.pyexp import PyExp
