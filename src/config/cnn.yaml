@@ -1,3 +1,4 @@
+aim: 'See if turning off dropout does anything interesting'
 global:
     binary_softmax: True
     final_activation: softmax
@@ -16,13 +17,13 @@ global:
     cost_function: cross_entropy
 
     threshold: 0.5
-    dropout_rate: 0.8
+    dropout_rate: 1.0
 
     # adam or grad
     optimizer: adam
 
     # Warning grad needs higher learning rates than adam (100x)
-    learning_rate: 0.00001
+    learning_rate: 0.001
 weights:
     bias_start: 0.1
 
@@ -60,7 +61,7 @@ data:
       resize_scale: 0.4
 
     normalisation_type: face
-    normalisation_between_minus_one_and_one: False
+    normalisation_between_minus_one_and_one: True
     disfa_au_map : [1,2,4,5,6,9,12,15,17,20,25,26]
 results:
     early_stop_iteration: -1

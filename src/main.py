@@ -259,11 +259,13 @@ def main(data, config):
                 print '(early saved)'
             else:
                 print
-
-            if j > 50:
+            if i > 10:
                 g = np.gradient(cent_axis[0, :])
-                if g[j] > -0.0 and not early_model_saved:
+                # Early model save conditions:
+                if not early_model_saved and ((g[j] > 0.0) or (i > N / 4)):
+                    # Record the number at which the early model is saved
                     config.config['results']['early_stop_iteration'] = int(x_axis[j])
+                    # Save it
                     save_model(sess, config, 'early')
                     early_model_saved = True
 
