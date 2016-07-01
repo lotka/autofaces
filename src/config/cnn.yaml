@@ -1,29 +1,35 @@
-aim: 'See if turning off dropout does anything interesting'
+aim: 'Got rid of the second fc layer'
 global:
     binary_softmax: True
     final_activation: softmax
     dump_frames: False
     path: data
-    iterations: 600
+    iterations: 800
     # defunct:
     # ignore_empty_labels: False
     batch_size: 100
-    network: convolution_gudi_2015
+    network: gudi_test_network_2
+    fc1_neuron_count : 0
+    fc2_neuron_count : 0
+    fc3_neuron_count : 20
     # networks
     #  'fullyconnected_subnetwork_gudi_2015'
     #  'convolution_gudi_2015'
 
     # lmsq or cross_entropy
     cost_function: cross_entropy
+#    l2_reg: True
 
     threshold: 0.5
-    dropout_rate: 1.0
+    dropout_rate: 0.8
 
     # adam or grad
     optimizer: adam
 
     # Warning grad needs higher learning rates than adam (100x)
     learning_rate: 0.001
+
+    seed_randomness : False
 weights:
     bias_start: 0.1
 
@@ -47,11 +53,11 @@ data:
     train_subjects : [2,4,6,8,10,12,16,18,23,25,27,29,31]
     validation_subjects : [1,3,5,7,9,11,13,17,21,24,26,28,30,32]
     test_subjects  : [1,3,5,7,9,11,13,17,21,24,26,28,30,32]
-    # train_subjects : [1]
-    # validation_subjects : [2]
-    # test_subjects  : [3]
+#    train_subjects : [1]
+#    validation_subjects : [2]
+#    test_subjects  : [3]
     batch_randomisation: True
-    image_region: mouth
+    image_region: full
     mouth:
       resize_scale: 0.6
       AUs: [6,7,8,9,10,11]
@@ -60,8 +66,8 @@ data:
       crop: [0,0,0,0] #left,right,top,bottom
       resize_scale: 0.4
 
-    normalisation_type: face
-    normalisation_between_minus_one_and_one: True
+    normalisation_type: contrast
+    normalisation_between_minus_one_and_one: False
     disfa_au_map : [1,2,4,5,6,9,12,15,17,20,25,26]
 results:
     early_stop_iteration: -1

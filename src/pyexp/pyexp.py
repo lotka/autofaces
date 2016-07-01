@@ -115,3 +115,4 @@ class PyExp:
         f.close()
         print 'Finished run with path: '
         print self.exp_path
+        return self.exp_path
