@@ -21,31 +21,22 @@ def is_flat_list(l):
 
 
 def hash_anything(d):
-    """
-
-    :param d:  any python object should work
-    :return: a hash
-    """
     h = 0
     if d.__hash__ != None:
         h = hash(d)
-
     # hash dictionary entries naively
     elif hasattr(d, 'keys'):
         # hash the keys
         h = hash(frozenset(d))
-
         # hash the values, ignoring order
         for key in d.keys():
             h = h ^ hash_anything(d[key])
-
-    # convert lists to tuples as long as they don't contain iterable objects
+    # convert lists to tuples
     elif is_flat_list(d):
         h = hash_anything(tuple(d))
     else:
         for x in d:
             h = h ^ hash_anything(x)
-
     return h
 
 class Batch:
@@ -71,11 +62,11 @@ class Batch:
 
     def subject_pre_process(self,images):
         option = self.config['normalisation_type']
-        N = images.shape[0]
 
         if option == 'pixel':
             images =  (images - np.ones(images.shape)*images.mean())/images.std()
         elif option == 'face':
+            N = images.shape[0]
             mean_face = images.mean(axis=0)
             stdd_face = images.std(axis=0)
             x,y = stdd_face.shape
@@ -86,10 +77,6 @@ class Batch:
 
             for i in xrange(N):
                 images[i,:,:] = (images[i,:,:] - mean_face)/stdd_face
-        elif option == 'contrast':
-            for i in xrange(N):
-                img = images[i,:,:]
-                images[i,:,:] = ( img - img.mean() )/img.std()
         else:
             raise Exception("normalisation_type not set correctly: unknown type " + option)
 
@@ -183,6 +170,8 @@ class Batch:
         self.raw_labels = self.labels.copy()
 
         self.image_region_config = self.config[self.config['image_region']]
+
+            return h
 
         def hash_config(conf):
             _conf = copy(conf)

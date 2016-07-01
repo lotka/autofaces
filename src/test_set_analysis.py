@@ -14,15 +14,8 @@ from os.path import join
 from os.path import isdir
 from os import mkdir
 from tqdm import tqdm
-from model import cnn,expand_labels,batched_feed
-import yaml
+from model import cnn
 import disfa
-path = sys.argv[1]
-# Load yaml config file
-config = PyExp(config_file=join(path,'config.yaml'),make_new=False)
-# Load data
-data = disfa.Disfa(config['data'])
-config.update('data',data.config,save=False)
 
 def thresholding(tf,sess,data,model):
 
@@ -60,7 +53,7 @@ def thresholding(tf,sess,data,model):
 
     return threshold_values,test_threshold_data, test_confusion, test_roc_data
 
-def test_model(name,data):
+def test_model(name,data,config,path):
     import tensorflow as tf
     if socket.gethostname() == 'ux305':
         sess = tf.Session()
@@ -99,4 +92,18 @@ def test_model(name,data):
 
     sess.close()
 
-test_model(sys.argv[2],data)
+def main(argv,data=None):
+    path = argv[1]
+    model = argv[2]
+    # Load yaml config file
+    config = PyExp(config_file=join(path, 'config.yaml'), make_new=False)
+    # Load data
+    if data == None:
+        data = disfa.Disfa(config['data'])
+
+    config.update('data', data.config, save=False)
+
+    test_model(model,data,config,path)
+
+if __name__ == "__main__":
+    main(sys.argv)

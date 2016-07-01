@@ -7,12 +7,14 @@ import os
 import socket
 import matplotlib
 import sys
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from pyexp.pyexp import PyExp
 from os.path import join
 from model import cnn, expand_labels
 from sklearn.metrics import roc_curve, auc
+
 
 def conv_vis(i, sess, hconv, w, path, x, batch_x, keep_prob):
     # to visualize 1st conv layer Weights
@@ -83,7 +85,7 @@ def save_model(sess, config, name):
     print("Model saved in file: %s" % save_path)
 
 
-def main(data, config):
+def run(data, config):
     def put_kernels_on_grid(kernel, (grid_Y, grid_X), pad=1):
         '''Visualize conv. features as an image (mostly for the 1st layer).
         Place kernel into a grid, with some paddings between adjacent filters.
@@ -139,6 +141,10 @@ def main(data, config):
         tensorflow_config.gpu_options.allow_growth = True
         sess = tf.Session(config=tensorflow_config)
 
+
+    if config['seed_randomness']:
+        tf.set_random_seed(0)
+
     path = config.get_path()
     merged = tf.merge_all_summaries()
     train_writer = tf.train.SummaryWriter(join(path, 'train'), sess.graph)
@@ -193,7 +199,8 @@ def main(data, config):
         if pi:
             e = pi.elapsed_time
             r = pi.time_remaining()
-            print  i, '/', N, 'Time elapsed:', nice_seconds(e), 'time remaining:', nice_seconds(r)
+
+            print  i, '/', N,' | ',data.train.batch_counter,'/',data.train.nSamples, '| Time elapsed:', nice_seconds(e), 'time remaining:', nice_seconds(r)
 
         batch_x, batch_y = data.train.next_batch(batch_size)
 
@@ -204,8 +211,9 @@ def main(data, config):
             train = {x: batch_x, y_: batch_y, keep_prob: dropout_rate}
             _train = {x: batch_x, y_: batch_y, keep_prob: 1.0}
 
-        if (i + 1) % test_period == 0:
+        if (i + 1*0) % test_period == 0:
             j = i / test_period
+
             vbatch_x, vbatch_y = data.validation.next_batch(2000)
             if config['binary_softmax']:
                 _validation = {x: vbatch_x, y_: expand_labels(vbatch_y), keep_prob: 1.0}
@@ -213,22 +221,6 @@ def main(data, config):
                 _validation = {x: vbatch_x, y_: vbatch_y, keep_prob: 1.0}
 
             x_axis[j] = i
-
-            out = sess.run([lmsq_loss, cross_entropy, accuracy, y_conv], feed_dict=_validation)
-            lmsq_axis[0, j], cent_axis[0, j], accu_axis[0, j], validation_y_out = out
-
-            out = sess.run([lmsq_loss, cross_entropy, accuracy, y_conv], feed_dict=_train)
-            lmsq_axis[1, j], cent_axis[1, j], accu_axis[1, j], train_y_out = out
-            # train_writer.add_summary(summary, i)
-
-            train_res, train_conf, _ = metric.multi_eval(train_y_out, batch_y)
-            train_auac_axis[j, :, :] = train_res
-
-            validation_res, validation_conf, _ = metric.multi_eval(validation_y_out, vbatch_y)
-            validation_auac_axis[j, :, :] = validation_res
-
-            train_confusion.append(train_conf)
-            validation_confusion.append(validation_conf)
 
             # if 'h_conv1' in locals():
             #     conv_vis(i,sess,h_conv1,w1,path,x,batch_x,keep_prob)
@@ -249,8 +241,29 @@ def main(data, config):
                                run_metadata=run_metadata)
             validation_writer.add_run_metadata(run_metadata, 'step%d' % i)
             validation_writer.add_summary(summary, i)
+
+            """
+            Get stuff for graphs
+            """
+
+            out = sess.run([lmsq_loss, cross_entropy, accuracy, y_conv], feed_dict=_validation)
+            lmsq_axis[0, j], cent_axis[0, j], accu_axis[0, j], validation_y_out = out
+
+            out = sess.run([lmsq_loss, cross_entropy, accuracy, y_conv], feed_dict=_train)
+            lmsq_axis[1, j], cent_axis[1, j], accu_axis[1, j], train_y_out = out
+            # train_writer.add_summary(summary, i)
+
+            train_res, train_conf, _ = metric.multi_eval(train_y_out, batch_y)
+            train_auac_axis[j, :, :] = train_res
+
+            validation_res, validation_conf, _ = metric.multi_eval(validation_y_out, vbatch_y)
+            validation_auac_axis[j, :, :] = validation_res
+
+            train_confusion.append(train_conf)
+            validation_confusion.append(validation_conf)
+
             # print(config.get_path(), ' Adding run metadata for', i)
-            print i, '   \t',
+            print  i, '/', N, ' | ', data.train.batch_counter, '/', data.train.nSamples, '|',
             print round(lmsq_axis[0, j], 5), ' ',
             print round(lmsq_axis[1, j], 5), ' ',
             print round(cent_axis[0, j], 5), ' ',
@@ -334,46 +347,60 @@ def main(data, config):
              validation_confusion=validation_confusion
              )
 
-if len(sys.argv) == 1:
-    if socket.gethostname() == 'ux305':
-        path = '/home/luka/Documents/autofaces/data'
+
+def main():
+    if len(sys.argv) == 1:
+        if socket.gethostname() == 'ux305':
+            path = '/home/luka/Documents/autofaces/data'
+        else:
+            path = '/vol/lm1015-tmp/data/'
     else:
-        path = '/vol/lm1015-tmp/data/'
-else:
-    path = sys.argv[1]
+        path = sys.argv[1]
 
-config = PyExp(config_file='config/cnn.yaml', path=path)
-if config['data']['dataset'] == 'disfa':
-    import disfa
+    config = PyExp(config_file='config/cnn.yaml', path=path)
+    if config['data']['dataset'] == 'disfa':
+        import disfa
 
-    data = disfa.Disfa(config['data'])
-    config.update('data', data.config)
+        data = disfa.Disfa(config['data'])
+        config.update('data', data.config)
 
-    if config['dump_frames']:
-        im, lb = data.train.next_batch(1000)
-        for i in xrange(100):
-            plt.figure()
-            # print i,im[i].shape[0]*im[i].shape[1], 48**2
-            print i, lb[i]
-            if config['data']['normalisation_between_zero_and_one']:
-                vmax = 1.0
-                vmin = 0.0
-            else:
-                vmax = 10.0
-                vmin = -10.0
-            plt.imshow(im[i], vmax=vmax, vmin=vmin)  # ,cmap="Greys_r",interpolation='nearest')
-            plt.colorbar()
-            plt.title(str(lb[i]))
-            plt.savefig(join(config.get_path(), 'images/face_' + str(i) + '.png'), dpi=100)
-            plt.close('all')
+        if config['dump_frames']:
+            im, lb = data.train.next_batch(1000)
+            for i in xrange(100):
+                plt.figure()
+                # print i,im[i].shape[0]*im[i].shape[1], 48**2
+                print i, lb[i]
+                if config['data']['normalisation_between_zero_and_one']:
+                    vmax = 1.0
+                    vmin = 0.0
+                else:
+                    vmax = 10.0
+                    vmin = -10.0
+                plt.imshow(im[i], vmax=vmax, vmin=vmin)  # ,cmap="Greys_r",interpolation='nearest')
+                plt.colorbar()
+                plt.title(str(lb[i]))
+                plt.savefig(join(config.get_path(), 'images/face_' + str(i) + '.png'), dpi=100)
+                plt.close('all')
+        else:
+            run(data, config)
     else:
-        main(data, config)
-else:
-    from tensorflow.examples.tutorials.mnist import input_data
+        from tensorflow.examples.tutorials.mnist import input_data
 
-    mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
-    config['data']['image_shape'] = int(28 ** 2)
-    config['data']['label_size'] = int(10)
-    main(mnist, config)
+        mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+        config['data']['image_shape'] = int(28 ** 2)
+        config['data']['label_size'] = int(10)
+        run(mnist, config)
 
-config.finished()
+    return config.finished(), data
+
+import test_set_analysis
+if __name__ == "__main__":
+    data_path,data = main()
+
+    tf.reset_default_graph()
+    test_set_analysis.main((sys.argv[0],data_path,'final'),data=data)
+
+    tf.reset_default_graph()
+    test_set_analysis.main((sys.argv[0],data_path, 'early'),data=data)
+
+
