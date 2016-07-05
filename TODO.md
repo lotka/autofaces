@@ -86,3 +86,16 @@ compare experiments
 mean-variance normalisation, mean stddev of the image
 L2 regularization research
 example script
+running table
+repeat experiments 10 times
+autoencoder loss parameters
+double resolution
+training swap order
+
+
+
+table:
+
+            small network big network
+small image
+big image

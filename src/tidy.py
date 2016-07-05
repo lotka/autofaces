@@ -25,18 +25,18 @@ for dates in get_immediate_subdirectories(top):
             print 'DELETING ',sub_sub
             shutil.rmtree(sub_sub)
 
-    runs = get_immediate_subdirectories(sub)
-    numbers = []
-    for r in runs:
-        try:
-            numbers.append(int(r))
-        except ValueError:
-            print 'Could not parse folders ', join(sub,r)
-    if numbers != []:
-        for i in xrange(1,max(numbers)+1):
-            d =  join(sub,prefix(i,3))
-            if not os.path.isdir(d) and (i-1 < len(runs)):
-                print 'Moving',runs[i-1],'to', prefix(i,3)
-                shutil.move(join(sub,runs[i-1]), d)
+    # runs = get_immediate_subdirectories(sub)
+    # numbers = []
+    # for r in runs:
+    #     try:
+    #         numbers.append(int(r))
+    #     except ValueError:
+    #         print 'Could not parse folders ', join(sub,r)
+    # if numbers != []:
+    #     for i in xrange(1,max(numbers)+1):
+    #         d =  join(sub,prefix(i,3))
+    #         if not os.path.isdir(d) and (i-1 < len(runs)):
+    #             print 'Moving',runs[i-1],'to', prefix(i,3)
+    #             shutil.move(join(sub,runs[i-1]), d)
 
 print 'Tidy up complete :)'

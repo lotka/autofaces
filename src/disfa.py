@@ -7,6 +7,7 @@ from tqdm import tqdm
 from copy import copy
 from os.path import join
 import os
+from helper import hash_anything
 
 class Batch:
     def image_pre_process(self,image):
@@ -31,11 +32,11 @@ class Batch:
 
     def subject_pre_process(self,images):
         option = self.config['normalisation_type']
+        N = images.shape[0]
 
         if option == 'pixel':
             images =  (images - np.ones(images.shape)*images.mean())/images.std()
         elif option == 'face':
-            N = images.shape[0]
             mean_face = images.mean(axis=0)
             stdd_face = images.std(axis=0)
             x,y = stdd_face.shape
@@ -46,6 +47,10 @@ class Batch:
 
             for i in xrange(N):
                 images[i,:,:] = (images[i,:,:] - mean_face)/stdd_face
+        elif option == 'contrast':
+            for i in xrange(N):
+                img = images[i,:,:]
+                images[i,:,:] = ( img - img.mean() )/img.std()
         else:
             raise Exception("normalisation_type not set correctly: unknown type " + option)
 
@@ -114,6 +119,8 @@ class Batch:
             for j in range(i,i+n):
                 idx.append(j % N)
 
+            # print '(',i,i+n,N,')',
+
             return self.images[idx,:,:],self.labels[idx,:]
 
 
@@ -140,24 +147,23 @@ class Batch:
 
         def hash_config(conf):
             _conf = copy(conf)
-            bad = ['path','image_shape','label_size','results']
-            for x in bad:
-                if x in _conf:
-                    _conf[x] = '?'
-            return hash(frozenset(_conf))
+            ignore_for_hashing = ['path','image_shape','label_size','results']
+            for name in ignore_for_hashing:
+                if name in _conf:
+                    del _conf[name]
+            return hash_anything(_conf)
 
         h1 = hash_config(self.config)
         h2 = hash_config(subjects)
         h3 = 0
-        h4 = hash_config(self.image_region_config)
+
 
         with open('disfa.py','r') as file:
             h3 = hash(file.read())
 
-        h = h1 ^ h2 ^ h3 ^ h4
+        h = h1 ^ h2 ^ h3
         hash_folder = join(join(config['path'],'..'),'hashed_datasets')
         hash_file = join(hash_folder,batch_type+'_'+str(h))
-
 
         if not os.path.isdir(hash_folder):
             os.mkdir(hash_folder)
