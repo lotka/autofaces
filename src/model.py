@@ -64,10 +64,17 @@ def bias_variable(shape, config):
 def conv2d(x, W, padding='SAME',strides=[1,1,1,1]):
     return tf.nn.conv2d(x, W, strides=strides, padding=padding)
 
+def conv2d_transpose(x, W,output_shape, padding='SAME',strides=[1,1,1,1]):
+    return tf.nn.conv2d_transpose(x, W,output_shape, strides=strides, padding=padding)
 
-def max_pool_layer(x, ksize, strides, layer_name, padding):
+
+def pool_layer(type, x, ksize, strides, layer_name, padding):
     with tf.name_scope(layer_name):
-        activations = tf.nn.max_pool(x, ksize=ksize, strides=strides, padding=padding)
+        if type == 'max':
+            pool = tf.nn.max_pool
+        elif type == 'avg':
+            pool = tf.nn.avg_pool
+        activations = pool(x, ksize=ksize, strides=strides, padding=padding)
         print layer_name + ' with size: ', ksize, ' with stride ', strides
         print ' output : ', activations.get_shape()
         return (activations, None)
@@ -109,6 +116,34 @@ def nn_layer(input_tensor, input_dim, output_dim, layer_name, config, act=tf.nn.
 
         return activations,None
 
+def dcnn_layer(input_tensor, convolution_shape,output_shape, padding, layer_name, config, act=tf.nn.relu,strides=[1,1,1,1]):
+    # Adding a name scope ensures logical grouping of the layers in the graph.
+    with tf.name_scope(layer_name):
+        # This Variable will hold the state of the weights for the layer
+        with tf.name_scope('weights'):
+            name = layer_name + '/weights'
+            weights = weight_variable(convolution_shape, name, config)
+            variable_summaries(weights, name)
+        with tf.name_scope('biases'):
+            biases = bias_variable([convolution_shape[-1]], config)
+            variable_summaries(biases, layer_name + '/biases')
+        with tf.name_scope('convolution'):
+            preactivate = conv2d_transpose(input_tensor, weights,output_shape, padding=padding,strides=strides) + biases
+            tf.histogram_summary(layer_name + '/pre_activations', preactivate)
+
+        # Combine the feature maps if this is the last deconvolution
+        if output_shape[-1] == 1:
+            activations = act(tf.reduce_mean(preactivate,3,keep_dims=True), 'activation')
+        else:
+            activations = act(preactivate,'activation')
+
+        tf.histogram_summary(layer_name + '/activations', activations)
+
+        print layer_name + ' Shape: ', weights.get_shape(), ' with bias ', biases.get_shape(), ' padding', padding
+        shape = activations.get_shape()
+        print ' output : ', shape
+
+        return activations, weights
 
 def cnn_layer(input_tensor, convolution_shape, padding, layer_name, config, act=tf.nn.relu,strides=[1,1,1,1]):
     # Adding a name scope ensures logical grouping of the layers in the graph.
@@ -131,54 +166,54 @@ def cnn_layer(input_tensor, convolution_shape, padding, layer_name, config, act=
         shape = activations.get_shape()
         print ' output : ', shape
 
-        channels = int(convolution_shape[-1])
-        img_size = int(shape[-2])
-        ix = img_size
-        iy = img_size
-        print channels, img_size
-
-        cx = 0
-        cy = 0
-        if channels == 32:
-            cx = 8
-            cy = 4
-        if channels == 64:
-            cx = 8
-            cy = 8
-        if channels == 128:
-            cx = 16
-            cy = 8
-
-        assert channels == cx * cy
-        assert cx != 0 and cy != 0
-
-        if False:
-            ## Prepare for visualization
-            # Take only convolutions of first image, discard convolutions for other images.
-            V = tf.slice(activations, (0, 0, 0, 0), (1, -1, -1, -1), name='slice_' + layer_name)
-            V = tf.reshape(V, (img_size, img_size, channels))
-
-            # Reorder so the channels are in the first dimension, x and y follow.
-            V = tf.transpose(V, (2, 0, 1))
-            # Bring into shape expected by image_summary
-            V = tf.reshape(V, (-1, img_size, img_size, 1))
-            tf.image_summary('a_' + layer_name, V)
-
-        if False:
-            V = tf.slice(activations, (0, 0, 0, 0), (1, -1, -1, -1))
-            V = tf.reshape(V, (iy, ix, channels))
-
-            ix = ix + 4
-            iy = iy + 4
-
-            V = tf.image.resize_image_with_crop_or_pad(V, iy, ix)
-
-            V = tf.reshape(V, (iy, ix, cy, cx))
-            V = tf.transpose(V, (2, 0, 3, 1))  # cy,iy,cx,ix
-            # V = np.einsum('yxYX->YyXx',V)
-            # image_summary needs 4d input
-            V = tf.reshape(V, [1, cy * iy, cx * ix, 1])
-            tf.image_summary('b_' + layer_name, V)
+        # channels = int(convolution_shape[-1])
+        # img_size = int(shape[-2])
+        # ix = img_size
+        # iy = img_size
+        # print channels, img_size
+        #
+        # cx = 0
+        # cy = 0
+        # if channels == 32:
+        #     cx = 8
+        #     cy = 4
+        # if channels == 64:
+        #     cx = 8
+        #     cy = 8
+        # if channels == 128:
+        #     cx = 16
+        #     cy = 8
+        #
+        # assert channels == cx * cy
+        # assert cx != 0 and cy != 0
+        #
+        # if False:
+        #     ## Prepare for visualization
+        #     # Take only convolutions of first image, discard convolutions for other images.
+        #     V = tf.slice(activations, (0, 0, 0, 0), (1, -1, -1, -1), name='slice_' + layer_name)
+        #     V = tf.reshape(V, (img_size, img_size, channels))
+        #
+        #     # Reorder so the channels are in the first dimension, x and y follow.
+        #     V = tf.transpose(V, (2, 0, 1))
+        #     # Bring into shape expected by image_summary
+        #     V = tf.reshape(V, (-1, img_size, img_size, 1))
+        #     tf.image_summary('a_' + layer_name, V)
+        #
+        # if False:
+        #     V = tf.slice(activations, (0, 0, 0, 0), (1, -1, -1, -1))
+        #     V = tf.reshape(V, (iy, ix, channels))
+        #
+        #     ix = ix + 4
+        #     iy = iy + 4
+        #
+        #     V = tf.image.resize_image_with_crop_or_pad(V, iy, ix)
+        #
+        #     V = tf.reshape(V, (iy, ix, cy, cx))
+        #     V = tf.transpose(V, (2, 0, 3, 1))  # cy,iy,cx,ix
+        #     # V = np.einsum('yxYX->YyXx',V)
+        #     # image_summary needs 4d input
+        #     V = tf.reshape(V, [1, cy * iy, cx * ix, 1])
+        #     tf.image_summary('b_' + layer_name, V)
 
         # if layer_name == 'Convolution_1':
         #     grid = put_kernels_on_grid(weights, (8, 8),pad=2)
@@ -190,7 +225,11 @@ def cnn_layer(input_tensor, convolution_shape, padding, layer_name, config, act=
         #     grid = put_kernels_on_grid(weights, (8, 16),pad=1)
         #     tf.image_summary(layer_name + '/features', grid)
 
-        return activations, None
+        return activations, weights
+
+
+def example_acnn(config):
+    pass
 
 
 def cnn(config):
@@ -199,14 +238,21 @@ def cnn(config):
     :param config:
     :return:
     """
+    batch_size = config['batch_size']
     input_dim = config['data']['image_shape']
     output_dim = config['data']['label_size']
+    use_autoencoder = config['use_autoencoder']
+
+    # Switch of the autoencoder if we don't know the batch size
+    if batch_size == None:
+        use_autoencoder = False
+
     if type(input_dim) == type([]):
-        shape_1 = [None, input_dim[0], input_dim[1]]
-        shape_2 = [-1, input_dim[0], input_dim[1], 1]
+        shape_1 = [batch_size, input_dim[0], input_dim[1]]
+        shape_2 = [batch_size, input_dim[0], input_dim[1], 1]
     else:
-        shape_1 = [None, input_dim]
-        shape_2 = [-1, int(np.sqrt(input_dim)), int(np.sqrt(input_dim)), 1]
+        shape_1 = [batch_size, input_dim]
+        shape_2 = [batch_size, int(np.sqrt(input_dim)), int(np.sqrt(input_dim)), 1]
 
     x = tf.placeholder(np.float32, shape=shape_1, name='Images')
     x_ = tf.reshape(x, shape=shape_2)
@@ -216,63 +262,170 @@ def cnn(config):
     else:
         g = 1
 
-    y_ = tf.placeholder(np.float32, shape=[None, output_dim * g], name='Labels')
+    y_ = tf.placeholder(np.float32, shape=[batch_size, output_dim * g], name='Labels')
 
     print 'Input: ', x_.get_shape()
     print 'Outut: ', y_.get_shape()
 
+    def flatten(network1, network2):
+        with tf.name_scope('flatten'):
+            prev_shape = ll(network1).get_shape()
+            conv_output_size = int(1)
+            for i in xrange(1, len(prev_shape)):
+                conv_output_size *= int(prev_shape[i])
+            flat = tf.reshape(ll(network1), [batch_size, conv_output_size])
+            print ' flatten to ', flat.get_shape()
+            network2.append((flat, None))
+
+    def unflatten(network, decoder):
+        with tf.name_scope('unflatten'):
+            prev_shape = ll(network).get_shape()
+            s = int(1)
+            for i in xrange(1, len(prev_shape)):
+                s *= int(prev_shape[i])
+            unflatten = tf.reshape(ll(network), [batch_size, int(np.sqrt(s)), int(np.sqrt(s)), 1])
+            print ' unflatten to ', unflatten.get_shape()
+            decoder.append((unflatten, None))
+
     def leaky_relu(x, name):
         return tf.maximum(0.01 * x, x, name)
 
-    def ll(network):
-        return network[-1][0]
+    def ll(network,i=-1):
+        return network[i][0]
 
+    print '\nENCODER'
+    using_convolutions = True
     network = [(x_,None)]
     # http://stats.stackexchange.com/questions/65877/convergence-of-neural-network-weights
+    #2209
     if config['network'] == 'gudi_test_network_0':
+        using_convolutions = False
         print 'This network has no convolutions.'
     elif config['network'] == 'gudi_test_network_1':
         network.append(cnn_layer(ll(network), [5, 5, 1, 64], 'VALID', 'Convolution_1', config, act=leaky_relu))
+        flatten(network)
     elif config['network'] == 'gudi_test_network_2':
         network.append(cnn_layer(ll(network), [5, 5, 1, 64], 'VALID', 'Convolution_1', config, act=leaky_relu))
-        network.append(max_pool_layer(ll(network), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME',layer_name='Max_Pool_1'))
+        network.append(pool_layer('max',ll(network), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME',layer_name='Max_Pool_1'))
+        flatten(network,network)
     elif config['network'] == 'gudi_test_network_3':
         network.append(cnn_layer(ll(network), [5, 5, 1, 64], 'VALID', 'Convolution_1', config, act=leaky_relu))
-        network.append(max_pool_layer(ll(network), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME',layer_name='Max_Pool_1'))
+        network.append(pool_layer('max',ll(network), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME',layer_name='Max_Pool_1'))
         network.append(cnn_layer(ll(network), [5, 5, 64, 64], 'VALID', 'Convolution_2', config, act=leaky_relu))
+        flatten(network, network)
     elif config['network'] == 'gudi_test_network_4':
         network.append(cnn_layer(ll(network), [5, 5, 1, 64], 'VALID', 'Convolution_1', config, act=leaky_relu))
-        network.append(max_pool_layer(ll(network), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME',layer_name='Max_Pool_1'))
+        network.append(pool_layer('max',ll(network), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME',layer_name='Max_Pool_1'))
         network.append(cnn_layer(ll(network), [5, 5, 64, 64], 'VALID', 'Convolution_2', config, act=leaky_relu))
         network.append(cnn_layer(ll(network), [4, 4, 64, 128], 'VALID', 'Convolution_3', config, act=leaky_relu))
+        flatten(network, network)
+    elif config['network'] == 'gudi_test_network_4_avgpool':
+        network.append(cnn_layer(ll(network), [5, 5, 1, 64], 'VALID', 'Convolution_1', config, act=leaky_relu))
+        network.append(pool_layer('avg',ll(network), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME',layer_name='Max_Pool_1'))
+        network.append(cnn_layer(ll(network), [5, 5, 64, 64], 'VALID', 'Convolution_2', config, act=leaky_relu))
+        network.append(cnn_layer(ll(network), [4, 4, 64, 128], 'VALID', 'Convolution_3', config, act=leaky_relu))
+        flatten(network, network)
     elif config['network'] == 'gudi_test_network_5':
         network.append(cnn_layer(ll(network), [5, 5, 1, 64], 'VALID', 'Convolution_1', config, act=leaky_relu))
-        # network.append(max_pool_layer(ll(network), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME',layer_name='Max_Pool_1'))
+        # network.append(pool_layer('max',ll(network), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME',layer_name='Max_Pool_1'))
         network.append(cnn_layer(ll(network), [5, 5, 64, 64], 'VALID', 'Convolution_2', config, act=leaky_relu,strides=[1,3,3,1]))
         network.append(cnn_layer(ll(network), [4, 4, 64, 128], 'VALID', 'Convolution_3', config, act=leaky_relu))
+        flatten(network, network)
     elif config['network'] == 'gudi_test_network_6':
         network.append(cnn_layer(ll(network), [5, 5, 1, 64], 'VALID', 'Convolution_1', config, act=leaky_relu))
-        # network.append(max_pool_layer(ll(network), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME',layer_name='Max_Pool_1'))
+        # network.append(pool_layer('max',ll(network), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME',layer_name='Max_Pool_1'))
         network.append(cnn_layer(ll(network), [5, 5, 64, 64], 'VALID', 'Convolution_2', config, act=leaky_relu,strides=[1,3,3,1]))
-    else:
-        print 'Network', config['network'], 'not known.'
-        exit()
+        flatten(network, network)
+    elif config['network'] == 'fc_1':
+        flatten(network, network)
+        network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 2000, 'enc_fc_1',config,  act=leaky_relu))
+        network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 1500, 'enc_fc_2', config, act=leaky_relu))
+        network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 1000, 'enc_fc_3', config, act=leaky_relu))
+        network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 500, 'enc_fc_4', config, act=leaky_relu))
+        network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 100, 'enc_fc_5', config, act=leaky_relu))
+    elif config['network'] == 'test':
+        flatten(network, network)
+        network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 2, 'encoder',config,  act=leaky_relu))
 
 
-    """
-    All networks flatten the output of the convolutional part
-    """
-    with tf.name_scope('flatten'):
-        prev_shape = ll(network).get_shape()
-        conv_output_size = int(prev_shape[1]) * int(prev_shape[2]) * int(prev_shape[3])
-        flat_1 = tf.reshape(ll(network), [-1, conv_output_size])
-        print ' flatten to ', flat_1.get_shape()
-        network.append((flat_1,None))
+    # Balance parameter
+    alpha = tf.placeholder(np.float32)
+    decoder = []
 
 
     if config['fc1_neuron_count'] > 0:
         with tf.name_scope('fully_connected_1'):
             network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), config['fc1_neuron_count'], 'fully_connected_1', config, act=leaky_relu))
+
+
+    if use_autoencoder:
+        print '\nDECODER:'
+        s = 1
+        for i in xrange(1, len(shape_2)):
+            s *= int(shape_2[i])
+
+        if config['autoencoder']['decoder'] == 'auto_cnn_1':
+            print 'Resize:', [batch_size,22,22,64], '-->',[batch_size,43,43,64]
+            decoder.append((tf.image.resize_images(ll(network,-2), 43, 43),None))
+            decoder.append(dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_1', config))
+        elif config['autoencoder']['decoder'] == 'auto_cnn_2':
+            print 'Reshape:', ll(network).get_shape(), '-->',
+            decoder.append( (tf.reshape(ll(network), shape=[batch_size,7,7,64]),None) )
+            print ll(decoder).get_shape()
+
+            print 'Resize:', ll(decoder).get_shape(), '-->',
+            decoder.append( (tf.image.resize_nearest_neighbor(ll(decoder), size=[22,22]), None) )
+            print ll(decoder).get_shape()
+
+            decoder.append( dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_1', config,strides=[1,2,2,1]) )
+        elif config['autoencoder']['decoder'] == 'auto_cnn_3':
+            print 'Resize:', [batch_size,22,22,64], '-->',[batch_size,43,43,64]
+            decoder.append((tf.image.resize_images(ll(network,-3), 43, 43),None))
+            decoder.append(dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_1', config))
+        elif config['autoencoder']['decoder'] == 'auto_cnn_4':
+            decoder.append(dcnn_layer(ll(network,-2), [5, 5, 64, 64], [100,22,22,64], 'VALID', 'Deconvolution_1', config))
+            print 'Resize:', ll(decoder).get_shape(), '-->', [100, 43, 43, 64]
+            decoder.append((tf.image.resize_nearest_neighbor(ll(decoder), size=[43, 43]),None))
+            decoder.append(dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_2', config))
+        elif config['autoencoder']['decoder'] == 'auto_cnn_6':
+            decoder.append(dcnn_layer(ll(network,-3), [5, 5, 64, 64], [100,22,22,64], 'VALID', 'Deconvolution_1', config))
+            print 'Resize:', ll(decoder).get_shape(), '-->', [100, 43, 43, 64]
+            decoder.append((tf.image.resize_nearest_neighbor(ll(decoder), size=[43, 43]),None))
+            decoder.append(dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_2', config))
+        elif config['autoencoder']['decoder'] == 'auto_fc_1':
+            decoder.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 1000, 'dec_fc_2', config, act=leaky_relu))
+            decoder.append(nn_layer(ll(decoder), int(ll(decoder).get_shape()[1]), 1500, 'dec_fc_3', config, act=leaky_relu))
+            decoder.append(nn_layer(ll(decoder), int(ll(decoder).get_shape()[1]), 2000, 'dec_fc_4', config, act=leaky_relu))
+            decoder.append(nn_layer(ll(decoder), int(ll(decoder).get_shape()[1]), 2209, 'dec_fc_5', config, act=leaky_relu))
+        elif config['autoencoder']['decoder'] == 'test':
+            decoder.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 2209, 'decoder', config, act=leaky_relu))
+
+
+
+        # elif config['autoencoder']['decoder'] == 'auto_cnn_1':
+        #     decoder.append(nn_layer(ll(network), int(ll(network).get_shape()[1]),s, 'decoder_fully_connected_1', config, act=leaky_relu))
+        # elif config['autoencoder']['decoder'] == 'auto_fc_2':
+        #     decoder.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 1000, 'decoder_fully_connected_1', config,act=leaky_relu))
+        #     decoder.append(nn_layer(ll(decoder), int(ll(decoder).get_shape()[1]), s, 'decoder_fully_connected_2', config,act=leaky_relu))
+        # elif config['autoencoder']['decoder'] == 'gudi_test_network_1':
+        #     unflatten(network,decoder)
+        #     # ll(network,2) means start the decoder from the second to last bit of the autoencoder
+        #     decoder.append(dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_1', config))
+        # elif config['autoencoder']['decoder'] == 'gudi_test_network_2':
+        #     unflatten(network, decoder)
+        #     decoder.append(dcnn_layer(ll(decoder,-2), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_1', config))
+        # elif config['autoencoder']['decoder'] == 'gudi_test_network_3':
+        #     unflatten(network, decoder)
+        #     decoder.append(dcnn_layer(ll(decoder), [5, 5, 64, 64], [batch_size,22,22,64], 'VALID', 'Deconvolution_1', config))
+        #     print 'Resize:', [batch_size,22,22,64], '-->',[batch_size,43,43,64]
+        #     decoder.append((tf.image.resize_images(ll(decoder), 43, 43),None))
+        #     decoder.append(dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_2', config))
+
+        y_auto = ll(decoder)
+        y_image = tf.reshape(y_auto, shape=shape_2)
+        auto_loss = tf.sqrt(tf.reduce_mean(tf.square(x_ - y_image)))
+
+    print '\nCLASSIFER:'
 
     if config['fc2_neuron_count'] > 0:
         with tf.name_scope('fully_connected_2'):
@@ -330,23 +483,46 @@ def cnn(config):
 
     with tf.name_scope('train'):
         with tf.name_scope('lmsq_loss'):
-            lmsq_loss = tf.sqrt(tf.reduce_mean(tf.square(y_train - y_)))
-            tf.scalar_summary('loss/lmsq_loss', lmsq_loss)
+            classifer_lmsq_loss = tf.sqrt(tf.reduce_mean(tf.square(y_train - y_)))
+            tf.scalar_summary('loss/lmsq_loss', classifer_lmsq_loss)
         with tf.name_scope('cross_entropy'):
-            cross_entropy = -tf.reduce_sum(y_ * tf.log(tf.clip_by_value(y_train, 1e-10, 1.0)))
+            if batch_size != None:
+                norm = float(output_dim * batch_size)
+            else:
+                norm = float(output_dim)
+            cross_entropy = -tf.reduce_sum(y_ * tf.log(tf.clip_by_value(y_train, 1e-10, 1.0)))/norm
             tf.scalar_summary('loss/cross entropy', cross_entropy)
 
         r = config['learning_rate']
         if config['cost_function'] == 'cross_entropy':
             loss = cross_entropy
         else:
-            loss = lmsq_loss
+            loss = classifer_lmsq_loss
+
+        if use_autoencoder:
+            combined_loss = (1.0-alpha)*loss + alpha*auto_loss
+        else:
+            combined_loss = loss
 
         if config['seed_randomness']:
             tf.set_random_seed(config['seed'])
         if config['optimizer'] == 'adam':
-            train_step = tf.train.AdamOptimizer(r).minimize(loss)
+            train_step = tf.train.AdamOptimizer(r).minimize(combined_loss)
         else:
-            train_step = tf.train.GradientDescentOptimizer(r).minimize(loss)
+            train_step = tf.train.GradientDescentOptimizer(r).minimize(combined_loss)
     del network
-    return x, y_, train_step, loss, y_conv, output_dim, keep_prob, lmsq_loss, cross_entropy, accuracy
+    return {'x' : x,
+            'y' : y_,
+            'train_step' : train_step,
+            'loss' : loss,
+            'y_conv' : y_conv,
+            'y_auto': y_auto,
+            'y_image' : y_image,
+            'output_dim' : output_dim,
+            'keep_prob' : keep_prob,
+            'classifer_lmsq_loss' : classifer_lmsq_loss,
+            'cross_entropy' : cross_entropy,
+            'accuracy' : accuracy,
+            'alpha' : alpha,
+            'auto_loss' : auto_loss,
+            'batch_size' : batch_size}

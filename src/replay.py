@@ -1,20 +1,13 @@
 #!/usr/bin/python
-import etc
 import tensorflow as tf
 reload(tf)
 import numpy as np
-import h5py
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from pyexp.pyexp import PyExp
-import math
+from src.pyexp import PyExp
 import sys
-import math
 from os.path import join
-from tqdm import tqdm
-from model import cnn,expand_labels,batched_feed
-import yaml
+from model import cnn
 import disfa
 path = sys.argv[1]
 # Load yaml config file

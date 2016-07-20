@@ -1,6 +1,7 @@
-from pyexp.pyexp import PyExp
-from network import create,tf,np
 import tqdm
+
+from network import create,tf,np
+from src.pyexp import PyExp
 
 debug = True
 

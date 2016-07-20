@@ -51,8 +51,6 @@ class Batch:
             for i in xrange(N):
                 img = images[i,:,:]
                 images[i,:,:] = ( img - img.mean() )/img.std()
-        else:
-            raise Exception("normalisation_type not set correctly: unknown type " + option)
 
         if self.config['normalisation_between_minus_one_and_one']:
             images = images/np.abs(images).max()
@@ -98,10 +96,12 @@ class Batch:
 
 
 
-    def next_batch(self,n):
+    def next_batch(self,n,part=0,parts=1):
 
         if self.batch_type == 'validation':
-            idx = np.linspace(0,self.nSamples-1,n,dtype=int)
+            left = part * self.nSamples / parts
+            right = (part + 1) * self.nSamples / parts - 1
+            idx = np.linspace(left,right,n,dtype=int)
             return self.images[idx,:,:],self.labels[idx,:]
 
         if n < 0:
@@ -226,7 +226,7 @@ class Disfa:
     def __init__(self,config):
 
 
-        self.test       = Batch(config,'test')
+        # self.test       = Batch(config,'test')
         self.train      = Batch(config,'train')
         self.validation = Batch(config,'validation')
 
