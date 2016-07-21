@@ -1,6 +1,6 @@
 import ruamel.yaml as yaml
 import os
-
+from helper import nested_dict_write, nested_dict_read
 from time import gmtime, strftime
 import subprocess
 """
@@ -8,7 +8,7 @@ pyexp
 """
 
 class PyExp:
-    def __init__(self,config=None,config_file=None,path = 'data',make_new=True):
+    def __init__(self,config=None,config_file=None,path = 'data',make_new=True,config_overwrite=None):
 
         print 'Setting up folder structure.'
 
@@ -71,6 +71,10 @@ class PyExp:
             """
             label = subprocess.check_output(["git", "describe","--always"]).rstrip()
             self.config['global']['commit'] = label
+
+            if config_overwrite != None:
+                print 'OVERWRITING'
+                self.apply_overwrite(config_overwrite)
             self.save_config()
 
             """
@@ -82,6 +86,11 @@ class PyExp:
             f.write('THIS FILE MEANS THIS RUN DID NOT REACH COMPLETION')
             f.close()
 
+    def apply_overwrite(self,config_overwrite):
+        pass
+        print config_overwrite
+        for key in config_overwrite:
+            nested_dict_write(key,self.config,config_overwrite[key])
 
     def __getitem__(self,key):
         # if type(key) == int:

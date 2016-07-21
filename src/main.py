@@ -1,19 +1,43 @@
 #!/usr/bin/python
-import etc
-import tensorflow as tf
-import numpy as np
-import metric
+import matplotlib
 import os
 import socket
-import matplotlib
 import sys
+
+import numpy as np
+
+import etc
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from pyexp.pyexp import PyExp
+from pyexp import PyExp
 from os.path import join
-from model import cnn, expand_labels
 from sklearn.metrics import roc_curve, auc
+from helper import get_all_experiments
+
+def alpha_function(x,N):
+    return 0.0
+
+def alpha_constant(x,N,c=0.5):
+    return c
+
+def alpha_step(x,N,step=0.5):
+    if float(x) > step*float(N):
+        return 0.0
+    else:
+        return 1.0
+
+def alpha_poly(_x,_N,order=1):
+    x = float(_x)
+    N = float(_N)
+    return (1.0 - x/N)**order
+
+def alpha_sigmoid(_x,_N,a=20,b=0.5):
+    x = float(_x)
+    N = float(_N)
+    arg = x/N - b
+    return 1.0/(1.0 + np.exp(a*arg))
+
 
 
 def conv_vis(i, sess, hconv, w, path, x, batch_x, keep_prob):
@@ -132,14 +156,26 @@ def run(data, config):
 
         return x8
 
-    network = cnn(config)
-    x, y_, train_step, loss, y_conv, output_dim, keep_prob, lmsq_loss, cross_entropy, accuracy = network
+    model = cnn(config)
+
+    x = model['x']
+    y_ = model['y']
+    train_step = model['train_step']
+    loss = model['loss']
+    y_conv = model['y_conv']
+    output_dim = model['output_dim']
+    keep_prob = model['keep_prob']
+    lmsq_loss = model['classifer_lmsq_loss']
+    cross_entropy = model['cross_entropy']
+    accuracy = model['accuracy']
+    alpha = model['alpha']
+    auto_loss = model['auto_loss']
 
 
     if socket.gethostname() == 'ux305':
         sess = tf.Session()
     else:
-        tensorflow_config = tf.ConfigProto()
+        tensorflow_config = tf.ConfigProto(allow_soft_placement=True)
         tensorflow_config.gpu_options.allow_growth = True
         sess = tf.Session(config=tensorflow_config)
 
@@ -172,12 +208,29 @@ def run(data, config):
     validation_batch_size = config['validation_batch_size']
     dropout_rate = config['dropout_rate']
 
+    if config['autoencoder']['function'] == 'constant':
+        alpha_function = lambda x,N:  config['autoencoder']['constant']
+    elif config['autoencoder']['function'] == 'step':
+        alpha_function = lambda x, N: alpha_step(x, N, config['autoencoder']['step_percent'])
+    elif config['autoencoder']['function'] == 'poly':
+        alpha_function = lambda x, N: alpha_poly(x,N,config['autoencoder']['poly_order'])
+    elif config['autoencoder']['function'] == 'sigmoid':
+        alpha_function = lambda x, N: alpha_sigmoid(x,N)
+    else:
+        print 'INCORRECT ALPHA FUNCTION'
+        exit()
+
+    for i in xrange(N):
+        print alpha_function(i, N),
+
     test_period = 10
     nN = N / test_period
     x_axis = np.zeros(nN)
     lmsq_axis = np.zeros((2, nN))
     cent_axis = np.zeros((2, nN))
     accu_axis = np.zeros((2, nN))
+    auto_axis = np.zeros((2, nN))
+    alpha_axis = np.zeros(nN)
 
     train_auac_axis = np.zeros((nN, output_dim, 4))
     validation_auac_axis = np.zeros((nN, output_dim, 4))
@@ -196,33 +249,27 @@ def run(data, config):
         return result
 
     early_model_saved = False
-    for i, pi in etc.range(N, info_frequency=5):
+    for i, pi in etc.range(N, info_frequency=10):
         if pi:
             e = pi.elapsed_time
             r = pi.time_remaining()
             print  i, '/', N,
             if config['data']['dataset'] == 'disfa':
                 print ' | ',data.train.batch_counter,'/',data.train.nSamples,
-            print '| Time elapsed:', nice_seconds(e), 'time remaining:', nice_seconds(r)
+            print ' | Time elapsed:', nice_seconds(e), 'time remaining:', nice_seconds(r)
 
 
         batch_x, batch_y = data.train.next_batch(batch_size)
 
         if config['binary_softmax']:
-            train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: dropout_rate}
-            _train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: 1.0}
+            train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: dropout_rate, alpha : alpha_function(i,N) }
+            _train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: 1.0, alpha : alpha_function(i,N) }
         else:
-            train = {x: batch_x, y_: batch_y, keep_prob: dropout_rate}
-            _train = {x: batch_x, y_: batch_y, keep_prob: 1.0}
+            train = {x: batch_x, y_: batch_y, keep_prob: dropout_rate, alpha : alpha_function(i,N) }
+            _train = {x: batch_x, y_: batch_y, keep_prob: 1.0, alpha : alpha_function(i,N) }
 
         if (i + 1*0) % test_period == 0:
             j = i / test_period
-
-            vbatch_x, vbatch_y = data.validation.next_batch(validation_batch_size)
-            if config['binary_softmax']:
-                _validation = {x: vbatch_x, y_: expand_labels(vbatch_y), keep_prob: 1.0}
-            else:
-                _validation = {x: vbatch_x, y_: vbatch_y, keep_prob: 1.0}
 
             x_axis[j] = i
 
@@ -239,50 +286,80 @@ def run(data, config):
             train_writer.add_run_metadata(run_metadata, 'step%d' % i)
             train_writer.add_summary(summary, i)
 
-            summary = sess.run(merged,
-                               feed_dict=_validation,
-                               options=run_options,
-                               run_metadata=run_metadata)
-            validation_writer.add_run_metadata(run_metadata, 'step%d' % i)
-            validation_writer.add_summary(summary, i)
-
             """
             Get stuff for graphs
             """
 
-            out = sess.run([lmsq_loss, cross_entropy, accuracy, y_conv], feed_dict=_validation)
-            lmsq_axis[0, j], cent_axis[0, j], accu_axis[0, j], validation_y_out = out
+            """
+            Validation stuff
+            """
 
-            out = sess.run([lmsq_loss, cross_entropy, accuracy, y_conv], feed_dict=_train)
-            lmsq_axis[1, j], cent_axis[1, j], accu_axis[1, j], train_y_out = out
+            lmsq = 0.0
+            cent = 0.0
+            accu = 0.0
+            auto = 0.0
+            validation_y_out = np.zeros((validation_batch_size,output_dim))
+
+            assert validation_batch_size/batch_size != 0, 'validation/train batch size must be an integer'
+
+            for k in xrange(validation_batch_size/batch_size):
+                vbatch_x, vbatch_y = data.validation.next_batch(batch_size,part=k,parts=validation_batch_size/batch_size)
+                if config['binary_softmax']:
+                    _validation = {x: vbatch_x, y_: expand_labels(vbatch_y), keep_prob: 1.0, alpha: 0.5}
+                else:
+                    _validation = {x: vbatch_x, y_: vbatch_y, keep_prob: 1.0, alpha: 0.5}
+
+                out = sess.run([lmsq_loss, cross_entropy, accuracy,auto_loss, y_conv], feed_dict=_validation)
+                _lmsq,_cent,_accu,_auto, _validation_y_out = out
+                lmsq_axis[0, j] += _lmsq/float(validation_batch_size/batch_size)
+                cent_axis[0, j] += _cent/float(validation_batch_size/batch_size)
+                accu_axis[0, j] += _accu/float(validation_batch_size/batch_size)
+                auto_axis[0, j] += _auto/float(validation_batch_size/batch_size)
+                validation_y_out[batch_size * k:batch_size * (k + 1), :] = _validation_y_out
+
+                # summary = sess.run(merged,
+                #                    feed_dict=_validation,
+                #                    options=run_options,
+                #                    run_metadata=run_metadata)
+                # validation_writer.add_run_metadata(run_metadata, 'step%d%d' % (i,k))
+                # validation_writer.add_summary(summary, i)
+
+            """
+            """
+
+            out = sess.run([lmsq_loss, cross_entropy, accuracy, auto_loss, y_conv], feed_dict=_train)
+            lmsq_axis[1, j], cent_axis[1, j], accu_axis[1, j], auto_axis[1,j], train_y_out = out
             # train_writer.add_summary(summary, i)
 
             train_res, train_conf, _ = metric.multi_eval(train_y_out, batch_y)
             train_auac_axis[j, :, :] = train_res
 
-            validation_res, validation_conf, _ = metric.multi_eval(validation_y_out, vbatch_y)
+            validation_res, validation_conf, _ = metric.multi_eval(validation_y_out, data.validation.next_batch(validation_batch_size)[1])
             validation_auac_axis[j, :, :] = validation_res
 
             train_confusion.append(train_conf)
             validation_confusion.append(validation_conf)
 
             # print(config.get_path(), ' Adding run metadata for', i)
-            print  i, '/', N, ' |\t',
+            print  i, '/', N, ' | ',
             if config['data']['dataset'] == 'disfa':
                 print data.train.batch_counter,'/',data.train.nSamples,
             print round(lmsq_axis[0, j], 5), ' ',
             print round(lmsq_axis[1, j], 5), ' ',
             print round(cent_axis[0, j], 5), ' ', #valid
             print round(cent_axis[1, j], 5), ' ', #train
+            print round(auto_axis[0, j], 5), ' ', #valid
+            print round(auto_axis[1, j], 5), ' ', #train
+            alpha_axis[j] = alpha_function(i,N)
+            print alpha_function(i,N), ' ', #alpha
             if early_model_saved:
                 print '(early saved)'
             else:
                 print
             if not early_model_saved:
-                early_condition_1 = (cent_axis[1, :] < cent_axis[0, :]).sum() > 2
-                early_condition_2 = float(i) > float(N)*0.75
-                print 'SUM = ', (cent_axis[1, :] < cent_axis[0, :]).sum(), early_condition_1, early_condition_2
-                if early_condition_1 or early_condition_2:
+                # early_condition_1 = (cent_axis[1, :] < cent_axis[0, :]).sum() > 2
+                early_condition_2 = float(i) >= float(N)*0.8
+                if early_condition_2:
                     # Record the number at which the early model is saved
                     config.config['results']['early_stop_iteration'] = int(x_axis[j])
                     # Save it
@@ -346,6 +423,8 @@ def run(data, config):
         os.mkdir(ssv_path)
     np.savetxt(join(ssv_path, 'x_axis.ssv'), x_axis)
     np.savetxt(join(ssv_path, 'lmsq.ssv'), lmsq_axis)
+    np.savetxt(join(ssv_path, 'autoloss.ssv'), auto_axis)
+    np.savetxt(join(ssv_path, 'alpha_axis.ssv'), alpha_axis)
     np.savetxt(join(ssv_path, 'cross_entropy.ssv'), cent_axis)
     np.savetxt(join(ssv_path, 'naive_accuracy.ssv'), accu_axis)
     np.savez(join(ssv_path, 'per_au_accuracy.npz'),
@@ -356,41 +435,35 @@ def run(data, config):
              )
 
 
-def main():
-    if len(sys.argv) == 1:
+def main(path,config_overwrite=None):
+    if path == None:
         if socket.gethostname() == 'ux305':
             path = '/home/luka/Documents/autofaces/data'
         else:
             path = '/vol/lm1015-tmp/data/'
-    else:
-        path = sys.argv[1]
 
-    config = PyExp(config_file='config/cnn.yaml', path=path)
+    config = PyExp(config_file='config/cnn.yaml', path=path, config_overwrite=config_overwrite)
     if config['data']['dataset'] == 'disfa':
         import disfa
 
         data = disfa.Disfa(config['data'])
         config.update('data', data.config)
 
-        if config['dump_frames']:
-            im, lb = data.train.next_batch(1000)
-            for i in xrange(100):
-                plt.figure()
-                # print i,im[i].shape[0]*im[i].shape[1], 48**2
-                print i, lb[i]
-                if config['data']['normalisation_between_zero_and_one']:
-                    vmax = 1.0
-                    vmin = 0.0
-                else:
-                    vmax = 10.0
-                    vmin = -10.0
-                plt.imshow(im[i], vmax=vmax, vmin=vmin)  # ,cmap="Greys_r",interpolation='nearest')
-                plt.colorbar()
-                plt.title(str(lb[i]))
-                plt.savefig(join(config.get_path(), 'images/face_' + str(i) + '.png'), dpi=100)
-                plt.close('all')
-        else:
-            run(data, config)
+        im, lb = data.train.next_batch(5)
+        for i in xrange(5):
+            plt.figure()
+            # print i,im[i].shape[0]*im[i].shape[1], 48**2
+            print i, lb[i]
+            if config['data']['normalisation_between_minus_one_and_one']:
+                plt.imshow(im[i], vmax=1.0, vmin=-1.0)
+            else:
+                plt.imshow(im[i])
+            plt.colorbar()
+            plt.title(str(lb[i]))
+            plt.savefig(join(config.get_path(), 'images/face_' + str(i) + '.png'), dpi=100)
+            plt.close('all')
+
+        run(data, config)
     else:
         from tensorflow.examples.tutorials.mnist import input_data
 
@@ -401,14 +474,54 @@ def main():
 
     return config.finished(), data
 
-import test_set_analysis
+def run_experiment(args,config_overwrite=None):
+
+    with tf.device('/' + args.device + ':0'):
+        tf.reset_default_graph()
+        data_path,data = main(args.path, config_overwrite=config_overwrite)
+
+    import test_set_analysis
+
+    if args.device == None:
+        args.device = 'gpu'
+
+    data.train.batch_counter = 0
+    tf.reset_default_graph()
+    test_set_analysis.main((sys.argv[0], data_path,'final', args.device), data=data, overwrite_dict=config_overwrite)
+
+    data.train.batch_counter = 0
+    tf.reset_default_graph()
+    test_set_analysis.main((sys.argv[0], data_path, 'early', args.device), data=data, overwrite_dict=config_overwrite)
+
+
 if __name__ == "__main__":
-    data_path,data = main()
 
-    tf.reset_default_graph()
-    test_set_analysis.main((sys.argv[0],data_path,'final'),data=data)
+    import argparse
 
-    tf.reset_default_graph()
-    test_set_analysis.main((sys.argv[0],data_path, 'early'),data=data)
+    parser = argparse.ArgumentParser()
 
+    parser.add_argument('--device', action='store', dest='device',help='Store a simple value')
+    parser.add_argument('--path', action='store', dest='path',help='Store a simple value')
 
+    args = parser.parse_args()
+
+    if args.device == None:
+        print 'Error. Program requires device flag to be cpu or gpu.'
+        exit()
+
+    from model import cnn, expand_labels, tf
+    import metric
+
+    overwrite_dicts = None
+    o = {'data:normalisation_type'                      : ['none', 'face'],
+         'data:normalisation_between_minus_one_and_one' : [True,False]}
+    overwrite_dicts = get_all_experiments(o)
+    for i,x in enumerate(overwrite_dicts):
+        print i,x
+    raw_input('Press the any key to continue...')
+
+    if overwrite_dicts == None:
+        run_experiment(args)
+    else:
+        for exp in overwrite_dicts:
+            run_experiment(args,config_overwrite=exp)

@@ -23,11 +23,10 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
-from pyexp.pyexp import PyExp
-import metric
-from scipy.stats import hmean
-
 from tensorflow.examples.tutorials.mnist import input_data
+
+import metric
+from src.pyexp import PyExp
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS

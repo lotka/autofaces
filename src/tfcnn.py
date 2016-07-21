@@ -1,5 +1,7 @@
-from pyexp.pyexp import PyExp
 import tensorflow as tf
+
+from src.pyexp import PyExp
+
 config = PyExp(config_file='config/cnn.yaml',path='test_data')
 from tensorflow.examples.tutorials.mnist import input_data
 

@@ -1,15 +1,82 @@
+aim: 'Network Search'
+autoencoder:
+  # constant, step, poly
+  function: constant
+  constant : 1.0
+  step_percent: 0.5
+  poly_order: 1
 global:
-    autoencoder: [700,400,300]
-    classifier: [300,10]
-    iterations: 1
+    binary_softmax: True
+    final_activation: softmax
+    dump_frames: False
+    path: data
+    iterations: 500
+    # defunct:
+    # ignore_empty_labels: False
     batch_size: 100
-    test:
-runs:
-    1:
-        pre_training_batches: 0
-        alternating: True
-        combined_cost_function: False
-    2:
-        pre_training_batches: 0
-        alternating: True
-        combined_cost_function: False
+    validation_batch_size: 100
+    network: gudi_test_network_2
+    use_autoencoder : True
+    fc1_neuron_count : 0
+    fc2_neuron_count : 0
+    fc3_neuron_count : 3000
+    # networks
+    #  'fullyconnected_subnetwork_gudi_2015'
+    #  'convolution_gudi_2015'
+
+    # lmsq or cross_entropy
+    cost_function: cross_entropy
+    # l2_reg: True
+
+    threshold: 0.3
+    dropout_rate: 1.0
+
+    # adam or grad
+    optimizer: adam
+
+    # Warning grad needs higher learning rates than adam (100x)
+    learning_rate: 0.001
+
+    seed_randomness : True
+    seed : 1
+weights:
+    bias_start: 0.01
+
+    # can be range, constant or std_dev
+    weights_start_type: std_dev
+
+    # constant
+    weights_constant: 0.0
+
+    # range
+    weights_uniform_range : [-0.5,0.5]
+
+    # std_dev
+    weights_std_dev: 0.001
+data:
+    dataset: disfa
+    threshold: 1
+    remove_empty_labels: True
+    # disfa or mnist
+    # [1,2,3,4,5,6,7,8,9,10,11,12,13,16,17,18,21,23,24,25,26,27,28,29,30,31,32]
+    train_subjects : [2,4,6,8,10,12,16,18,23,25,27,29,31]
+    validation_subjects : [1,3,5,7,9,11,13,17,21,24,26,28,30,32]
+    test_subjects  : [1,3,5,7,9,11,13,17,21,24,26,28,30,32]
+#    train_subjects : [1]
+#    validation_subjects : [2]
+#    test_subjects  : [3]
+    batch_randomisation: True
+    image_region: full
+    mouth:
+      resize_scale: 0.6
+      AUs: [6,7,8,9,10,11]
+      crop: [0.1,0.1,0.5,0.2] # left,right,top,bottom
+    full:
+      crop: [0,0,0,0] #left,right,top,bottom
+      resize_scale: 0.4
+
+    normalisation_type: face
+    normalisation_between_minus_one_and_one: False
+    disfa_au_map : [1,2,4,5,6,9,12,15,17,20,25,26]
+results:
+    early_stop_iteration: -1
