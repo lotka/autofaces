@@ -343,7 +343,7 @@ def run(data, config):
             # print(config.get_path(), ' Adding run metadata for', i)
             print  i, '/', N, ' | ',
             if config['data']['dataset'] == 'disfa':
-                print data.train.batch_counter,'/',data.train.nSamples,
+                print data.train.batch_counter,'/',data.train.nSamples,' | ',
             print round(lmsq_axis[0, j], 5), ' ',
             print round(lmsq_axis[1, j], 5), ' ',
             print round(cent_axis[0, j], 5), ' ', #valid
@@ -442,7 +442,7 @@ def main(path,config_overwrite=None):
         else:
             path = '/vol/lm1015-tmp/data/'
 
-    config = PyExp(config_file='config/cnn.yaml', path=path, config_overwrite=config_overwrite)
+    config = PyExp(config_file='config/test.yaml', path=path, config_overwrite=config_overwrite)
     if config['data']['dataset'] == 'disfa':
         import disfa
 
@@ -527,9 +527,9 @@ if __name__ == "__main__":
     # print args.batch
     # o['autoencoder:activation'] =  [args.batch]
     overwrite_dicts = get_all_experiments(o)
-    # for i,x in enumerate(overwrite_dicts):
-    #     print i,x
-
+    for i,x in enumerate(overwrite_dicts):
+        print i,x
+    raw_input('any key plz')
     if o == None:
         run_experiment(args)
     else:

@@ -229,28 +229,28 @@ class Batch:
 
         if 'normalisation' in config:
             if config['normalisation'] == 'none_[0,1]':
-                config.config['normalisation_type'] = 'none'
-                config.config['scaling'] = 'none'
+                config['normalisation_type'] = 'none'
+                config['scaling'] = 'none'
 
             elif config['normalisation'] == 'none_[-1,1]':
-                config.config['normalisation_type'] = 'none'
-                config.config['scaling'] = '[-1,1]'
+                config['normalisation_type'] = 'none'
+                config['scaling'] = '[-1,1]'
 
             elif config['normalisation'] == 'face_[-inf,inf]':
-                config.config['normalisation_type'] = 'face'
-                config.config['scaling'] = 'none'
+                config['normalisation_type'] = 'face'
+                config['scaling'] = 'none'
 
             elif config['normalisation'] == 'face_[-1,1]':
-                config.config['normalisation_type'] = 'face'
-                config.config['scaling'] = '[-1,1]'
+                config['normalisation_type'] = 'face'
+                config['scaling'] = '[-1,1]'
 
             elif config['normalisation'] == 'contrast_[-inf,inf]':
-                config.config['normalisation_type'] = 'contrast'
-                config.config['scaling'] = 'none'
+                config['normalisation_type'] = 'contrast'
+                config['scaling'] = 'none'
 
             elif config['normalisation'] == 'contrast_[-1,1]':
-                config.config['normalisation_type'] = 'contrast'
-                config.config['scaling'] = '[-1,1]'
+                config['normalisation_type'] = 'contrast'
+                config['scaling'] = '[-1,1]'
 
         def hash_config(conf):
             _conf = copy(conf)
@@ -260,7 +260,7 @@ class Batch:
                     del _conf[name]
             return hash_anything(_conf)
 
-        hashing_enabled = False
+        hashing_enabled = True
 
         if hashing_enabled:
 
@@ -283,6 +283,7 @@ class Batch:
         if hashing_enabled and os.path.isfile(hash_file+'.npz'):
             d = np.load(hash_file+'.npz')
             self.images = d['images']
+            self.nSamples = self.images.shape[0]
             self.labels = d['labels']
             self.min = d['min']
             self.max = d['max']
@@ -317,7 +318,6 @@ class Batch:
                 self.images = np.append(self.images,r_images,axis=0)
 
                 del r_images
-
             self.nSamples = self.images.shape[0]
             if self.config['batch_randomisation']:
                 if batch_type == 'train':

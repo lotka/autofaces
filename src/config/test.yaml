@@ -3,9 +3,13 @@ autoencoder:
   # constant, step, poly
   function: constant
   constant : 1.0
-  step_percent: 0.5
+  step_percent: 0.8
   poly_order: 1
+  decoder : auto_cnn_2
+  # relu, linear, sigmoid, tanh
+  activation : sigmoid
 global:
+    early_stop_percent: 0.5
     binary_softmax: True
     final_activation: softmax
     dump_frames: False
@@ -14,12 +18,12 @@ global:
     # defunct:
     # ignore_empty_labels: False
     batch_size: 100
-    validation_batch_size: 100
+    validation_batch_size: 500
     network: gudi_test_network_2
     use_autoencoder : True
-    fc1_neuron_count : 0
+    fc1_neuron_count : 3136
     fc2_neuron_count : 0
-    fc3_neuron_count : 3000
+    fc3_neuron_count : 0
     # networks
     #  'fullyconnected_subnetwork_gudi_2015'
     #  'convolution_gudi_2015'
@@ -56,7 +60,7 @@ weights:
 data:
     dataset: disfa
     threshold: 1
-    remove_empty_labels: True
+    remove_empty_labels: False
     # disfa or mnist
     # [1,2,3,4,5,6,7,8,9,10,11,12,13,16,17,18,21,23,24,25,26,27,28,29,30,31,32]
     train_subjects : [2,4,6,8,10,12,16,18,23,25,27,29,31]
@@ -75,8 +79,11 @@ data:
       crop: [0,0,0,0] #left,right,top,bottom
       resize_scale: 0.4
 
-    normalisation_type: face
-    normalisation_between_minus_one_and_one: False
+    normalisation: 'none'
+    # none, face, range
+    normalisation_type: 'none'
+    # '[0,1]','[-1,1]','[-inf,inf]'
+    scaling : 'none'
     disfa_au_map : [1,2,4,5,6,9,12,15,17,20,25,26]
 results:
     early_stop_iteration: -1

@@ -5,7 +5,7 @@ autoencoder:
   constant : 1.0
   step_percent: 0.8
   poly_order: 1
-  decoder : auto_cnn_2
+  decoder : test
   # relu, linear, sigmoid, tanh
   activation : sigmoid
 global:
@@ -14,12 +14,12 @@ global:
     final_activation: softmax
     dump_frames: False
     path: data
-    iterations: 100
+    iterations: 50
     # defunct:
     # ignore_empty_labels: False
     batch_size: 100
-    validation_batch_size: 500
-    network: gudi_test_network_2
+    validation_batch_size: 100
+    network: test
     use_autoencoder : True
     fc1_neuron_count : 3136
     fc2_neuron_count : 0
@@ -60,15 +60,15 @@ weights:
 data:
     dataset: disfa
     threshold: 1
-    remove_empty_labels: True
+    remove_empty_labels: False
     # disfa or mnist
     # [1,2,3,4,5,6,7,8,9,10,11,12,13,16,17,18,21,23,24,25,26,27,28,29,30,31,32]
-    train_subjects : [2,4,6,8,10,12,16,18,23,25,27,29,31]
-    validation_subjects : [1,3,5,7,9,11,13,17,21,24,26,28,30,32]
-    test_subjects  : [1,3,5,7,9,11,13,17,21,24,26,28,30,32]
-#    train_subjects : [1]
-#    validation_subjects : [2]
-#    test_subjects  : [3]
+#    train_subjects : [2,4,6,8,10,12,16,18,23,25,27,29,31]
+#    validation_subjects : [1,3,5,7,9,11,13,17,21,24,26,28,30,32]
+#    test_subjects  : [1,3,5,7,9,11,13,17,21,24,26,28,30,32]
+    train_subjects : [1]
+    validation_subjects : [2]
+    test_subjects  : [3]
     batch_randomisation: True
     image_region: full
     mouth:
