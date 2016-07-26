@@ -358,7 +358,7 @@ def run(data, config):
                 print
             if not early_model_saved:
                 # early_condition_1 = (cent_axis[1, :] < cent_axis[0, :]).sum() > 2
-                early_condition_2 = float(i) >= float(N)*0.8
+                early_condition_2 = float(i) >= float(N)*config.config['global']['early_stop_percent']
                 if early_condition_2:
                     # Record the number at which the early model is saved
                     config.config['results']['early_stop_iteration'] = int(x_axis[j])
@@ -454,8 +454,10 @@ def main(path,config_overwrite=None):
             plt.figure()
             # print i,im[i].shape[0]*im[i].shape[1], 48**2
             print i, lb[i]
-            if config['data']['normalisation_between_minus_one_and_one']:
+            if config['data']['scaling'] == '[-1,1]':
                 plt.imshow(im[i], vmax=1.0, vmin=-1.0)
+            elif config['data']['scaling'] == '[0,1]':
+                plt.imshow(im[i], vmax=1.0, vmin=0.0)
             else:
                 plt.imshow(im[i])
             plt.colorbar()
@@ -476,8 +478,8 @@ def main(path,config_overwrite=None):
 
 def run_experiment(args,config_overwrite=None):
 
+    tf.reset_default_graph()
     with tf.device('/' + args.device + ':0'):
-        tf.reset_default_graph()
         data_path,data = main(args.path, config_overwrite=config_overwrite)
 
     import test_set_analysis
@@ -502,6 +504,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--device', action='store', dest='device',help='Store a simple value')
     parser.add_argument('--path', action='store', dest='path',help='Store a simple value')
+    parser.add_argument('--batch', action='store', dest='batch', help='Store a simple value',type=int)
 
     args = parser.parse_args()
 
@@ -512,15 +515,22 @@ if __name__ == "__main__":
     from model import cnn, expand_labels, tf
     import metric
 
-    overwrite_dicts = None
-    o = {'data:normalisation_type'                      : ['none', 'face'],
-         'data:normalisation_between_minus_one_and_one' : [True,False]}
-    overwrite_dicts = get_all_experiments(o)
-    for i,x in enumerate(overwrite_dicts):
-        print i,x
-    raw_input('Press the any key to continue...')
 
-    if overwrite_dicts == None:
+    o = {}
+    o['data:normalisation']  = ['none_[0,1]',
+                                'none_[-1,1]',
+                                'face_[-inf,inf]',
+                                'face_[-1,1]',
+                                'contrast_[-inf,inf]',
+                                'contrast_[-1,1]']
+    o['autoencoder:activation'] = ['tanh','sigmoid','linear','relu']
+    # print args.batch
+    # o['autoencoder:activation'] =  [args.batch]
+    overwrite_dicts = get_all_experiments(o)
+    # for i,x in enumerate(overwrite_dicts):
+    #     print i,x
+
+    if o == None:
         run_experiment(args)
     else:
         for exp in overwrite_dicts:

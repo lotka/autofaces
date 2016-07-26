@@ -1,26 +1,27 @@
 aim: 'Network Search'
 autoencoder:
   # constant, step, poly
-  function: poly
+  function: constant
   constant : 1.0
   step_percent: 0.8
   poly_order: 1
-  decoder : test
+  decoder : auto_cnn_2
   # relu, linear, sigmoid, tanh
-  activation : relu
+  activation : sigmoid
 global:
+    early_stop_percent: 0.5
     binary_softmax: True
     final_activation: softmax
     dump_frames: False
     path: data
-    iterations: 1000
+    iterations: 100
     # defunct:
     # ignore_empty_labels: False
     batch_size: 100
     validation_batch_size: 500
-    network: test
+    network: gudi_test_network_2
     use_autoencoder : True
-    fc1_neuron_count : 0
+    fc1_neuron_count : 3136
     fc2_neuron_count : 0
     fc3_neuron_count : 0
     # networks
@@ -78,14 +79,11 @@ data:
       crop: [0,0,0,0] #left,right,top,bottom
       resize_scale: 0.4
 
+    normalisation: 'none'
     # none, face, range
-    normalisation_type: none
-    #
-    normalisation_between_minus_one_and_one : True
+    normalisation_type: 'none'
     # '[0,1]','[-1,1]','[-inf,inf]'
-    scaling : silly
-    #
-
+    scaling : 'none'
     disfa_au_map : [1,2,4,5,6,9,12,15,17,20,25,26]
 results:
     early_stop_iteration: -1

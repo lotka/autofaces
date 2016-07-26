@@ -26,6 +26,7 @@ def thresholding(tf,sess,data,model,config):
     alpha = model['alpha']
     auto_loss = model['auto_loss']
     batch_size = int(model['batch_size'])
+    y_image = model['y_image']
 
 
     thresholds = 20
@@ -36,9 +37,15 @@ def thresholding(tf,sess,data,model,config):
     nBatches = int(float(data.validation.labels.shape[0])/float(batch_size))
     y_out = np.zeros((data.validation.labels.shape[0],data.validation.labels.shape[1]))
     autoencoder_loss = 0.0
+    true_autoencoder_loss = 0.0
 
-    validation_images = (data.validation.next_batch(100)[0], sess.run(model['y_image'],feed_dict={x: data.validation.next_batch(100)[0], keep_prob: 1.0,alpha: 1.0})[:,:,:,0])
-    train_images = (data.train.next_batch(100)[0], sess.run(model['y_image'],feed_dict={x: data.train.next_batch(100)[0],keep_prob: 1.0, alpha: 1.0})[:,:,:,0])
+    a = data.validation.next_batch(100)[0]
+    b = sess.run(model['y_image'],feed_dict={x: data.validation.next_batch(100)[0], keep_prob: 1.0,alpha: 1.0})[:,:,:,0]
+    validation_images = (data.validation.inverse_process(a),data.validation.inverse_process(b))
+
+    a = data.train.next_batch(100)[0]
+    b = sess.run(model['y_image'],feed_dict={x: data.train.next_batch(100)[0],keep_prob: 1.0, alpha: 1.0})[:,:,:,0]
+    train_images = (data.train.inverse_process(a),data.train.inverse_process(b))
 
     for i in tqdm(xrange(nBatches)):
         l = batch_size*i
@@ -49,6 +56,12 @@ def thresholding(tf,sess,data,model,config):
         #
         y_out[l:r] = sess.run(y_conv, feed_dict={x: data.validation.images[l:r], keep_prob : 1.0, alpha : 0.0})
         autoencoder_loss += sess.run(auto_loss, feed_dict={x: data.validation.images[l:r]})/float(nBatches)
+
+        # calculate true loss
+        _in  = data.validation.images[l:r]
+        _out = sess.run(y_image, feed_dict={x: data.validation.images[l:r]})[:,:,:,0]
+        true_autoencoder_loss += data.validation.true_loss(_in,_out)/float(nBatches)
+
         y_true = data.validation.labels
 
     test_confusion = []
@@ -61,7 +74,7 @@ def thresholding(tf,sess,data,model,config):
         test_roc_data.append(roc_data)
         test_threshold_data[i,:,:] = results
 
-    return threshold_values,test_threshold_data, test_confusion, test_roc_data, autoencoder_loss, (train_images,validation_images)
+    return threshold_values,test_threshold_data, test_confusion, test_roc_data, autoencoder_loss,true_autoencoder_loss, (train_images,validation_images)
 
 def test_model(name,data,config,path):
 
@@ -89,7 +102,7 @@ def test_model(name,data,config,path):
     else:
         raise Exception('Can\'t find checkpoint!')
 
-    threshold_values,test_threshold_data, test_confusion, test_roc_data, autoencoder_loss, auto_images = thresholding(tf,sess,data,model,config)
+    threshold_values,test_threshold_data, test_confusion, test_roc_data, autoencoder_loss,true_autoencoder_loss, auto_images = thresholding(tf,sess,data,model,config)
 
     ssv_path = join(path,'numerical_data')
     if not isdir(ssv_path):
@@ -101,6 +114,7 @@ def test_model(name,data,config,path):
              test_confusion=test_confusion,
              test_roc_data=test_roc_data,
              autoencoder_loss=autoencoder_loss,
+             true_autoencoder_loss=true_autoencoder_loss,
              auto_images=auto_images)
 
     sess.close()

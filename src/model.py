@@ -107,7 +107,10 @@ def nn_layer(input_tensor, input_dim, output_dim, layer_name, config, act=tf.nn.
         with tf.name_scope('Wx_plus_b'):
             preactivate = tf.matmul(input_tensor, weights) + biases
             tf.histogram_summary(layer_name + '/pre_activations', preactivate)
-        activations = act(preactivate, 'activation')
+        if act != None:
+            activations = act(preactivate, 'activation')
+        else:
+            activations = preactivate
         tf.histogram_summary(layer_name + '/activations', activations)
 
         print layer_name + ' Shape: ', weights.get_shape(), ' with bias ', biases.get_shape()
@@ -338,11 +341,11 @@ def cnn(config):
         flatten(network, network)
     elif config['network'] == 'fc_1':
         flatten(network, network)
-        network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 2000, 'enc_fc_1',config,  act=leaky_relu))
+        network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 2000, 'enc_fc_1', config, act=leaky_relu))
         network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 1500, 'enc_fc_2', config, act=leaky_relu))
         network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 1000, 'enc_fc_3', config, act=leaky_relu))
-        network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 500, 'enc_fc_4', config, act=leaky_relu))
-        network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 100, 'enc_fc_5', config, act=leaky_relu))
+        network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 500,  'enc_fc_4', config, act=leaky_relu))
+        network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 100,  'enc_fc_5', config, act=leaky_relu))
     elif config['network'] == 'test':
         flatten(network, network)
         network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 2, 'encoder',config,  act=leaky_relu))
@@ -359,6 +362,17 @@ def cnn(config):
 
 
     if use_autoencoder:
+
+        act = None
+        if config['autoencoder']['activation'] == 'relu':
+            act = leaky_relu
+        elif config['autoencoder']['activation'] == 'tanh':
+            act = tf.nn.tanh
+        elif config['autoencoder']['activation'] == 'sigmoid':
+            act = tf.nn.sigmoid
+        elif config['autoencoder']['activation'] == 'linear':
+            pass
+
         print '\nDECODER:'
         s = 1
         for i in xrange(1, len(shape_2)):
@@ -381,7 +395,7 @@ def cnn(config):
         elif config['autoencoder']['decoder'] == 'auto_cnn_3':
             print 'Resize:', [batch_size,22,22,64], '-->',[batch_size,43,43,64]
             decoder.append((tf.image.resize_images(ll(network,-3), 43, 43),None))
-            decoder.append(dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_1', config))
+            decoder.append(dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_1', config,act=act))
         elif config['autoencoder']['decoder'] == 'auto_cnn_4':
             decoder.append(dcnn_layer(ll(network,-2), [5, 5, 64, 64], [100,22,22,64], 'VALID', 'Deconvolution_1', config))
             print 'Resize:', ll(decoder).get_shape(), '-->', [100, 43, 43, 64]
@@ -398,7 +412,7 @@ def cnn(config):
             decoder.append(nn_layer(ll(decoder), int(ll(decoder).get_shape()[1]), 2000, 'dec_fc_4', config, act=leaky_relu))
             decoder.append(nn_layer(ll(decoder), int(ll(decoder).get_shape()[1]), 2209, 'dec_fc_5', config, act=leaky_relu))
         elif config['autoencoder']['decoder'] == 'test':
-            decoder.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 2209, 'decoder', config, act=leaky_relu))
+            decoder.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), shape_2[1]*shape_2[2], 'decoder', config, act=act))
 
 
 
