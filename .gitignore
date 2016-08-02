@@ -11,3 +11,4 @@ MNIST_data/
 *data/
 *mnist_logs*
 *.dropbox*
+doc/
