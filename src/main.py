@@ -8,7 +8,7 @@ import numpy as np
 
 import etc
 
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from pyexp import PyExp
 from os.path import join

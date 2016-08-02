@@ -37,6 +37,8 @@ class Batch:
         output = input.copy()
         if self.config['scaling'] == 'maxdiv':
             output = self.normalise_range(output,inverse=True)
+        if self.config['scaling'] == '[-1,1]':
+            output = self.scale_within_range(output, inverse=True)
         # elif self.config['scaling'] == '[0,1]':
         #         output = output*self.max + self.min
 
@@ -84,6 +86,20 @@ class Batch:
             # y[i,:,:] = (M - m) * (x[i,:,:] - Min) /self.zeros_to_ones((Max - Min) + m)
         return y
 
+    def scale_within_range(self, x,inverse=False):
+        assert len(x.shape) == 3
+        y = np.zeros(x.shape)
+        N = x.shape[0]
+        self.min = x.min(axis=0)
+        self.max = x.max(axis=0)
+
+        _range = self.max - self.min
+        sub = (self.min + _range / 2.0)
+        div = (_range / 2.0)
+
+        for i in xrange(N):
+            y[i] = (x[i] - sub) / div
+
     def normalise(self,images):
         option = self.config['normalisation_type']
         print option
@@ -123,6 +139,8 @@ class Batch:
         print 'Applying scaling: ', self.config['scaling']
         if self.config['scaling'] == 'maxdiv':
             images = self.normalise_range(images)
+        if self.config['scaling'] == '[-1,1]':
+            output = self.scale_within_range(images)
         # elif self.config['scaling'] == '[0,1]':
         #     self.min = images[:, :, :].min()
         #     self.max = images[:, :, :].max()
