@@ -90,8 +90,9 @@ class Batch:
         assert len(x.shape) == 3
         y = np.zeros(x.shape)
         N = x.shape[0]
-        self.min = x.min(axis=0)
-        self.max = x.max(axis=0)
+        if not inverse:
+            self.min = x.min(axis=0)
+            self.max = x.max(axis=0)
 
         _range = self.max - self.min
         sub = (self.min + _range / 2.0)
@@ -101,7 +102,7 @@ class Batch:
             if not inverse:
                 y[i] = (x[i] - sub) / div
             if inverse:
-                y[i] = (x[i]*div) + sub
+                y[i] = (x[i] * div) + sub
         return y
 
     def normalise(self,images):
