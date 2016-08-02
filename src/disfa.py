@@ -140,7 +140,7 @@ class Batch:
         if self.config['scaling'] == 'maxdiv':
             images = self.normalise_range(images)
         if self.config['scaling'] == '[-1,1]':
-            output = self.scale_within_range(images)
+            images = self.scale_within_range(images)
         # elif self.config['scaling'] == '[0,1]':
         #     self.min = images[:, :, :].min()
         #     self.max = images[:, :, :].max()
