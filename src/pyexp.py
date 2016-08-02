@@ -34,7 +34,7 @@ class PyExp:
             """
             Setup folder structures
             """
-
+            self.experiment_group = self.config['experiment_group']
             ts = strftime("%Y_%m_%d", gmtime())
             if not os.path.isdir(path):
                 os.mkdir(path)
@@ -43,22 +43,12 @@ class PyExp:
             if not os.path.isdir(path):
                 os.mkdir(path)
 
-            def prefix(i):
-                assert i < 1000
-
-                if i < 10:
-                    return '00' + str(i)
-                if i < 100:
-                    return '0' + str(i)
-                else:
-                    return str(i)
-
 
             i = 1
-            self.exp_path = os.path.join(path,prefix(i))
+            self.exp_path = os.path.join(path,self.prefix(i))
             while os.path.isdir(self.exp_path):
                 i += 1
-                self.exp_path = os.path.join(path,prefix(i))
+                self.exp_path = os.path.join(path,self.prefix(i))
 
             os.mkdir(self.exp_path)
             os.mkdir(os.path.join(self.exp_path,'images'))
@@ -85,6 +75,18 @@ class PyExp:
             f = open(self.not_finished_file,'w')
             f.write('THIS FILE MEANS THIS RUN DID NOT REACH COMPLETION')
             f.close()
+
+    def prefix(self, i):
+        assert i < 1000
+
+        if i < 10:
+            res = '00' + str(i)
+        elif i < 100:
+            res = '0' + str(i)
+        else:
+            res = str(i)
+
+        return self.experiment_group + '_' + res
 
     def apply_overwrite(self,config_overwrite):
         pass

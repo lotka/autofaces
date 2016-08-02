@@ -1,5 +1,35 @@
 from itertools import product
 from collections import OrderedDict
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+
+def plot_images(images,names=None,cmap='Spectral',interpolation='none',title=None,inverse=False,range=None):
+
+    if names == None:
+        names = ['image_'+str(i) for i in xrange(len(images))]
+
+    fig_size = matplotlib.rcParams['figure.figsize']
+    matplotlib.rcParams['figure.figsize'] = (20.0, 4.0)
+    matplotlib.rcParams['savefig.dpi'] = 200
+    matplotlib.rcParams['font.size'] = 15
+    matplotlib.rcParams['figure.dpi'] = 400
+
+    fig = plt.figure()
+    plt.suptitle(title)
+
+    cmap = 'Spectral'
+
+    for i,image in enumerate(images):
+        plt.subplot(1,len(images),i+1)
+        if range == None:
+            plt.imshow(images[i],interpolation='none',cmap=cmap)
+        else:
+            plt.imshow(images[i], interpolation='none', cmap=cmap,vmin=range[0],vmax=range[1])
+        plt.title(names[i])
+        plt.colorbar()
+    plt.show()
+
 def get_all_experiments(bounds):
     """
     This function returns a list of overwrite dictionaries for use
@@ -90,3 +120,14 @@ def hash_anything(d):
             h = h ^ hash_anything(x)
 
     return h
+
+def get_n_idx_biggest(arr,n):
+    return arr.argsort()[-n:][::-1]
+
+def get_n_idx_smallest(arr,n):
+    return arr.argsort()[:n][::-1]
+
+def get_n_idx_near_mean(arr,n):
+    mean = arr.mean()
+    diff = np.abs(arr - mean)
+    return get_n_idx_smallest(diff,n)

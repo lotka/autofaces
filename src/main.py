@@ -8,7 +8,7 @@ import numpy as np
 
 import etc
 
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from pyexp import PyExp
 from os.path import join
@@ -37,7 +37,6 @@ def alpha_sigmoid(_x,_N,a=20,b=0.5):
     N = float(_N)
     arg = x/N - b
     return 1.0/(1.0 + np.exp(a*arg))
-
 
 
 def conv_vis(i, sess, hconv, w, path, x, batch_x, keep_prob):
@@ -170,7 +169,29 @@ def run(data, config):
     accuracy = model['accuracy']
     alpha = model['alpha']
     auto_loss = model['auto_loss']
+    mask = model['mask']
+    N = config['iterations']
+    batch_size = config['batch_size']
+    validation_batch_size = config['validation_batch_size']
+    dropout_rate = config['dropout_rate']
 
+    def make_mask_batch(mean):
+        mask_image = (mean > 50).astype(float)
+        return np.expand_dims(np.array([mask_image for i in xrange(batch_size)]),axis=3)
+
+    train_mask_batch      = make_mask_batch(data.train.mean_image)
+    validation_mask_batch = make_mask_batch(data.validation.mean_image)
+
+    # plt.figure()
+    # plt.imshow(data.train.mean_image,interpolation='none')
+    # plt.colorbar()
+    # plt.show()
+    #
+    # plt.figure()
+    # plt.imshow(data.train.mean_image > 50,interpolation='none')
+    # plt.colorbar()
+    # plt.show()
+    # exit()
 
     if socket.gethostname() == 'ux305':
         sess = tf.Session()
@@ -203,10 +224,7 @@ def run(data, config):
                 print '?',
         print
 
-    N = config['iterations']
-    batch_size = config['batch_size']
-    validation_batch_size = config['validation_batch_size']
-    dropout_rate = config['dropout_rate']
+
 
     if config['autoencoder']['function'] == 'constant':
         alpha_function = lambda x,N:  config['autoencoder']['constant']
@@ -262,8 +280,8 @@ def run(data, config):
         batch_x, batch_y = data.train.next_batch(batch_size)
 
         if config['binary_softmax']:
-            train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: dropout_rate, alpha : alpha_function(i,N) }
-            _train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: 1.0, alpha : alpha_function(i,N) }
+            train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: dropout_rate, alpha : alpha_function(i,N), mask :  train_mask_batch}
+            _train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: 1.0, alpha : alpha_function(i,N) , mask :  train_mask_batch}
         else:
             train = {x: batch_x, y_: batch_y, keep_prob: dropout_rate, alpha : alpha_function(i,N) }
             _train = {x: batch_x, y_: batch_y, keep_prob: 1.0, alpha : alpha_function(i,N) }
@@ -305,9 +323,9 @@ def run(data, config):
             for k in xrange(validation_batch_size/batch_size):
                 vbatch_x, vbatch_y = data.validation.next_batch(batch_size,part=k,parts=validation_batch_size/batch_size)
                 if config['binary_softmax']:
-                    _validation = {x: vbatch_x, y_: expand_labels(vbatch_y), keep_prob: 1.0, alpha: 0.5}
+                    _validation = {x: vbatch_x, y_: expand_labels(vbatch_y), keep_prob: 1.0, alpha: alpha_function(i,N), mask :  validation_mask_batch}
                 else:
-                    _validation = {x: vbatch_x, y_: vbatch_y, keep_prob: 1.0, alpha: 0.5}
+                    _validation = {x: vbatch_x, y_: vbatch_y, keep_prob: 1.0, alpha: alpha_function(i,N), mask :  validation_mask_batch}
 
                 out = sess.run([lmsq_loss, cross_entropy, accuracy,auto_loss, y_conv], feed_dict=_validation)
                 _lmsq,_cent,_accu,_auto, _validation_y_out = out
@@ -435,14 +453,17 @@ def run(data, config):
              )
 
 
-def main(path,config_overwrite=None):
+def main(path,config_file,config_overwrite=None):
     if path == None:
         if socket.gethostname() == 'ux305':
             path = '/home/luka/Documents/autofaces/data'
         else:
             path = '/vol/lm1015-tmp/data/'
 
-    config = PyExp(config_file='config/test.yaml', path=path, config_overwrite=config_overwrite)
+    config = PyExp(config_file=config_file,
+                   path=path,
+                   config_overwrite=config_overwrite)
+
     if config['data']['dataset'] == 'disfa':
         import disfa
 
@@ -480,7 +501,7 @@ def run_experiment(args,config_overwrite=None):
 
     tf.reset_default_graph()
     with tf.device('/' + args.device + ':0'):
-        data_path,data = main(args.path, config_overwrite=config_overwrite)
+        data_path,data = main(args.path,args.config_file,config_overwrite=config_overwrite)
 
     import test_set_analysis
 
@@ -504,6 +525,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--device', action='store', dest='device',help='Store a simple value')
     parser.add_argument('--path', action='store', dest='path',help='Store a simple value')
+    parser.add_argument('--config', action='store', dest='config_file', help='Store a simple value',type=str)
     parser.add_argument('--batch', action='store', dest='batch', help='Store a simple value',type=int)
 
     args = parser.parse_args()
@@ -515,23 +537,26 @@ if __name__ == "__main__":
     from model import cnn, expand_labels, tf
     import metric
 
-
     o = {}
-    o['data:normalisation']  = ['none_[0,1]',
-                                'none_[-1,1]',
-                                'face_[-inf,inf]',
-                                'face_[-1,1]',
-                                'contrast_[-inf,inf]',
-                                'contrast_[-1,1]']
-    o['autoencoder:activation'] = ['tanh','sigmoid','linear','relu']
+    if args.config_file == 'config/auto.yaml':
+        o['data:normalisation']  = ['contrast_[-inf,inf]',
+                                    'face_[-inf,inf]',
+                                    'face_[-1,1]',
+                                    'none_[0,1]']
+        o['autoencoder:activation'] = ['tanh','sigmoid','linear','relu']
+    if args.config_file == 'config/class.yaml':
+        o['data:normalisation']  = ['none_[0,1]',
+                                    'face_[-inf,inf]',
+                                    'face_[-1,1]',
+                                    'contrast_[-inf,inf]']
     # print args.batch
     # o['autoencoder:activation'] =  [args.batch]
     overwrite_dicts = get_all_experiments(o)
     for i,x in enumerate(overwrite_dicts):
-        print i,x
-    raw_input('any key plz')
-    if o == None:
+        print i+1,x
+    # raw_input('any key plz')
+    if o == None or args.batch == None:
         run_experiment(args)
     else:
-        for exp in overwrite_dicts:
-            run_experiment(args,config_overwrite=exp)
+        run_experiment(args, config_overwrite=overwrite_dicts[args.batch-1])
+

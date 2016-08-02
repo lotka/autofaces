@@ -6,6 +6,7 @@ import scipy
 from tqdm import tqdm
 from copy import copy
 from os.path import join
+import time
 import os
 from helper import hash_anything
 
@@ -30,33 +31,39 @@ class Batch:
 
         return new_image
 
-    def inverse_process(self,input):
+    def inverse_process(self,input,base=0):
 
         N = input.shape[0]
         output = input.copy()
-        if self.config['scaling'] == '[-1,1]':
+        if self.config['scaling'] == 'maxdiv':
             output = self.normalise_range(output,inverse=True)
-        elif self.config['scaling'] == '[0,1]':
-                output = output*self.max + self.min
+        # elif self.config['scaling'] == '[0,1]':
+        #         output = output*self.max + self.min
 
         if self.config['normalisation_type'] == 'pixel':
             output = output*self.std + self.mean
         elif self.config['normalisation_type'] == 'face':
             for i in tqdm(xrange(N)):
-                output[i, :, :] = output[i, :, :]*self.std + self.mean
+                output[i,:,:] = output[i,:,:]*self.std + self.mean
         elif self.config['normalisation_type'] == 'contrast':
             for i in tqdm(xrange(N)):
-                output[i,:,:] *= self.std[i]
-                output[i,:,:] += self.mean[i]
+                output[i,:,:] *= self.std[i+base]
+                output[i,:,:] += self.mean[i+base]
 
         return output
 
     def mean_squared(self,x,y):
         return np.sqrt((np.power(x-y,2)).mean())
 
-    def true_loss(self,input,output):
+    def true_loss(self,input,output,base=0):
         assert input.shape == output.shape
-        return self.mean_squared(self.inverse_process(input),self.inverse_process(output))/float(255.0)
+        true_input = self.inverse_process(input,base)
+        true_output = self.inverse_process(output,base)
+        N, x, y = input.shape
+        losses = np.zeros(N)
+        for i in xrange(N):
+            losses[i] = self.mean_squared(true_input[i,:,:],true_output[i,:,:])
+        return losses
 
     def zeros_to_ones(self,array):
         return array + (array == 0.0).astype(array.dtype)
@@ -66,16 +73,6 @@ class Batch:
         y = np.zeros(x.shape)
         if not inverse:
             self.absmax = self.zeros_to_ones( np.abs(x).max(axis=0) )
-
-        # import matplotlib
-        # matplotlib.rcParams['figure.figsize'] = (20.0, 4.0)
-        # matplotlib.rcParams['savefig.dpi'] = 200
-        # matplotlib.rcParams['font.size'] = 15
-        # matplotlib.rcParams['figure.dpi'] = 400
-        # matplotlib.pyplot.figure()
-        # matplotlib.pyplot.imshow(self.absmax)
-        # matplotlib.pyplot.colorbar()
-        # matplotlib.pyplot.show()
 
         for i in xrange(y.shape[0]):
             for j in xrange(y.shape[1]):
@@ -113,7 +110,7 @@ class Batch:
                 # if np.abs(self.std[i]) < 0.000001:
                 #     self.mean[i] = 0.0
                 self.std[i] = images[i,:,:].std()
-                if np.abs(self.std[i]) < 0.000001:
+                if np.abs(self.std[i]) == 0.0:
                     self.std[i] = 1.0
 
             self.mean[i] = np.random.rand()
@@ -124,12 +121,12 @@ class Batch:
 
 
         print 'Applying scaling: ', self.config['scaling']
-        if self.config['scaling'] == '[-1,1]':
+        if self.config['scaling'] == 'maxdiv':
             images = self.normalise_range(images)
-        elif self.config['scaling'] == '[0,1]':
-            self.min = images[:, :, :].min()
-            self.max = images[:, :, :].max()
-            images = (images - self.min)/self.max
+        # elif self.config['scaling'] == '[0,1]':
+        #     self.min = images[:, :, :].min()
+        #     self.max = images[:, :, :].max()
+        #     images = (images - self.min)/self.max
 
         return images
 
@@ -156,7 +153,7 @@ class Batch:
                 else:
                     self.labels[i,j] = 0.0
 
-
+        self.images = self.images/self.images.max()
         self.images = self.normalise(self.images)
 
         # Remove the empty labels
@@ -216,6 +213,8 @@ class Batch:
         self.max = None
         self.mean = None
         self.std = None
+        self.absmax = None
+        self.mean_image = None
 
         print 'Creating',batch_type,'batch.'
         print 'Loading labels and images for subjects:',subjects
@@ -232,25 +231,25 @@ class Batch:
                 config['normalisation_type'] = 'none'
                 config['scaling'] = 'none'
 
-            elif config['normalisation'] == 'none_[-1,1]':
+            elif config['normalisation'] == 'none_maxdiv':
                 config['normalisation_type'] = 'none'
-                config['scaling'] = '[-1,1]'
+                config['scaling'] = 'maxdiv'
 
             elif config['normalisation'] == 'face_[-inf,inf]':
                 config['normalisation_type'] = 'face'
                 config['scaling'] = 'none'
 
-            elif config['normalisation'] == 'face_[-1,1]':
+            elif config['normalisation'] == 'face_maxdiv':
                 config['normalisation_type'] = 'face'
-                config['scaling'] = '[-1,1]'
+                config['scaling'] = 'maxdiv'
 
             elif config['normalisation'] == 'contrast_[-inf,inf]':
                 config['normalisation_type'] = 'contrast'
                 config['scaling'] = 'none'
 
-            elif config['normalisation'] == 'contrast_[-1,1]':
+            elif config['normalisation'] == 'contrast_maxdiv':
                 config['normalisation_type'] = 'contrast'
-                config['scaling'] = '[-1,1]'
+                config['scaling'] = 'maxdiv'
 
         def hash_config(conf):
             _conf = copy(conf)
@@ -281,15 +280,22 @@ class Batch:
             print hash_file+'.npz'
 
         if hashing_enabled and os.path.isfile(hash_file+'.npz'):
-            d = np.load(hash_file+'.npz')
+            try:
+                d = np.load(hash_file+'.npz')
+            except IOError:
+                time.sleep(60)
+                d = np.load(hash_file + '.npz')
+
             self.images = d['images']
             self.nSamples = self.images.shape[0]
             self.labels = d['labels']
             self.min = d['min']
             self.max = d['max']
+            self.absmax = d['absmax']
             self.mean = d['mean']
             self.std = d['std']
             self.ranges = d['ranges']
+            self.mean_image = d['mean_image']
             assert (self.images.sum() + self.labels.sum()) == d['checksum']
             print 'LOADED FROM HASHED DATASET FILE', batch_type
         else:
@@ -328,6 +334,7 @@ class Batch:
                     self.images = self.images[idx, :, :]
                     self.labels = self.labels[idx, :]
 
+            self.mean_image = self.images.mean(axis=0)
             # Finally perform processing on all of the images as a whole
             self.all_images_pre_process()
 
@@ -339,9 +346,13 @@ class Batch:
                                    min=self.min,
                                    max=self.max,
                                    mean=self.mean,
+                                   absmax=self.absmax,
+                                   mean_image=self.mean_image,
                                    std=self.std,
                                    ranges=self.ranges,
                                    checksum=checksum)
+
+
 
 
 class Disfa:

@@ -134,6 +134,9 @@ def dcnn_layer(input_tensor, convolution_shape,output_shape, padding, layer_name
             preactivate = conv2d_transpose(input_tensor, weights,output_shape, padding=padding,strides=strides) + biases
             tf.histogram_summary(layer_name + '/pre_activations', preactivate)
 
+        if act == None:
+            act = tf.identity
+
         # Combine the feature maps if this is the last deconvolution
         if output_shape[-1] == 1:
             activations = act(tf.reduce_mean(preactivate,3,keep_dims=True), 'activation')
@@ -259,6 +262,7 @@ def cnn(config):
 
     x = tf.placeholder(np.float32, shape=shape_1, name='Images')
     x_ = tf.reshape(x, shape=shape_2)
+    mask = tf.placeholder(np.float32,shape=shape_2)
 
     if config['binary_softmax']:
         g = 2
@@ -391,7 +395,7 @@ def cnn(config):
             decoder.append( (tf.image.resize_nearest_neighbor(ll(decoder), size=[22,22]), None) )
             print ll(decoder).get_shape()
 
-            decoder.append( dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_1', config,strides=[1,2,2,1]) )
+            decoder.append( dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_1', config,strides=[1,2,2,1],act=act) )
         elif config['autoencoder']['decoder'] == 'auto_cnn_3':
             print 'Resize:', [batch_size,22,22,64], '-->',[batch_size,43,43,64]
             decoder.append((tf.image.resize_images(ll(network,-3), 43, 43),None))
@@ -436,7 +440,7 @@ def cnn(config):
         #     decoder.append(dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_2', config))
 
         y_auto = ll(decoder)
-        y_image = tf.reshape(y_auto, shape=shape_2)
+        y_image = tf.reshape(y_auto, shape=shape_2)*mask
         auto_loss = tf.sqrt(tf.reduce_mean(tf.square(x_ - y_image)))
 
     print '\nCLASSIFER:'
@@ -539,4 +543,5 @@ def cnn(config):
             'accuracy' : accuracy,
             'alpha' : alpha,
             'auto_loss' : auto_loss,
+            'mask' : mask,
             'batch_size' : batch_size}
