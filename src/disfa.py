@@ -98,8 +98,10 @@ class Batch:
         div = self.zeros_to_ones((_range / 2.0))
 
         for i in xrange(N):
-            y[i] = (x[i] - sub) / div
-
+            if not inverse:
+                y[i] = (x[i] - sub) / div
+            if inverse:
+                y[i] = (x[i]*div) + sub
         return y
 
     def normalise(self,images):
