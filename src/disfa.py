@@ -95,7 +95,7 @@ class Batch:
 
         _range = self.max - self.min
         sub = (self.min + _range / 2.0)
-        div = (_range / 2.0)
+        div = self.zeros_to_ones((_range / 2.0))
 
         for i in xrange(N):
             y[i] = (x[i] - sub) / div
