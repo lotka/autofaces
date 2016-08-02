@@ -176,7 +176,7 @@ def run(data, config):
     dropout_rate = config['dropout_rate']
 
     def make_mask_batch(mean):
-        mask_image = (mean > 50).astype(float)
+        mask_image = (mean > 0).astype(float)
         return np.expand_dims(np.array([mask_image for i in xrange(batch_size)]),axis=3)
 
     train_mask_batch      = make_mask_batch(data.train.mean_image)
@@ -188,7 +188,7 @@ def run(data, config):
     # plt.show()
     #
     # plt.figure()
-    # plt.imshow(data.train.mean_image > 50,interpolation='none')
+    # plt.imshow(data.train.mean_image > 0,interpolation='none')
     # plt.colorbar()
     # plt.show()
     # exit()
@@ -237,10 +237,10 @@ def run(data, config):
     else:
         print 'INCORRECT ALPHA FUNCTION'
         exit()
-
-    for i in xrange(N):
+    print 'Alpha ~ '
+    for i in xrange(0,N,2):
         print alpha_function(i, N),
-
+    print
     test_period = 10
     nN = N / test_period
     x_axis = np.zeros(nN)
@@ -540,23 +540,26 @@ if __name__ == "__main__":
     o = {}
     if args.config_file == 'config/auto.yaml':
         o['data:normalisation']  = ['contrast_[-inf,inf]',
+                                    'contrast_[-1,1]',
                                     'face_[-inf,inf]',
                                     'face_[-1,1]',
                                     'none_[0,1]']
-        o['autoencoder:activation'] = ['tanh','sigmoid','linear','relu']
+        # o['autoencoder:activation'] = ['tanh','sigmoid','linear','relu']
     if args.config_file == 'config/class.yaml':
-        o['data:normalisation']  = ['none_[0,1]',
-                                    'face_[-inf,inf]',
-                                    'face_[-1,1]',
-                                    'contrast_[-inf,inf]']
+        o['data:normalisation'] = ['contrast_[-inf,inf]',
+                                   'contrast_[-1,1]',
+                                   'face_[-inf,inf]',
+                                   'face_[-1,1]',
+                                   'none_[0,1]'][::-1]
     # print args.batch
     # o['autoencoder:activation'] =  [args.batch]
     overwrite_dicts = get_all_experiments(o)
     for i,x in enumerate(overwrite_dicts):
         print i+1,x
     # raw_input('any key plz')
-    if o == None or args.batch == None:
+    if o == None:
         run_experiment(args)
     else:
-        run_experiment(args, config_overwrite=overwrite_dicts[args.batch-1])
+        for exp in overwrite_dicts:
+            run_experiment(args, config_overwrite=exp)
 

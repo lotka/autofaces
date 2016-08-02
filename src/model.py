@@ -441,7 +441,7 @@ def cnn(config):
 
         y_auto = ll(decoder)
         y_image = tf.reshape(y_auto, shape=shape_2)*mask
-        auto_loss = tf.sqrt(tf.reduce_mean(tf.square(x_ - y_image)))
+        auto_loss = tf.sqrt(tf.reduce_mean(tf.square(x_*mask - y_image)))
 
     print '\nCLASSIFER:'
 

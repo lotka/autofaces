@@ -254,25 +254,25 @@ class Batch:
                 config['normalisation_type'] = 'none'
                 config['scaling'] = 'none'
 
-            elif config['normalisation'] == 'none_maxdiv':
+            elif config['normalisation'] == 'none_[-1,1]':
                 config['normalisation_type'] = 'none'
-                config['scaling'] = 'maxdiv'
+                config['scaling'] = '[-1,1]'
 
             elif config['normalisation'] == 'face_[-inf,inf]':
                 config['normalisation_type'] = 'face'
                 config['scaling'] = 'none'
 
-            elif config['normalisation'] == 'face_maxdiv':
+            elif config['normalisation'] == 'face_[-1,1]':
                 config['normalisation_type'] = 'face'
-                config['scaling'] = 'maxdiv'
+                config['scaling'] = '[-1,1]'
 
             elif config['normalisation'] == 'contrast_[-inf,inf]':
                 config['normalisation_type'] = 'contrast'
                 config['scaling'] = 'none'
 
-            elif config['normalisation'] == 'contrast_maxdiv':
+            elif config['normalisation'] == 'contrast_[-1,1]':
                 config['normalisation_type'] = 'contrast'
-                config['scaling'] = 'maxdiv'
+                config['scaling'] = '[-1,1]'
 
         def hash_config(conf):
             _conf = copy(conf)

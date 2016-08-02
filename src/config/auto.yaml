@@ -7,7 +7,7 @@ autoencoder:
   poly_order: 1
   decoder : auto_cnn_2
   # relu, linear, sigmoid, tanh
-  activation : relu
+  activation : linear
 global:
     early_stop_percent: 0.5
     binary_softmax: True
@@ -83,7 +83,7 @@ data:
     # none, face, range
     normalisation_type: 'face'
     # '[0,1]','[-1,1]','[-inf,inf]'
-    scaling : 'none'
+    scaling : none
     disfa_au_map : [1,2,4,5,6,9,12,15,17,20,25,26]
 results:
     early_stop_iteration: -1
