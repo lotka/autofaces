@@ -100,6 +100,8 @@ class Batch:
         for i in xrange(N):
             y[i] = (x[i] - sub) / div
 
+        return y
+
     def normalise(self,images):
         option = self.config['normalisation_type']
         print option
