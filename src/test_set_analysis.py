@@ -4,6 +4,7 @@ import matplotlib
 import numpy as np
 
 matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from pyexp import PyExp
 import sys
 import metric
@@ -18,6 +19,7 @@ import tensorflow as tf
 from helper import get_n_idx_biggest, get_n_idx_smallest, get_n_idx_near_mean
 
 def test_model(name,data,config,path):
+
 
     if socket.gethostname() == 'ux305':
         sess = tf.Session()
@@ -100,8 +102,11 @@ def test_model(name,data,config,path):
     idx_big   = get_n_idx_biggest(true_losses, 100)
     idx_small = get_n_idx_smallest(true_losses, 100)
     idx_mean  = get_n_idx_near_mean(true_losses, 100)
+    print 'idx_big'
     print idx_big
+    print 'idx_small'
     print idx_small
+    print 'idx_mean'
     print idx_mean
     assert len(idx_big) == 100
     assert len(idx_small) == 100
@@ -110,22 +115,28 @@ def test_model(name,data,config,path):
     i_big   = data.validation.images[idx_big,   :,:]
     i_small = data.validation.images[idx_small, :, :]
     i_mean  = data.validation.images[idx_mean,  :, :]
+    i_big_original   = data.validation.images_original[idx_big,   :,:]
+    i_small_original = data.validation.images_original[idx_small, :, :]
+    i_mean_original  = data.validation.images_original[idx_mean,  :, :]
 
     o_big   = sess.run(model['y_image'], feed_dict={x: i_big,   keep_prob: 1.0, alpha: 1.0, mask : mask_batch})[:, :, :, 0]
     o_small = sess.run(model['y_image'], feed_dict={x: i_small, keep_prob: 1.0, alpha: 1.0, mask : mask_batch})[:, :, :, 0]
     o_mean  = sess.run(model['y_image'], feed_dict={x: i_mean,  keep_prob: 1.0, alpha: 1.0, mask : mask_batch})[:, :, :, 0]
 
-    i_big       = data.validation.inverse_process(i_big)
-    i_small     = data.validation.inverse_process(i_small)
-    i_mean      = data.validation.inverse_process(i_mean)
+    i_big       = (i_big_original, i_big.copy(),       data.validation.inverse_process(i_big.copy()))
+    i_small     = (i_small_original, i_small.copy(),     data.validation.inverse_process(i_small.copy()))
+    i_mean      = (i_mean_original, i_mean.copy(),      data.validation.inverse_process(i_mean.copy()))
     label_big   = data.validation.labels[idx_big,:]
-    label_small  = data.validation.labels[idx_small,:]
+    label_small = data.validation.labels[idx_small,:]
     label_mean  = data.validation.labels[idx_mean,:]
-    o_big       = data.validation.inverse_process(o_big)
-    o_small     = data.validation.inverse_process(o_small)
-    o_mean      = data.validation.inverse_process(o_mean)
+    o_big       = (o_big.copy()     ,  data.validation.inverse_process(o_big.copy()))
+    o_small     = (o_small.copy()   ,  data.validation.inverse_process(o_small.copy()))
+    o_mean      = (o_mean.copy()    ,  data.validation.inverse_process(o_mean.copy()))
 
-
+    plt.figure()
+    plt.imshow(i_big[0][0])
+    plt.colorbar()
+    plt.show()
 
     true_autoencoder_loss = true_losses.mean()
 
@@ -166,6 +177,12 @@ def test_model(name,data,config,path):
              o_small=o_small,
              o_mean=o_mean,
              auto_images=(train_images,validation_images))
+
+    plt.figure()
+    v = np.load(join(ssv_path, name + '_model_analysis.npz'))['i_big'][0,0]
+    plt.imshow(v)
+    plt.colorbar()
+    plt.show()
 
     sess.close()
 

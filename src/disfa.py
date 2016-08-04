@@ -31,13 +31,13 @@ class Batch:
 
         return new_image
 
-    def inverse_process(self,input,base=0):
+    def inverse_process(self,input,base=0,idx=None):
 
-        N = input.shape[0]
+        N, xN, yN = input.shape
         output = input.copy()
         if self.config['scaling'] == 'maxdiv':
             output = self.normalise_range(output,inverse=True)
-        if self.config['scaling'] == '[-1,1]':
+        elif self.config['scaling'] == '[-1,1]':
             output = self.scale_within_range(output, inverse=True)
         # elif self.config['scaling'] == '[0,1]':
         #         output = output*self.max + self.min
@@ -45,12 +45,22 @@ class Batch:
         if self.config['normalisation_type'] == 'pixel':
             output = output*self.std + self.mean
         elif self.config['normalisation_type'] == 'face':
-            for i in tqdm(xrange(N)):
-                output[i,:,:] = output[i,:,:]*self.std + self.mean
+            for i in xrange(N):
+                for j in xrange(xN):
+                    for k in xrange(yN):
+                        output[i,j,k] = (output[i,j,k]*self.std[j,k]) + self.mean[j,k]
         elif self.config['normalisation_type'] == 'contrast':
+
+            if idx != None:
+                mean = self.mean.copy()[idx]
+                std = self.std.copy()[idx]
+            else:
+                mean = self.mean
+                std = self.std
+
             for i in tqdm(xrange(N)):
-                output[i,:,:] *= self.std[i+base]
-                output[i,:,:] += self.mean[i+base]
+                output[i,:,:] *= std[i+base]
+                output[i,:,:] += mean[i+base]
 
         return output
 
@@ -108,7 +118,7 @@ class Batch:
     def normalise(self,images):
         option = self.config['normalisation_type']
         print option
-        N = images.shape[0]
+        N, xN, yN = images.shape
 
         if option == 'pixel':
             self.mean =  images.mean()
@@ -122,7 +132,9 @@ class Batch:
             self.std = stdd_face
 
             for i in tqdm(xrange(N)):
-                images[i,:,:] = (images[i,:,:] - self.mean)/self.std
+                for j in xrange(xN):
+                    for k in xrange(yN):
+                        images[i,j,k] = (images[i,j,k] - self.mean[j,k])/self.std[j,k]
         elif option == 'contrast':
             self.mean = np.ones(N)
             self.std  = np.ones(N)
@@ -144,7 +156,7 @@ class Batch:
         print 'Applying scaling: ', self.config['scaling']
         if self.config['scaling'] == 'maxdiv':
             images = self.normalise_range(images)
-        if self.config['scaling'] == '[-1,1]':
+        elif self.config['scaling'] == '[-1,1]':
             images = self.scale_within_range(images)
         # elif self.config['scaling'] == '[0,1]':
         #     self.min = images[:, :, :].min()
@@ -177,8 +189,9 @@ class Batch:
                     self.labels[i,j] = 0.0
 
         self.images = self.images/self.images.max()
+        self.original_images = self.images.copy()
         self.images = self.normalise(self.images)
-
+        print self.images.shape
         # Remove the empty labels
         if self.config['remove_empty_labels'] and self.batch_type == 'train':
             good_samples = []
@@ -191,6 +204,7 @@ class Batch:
 
             self.N = self.images.shape[0]
             assert self.images.shape[0] == self.labels.shape[0]
+        print self.images.shape
 
 
 
@@ -360,6 +374,8 @@ class Batch:
             self.mean_image = self.images.mean(axis=0)
             # Finally perform processing on all of the images as a whole
             self.all_images_pre_process()
+
+            self.nSamples = self.images.shape[0]
 
             if hashing_enabled:
                 print 'SAVING HASHFILE FOR FUTURE USE', batch_type

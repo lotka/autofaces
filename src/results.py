@@ -103,6 +103,16 @@ class Results(object):
 
         self.final_model = np.load(join(ssv_path, 'final_model_analysis.npz'))
 
+        plt.figure()
+        plt.imshow(self.final_model['i_big'][0,0])
+        plt.colorbar()
+        plt.show()
+
+        plt.figure()
+        plt.imshow(self.final_model['i_big'][1, 0])
+        plt.colorbar()
+        plt.show()
+
         f = join(ssv_path, 'early_model_analysis.npz')
         if isfile(f):
             self.early_model = np.load(f)

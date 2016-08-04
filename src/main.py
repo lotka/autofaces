@@ -508,11 +508,11 @@ def run_experiment(args,config_overwrite=None):
     if args.device == None:
         args.device = 'gpu'
 
-    data.train.batch_counter = 0
+    data.validation.batch_counter = 0
     tf.reset_default_graph()
     test_set_analysis.main((sys.argv[0], data_path,'final', args.device), data=data, overwrite_dict=config_overwrite)
 
-    data.train.batch_counter = 0
+    data.validation.batch_counter = 0
     tf.reset_default_graph()
     test_set_analysis.main((sys.argv[0], data_path, 'early', args.device), data=data, overwrite_dict=config_overwrite)
 
@@ -527,6 +527,7 @@ if __name__ == "__main__":
     parser.add_argument('--path', action='store', dest='path',help='Store a simple value')
     parser.add_argument('--config', action='store', dest='config_file', help='Store a simple value',type=str)
     parser.add_argument('--batch', action='store', dest='batch', help='Store a simple value',type=int)
+    parser.add_argument('--compare', action='store', dest='compare' ,help='compare different configs',type=bool)
 
     args = parser.parse_args()
 
@@ -538,19 +539,20 @@ if __name__ == "__main__":
     import metric
 
     o = {}
-    if args.config_file == 'config/auto.yaml':
-        o['data:normalisation']  = ['contrast_[-inf,inf]',
-                                    'contrast_[-1,1]',
-                                    'face_[-inf,inf]',
-                                    'face_[-1,1]',
-                                    'none_[0,1]']
-        # o['autoencoder:activation'] = ['tanh','sigmoid','linear','relu']
-    if args.config_file == 'config/class.yaml':
-        o['data:normalisation'] = ['contrast_[-inf,inf]',
-                                   'contrast_[-1,1]',
-                                   'face_[-inf,inf]',
-                                   'face_[-1,1]',
-                                   'none_[0,1]'][::-1]
+    if args.compare == True and args.compare != None:
+        if args.config_file == 'config/auto.yaml':
+            o['data:normalisation']  = ['contrast_[-inf,inf]',
+                                        'contrast_[-1,1]',
+                                        'face_[-inf,inf]',
+                                        'face_[-1,1]',
+                                        'none_[0,1]']
+            # o['autoencoder:activation'] = ['tanh','sigmoid','linear','relu']
+        if args.config_file == 'config/class.yaml':
+            o['data:normalisation'] = ['contrast_[-inf,inf]',
+                                       'contrast_[-1,1]',
+                                       'face_[-inf,inf]',
+                                       'face_[-1,1]',
+                                       'none_[0,1]'][::-1]
     # print args.batch
     # o['autoencoder:activation'] =  [args.batch]
     overwrite_dicts = get_all_experiments(o)

@@ -16,7 +16,8 @@ def plot_images(images,names=None,cmap='Spectral',interpolation='none',title=Non
     matplotlib.rcParams['figure.dpi'] = 400
 
     fig = plt.figure()
-    plt.suptitle(title)
+    if title != None:
+        fig.suptitle(title,fontsize=30)
 
     cmap = 'Spectral'
 
