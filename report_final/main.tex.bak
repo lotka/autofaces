@@ -1,0 +1,120 @@
+\documentclass[12pt,twoside]{report}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Definitions for the title page
+% Edit these to provide the correct information
+% e.g. \newcommand{\reportauthor}{Timothy Kimber}
+
+\newcommand{\reporttitle}{Title}
+\newcommand{\reportauthor}{Your name}
+\newcommand{\supervisor}{Name of supervisor}
+\newcommand{\degreetype}{Type of Degree}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% load some definitions and default packages
+\input{includes/includes}
+
+% load some macros
+\input{includes/notation}
+
+\date{September 2015}
+
+\begin{document}
+
+% load title page
+\input{includes/titlepage}
+
+
+% page numbering etc.
+\pagenumbering{roman}
+\clearpage{\pagestyle{empty}\cleardoublepage}
+\setcounter{page}{1}
+\pagestyle{fancy}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{abstract}
+Your abstract.
+\end{abstract}
+
+\cleardoublepage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Acknowledgements}
+Comment this out if not needed.
+
+\clearpage{\pagestyle{empty}\cleardoublepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%--- table of contents
+\fancyhead[RE,LO]{\sffamily {Table of Contents}}
+\tableofcontents
+
+
+\clearpage{\pagestyle{empty}\cleardoublepage}
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\fancyhead[LE,RO]{\slshape \rightmark}
+\fancyhead[LO,RE]{\slshape \leftmark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Introduction}
+
+\begin{figure}[tb]
+\centering
+\includegraphics[width = 0.4\hsize]{./figures/imperial}
+\caption{Imperial College Logo. It's nice blue, and the font is quite stylish. But you can choose a different one if you don't like it.}
+\label{fig:logo}
+\end{figure}
+
+Figure~\ref{fig:logo} is an example of a figure.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Background and Theory}
+\section{Facial Expression Datasets}
+\section{Machine Learning approaches and Evaluation}
+\section{Neural Networks}
+\subsection{Frameworks}
+\section{Computer Vision}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{DISFA Neural Network}
+\section{Data preparation}
+The DISFA dataset is essentially a set of ordered images where each image has a
+label which quantifies how how much of each AU is present.
+\section{Multilayer perceptron}
+As an introduction to the types of results that will be used to evaluate various
+models this section shows the performance of a multilayer perceptron with one
+hidden layer.
+
+
+\begin{figure}[tb]
+\centering
+\includegraphics[width =\hsize]{../graphs/losses_2016_08_14_004.pdf}
+\caption{The losses a neural network consisting of an input layer, a 14
+neuron hidden layer a branch of the same size as the input layer for autoencoding
+and branches for binary softmax classifiers for each AU. The classifier mean squared
+loss is shown only for interested, the network trains with the cross entropy.
+The $\alpha$ coeffcicent determines the balance between the classifier and the
+autoencoder losses.}
+\label{fig:logo}
+\end{figure}
+
+\section{Autoencoder network}
+\section{Autoencoder and Classifier combined network}
+\section{Evaulation Methods}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Final Results}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Conclusion}
+
+
+%% bibliography
+\bibliographystyle{apa}
+
+
+\end{document}

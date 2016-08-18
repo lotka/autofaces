@@ -1,0 +1,45 @@
+\BOOKMARK [0][]{chapter.3}{1 Introduction}{}% 1
+\BOOKMARK [1][]{section.4}{1.1 Problem Space}{chapter.3}% 2
+\BOOKMARK [1][]{section.6}{1.2 Potential Applications}{chapter.3}% 3
+\BOOKMARK [1][]{section.7}{1.3 Contributions}{chapter.3}% 4
+\BOOKMARK [1][]{section.8}{1.4 Thesis Outline}{chapter.3}% 5
+\BOOKMARK [0][]{chapter.9}{2 Background}{}% 6
+\BOOKMARK [1][]{section.10}{2.1 Databases for FAU estimation}{chapter.9}% 7
+\BOOKMARK [1][]{section.11}{2.2 The DISFA dataset}{chapter.9}% 8
+\BOOKMARK [1][]{section.14}{2.3 Deep learning approaches to FAU detection}{chapter.9}% 9
+\BOOKMARK [0][]{chapter.19}{3 Deep Learning}{}% 10
+\BOOKMARK [1][]{section.20}{3.1 Introduction}{chapter.19}% 11
+\BOOKMARK [1][]{section.21}{3.2 Model Componenents}{chapter.19}% 12
+\BOOKMARK [2][]{subsection.22}{3.2.1 Artificial Neural Networks}{section.21}% 13
+\BOOKMARK [2][]{subsection.34}{3.2.2 Convolutional Layers}{section.21}% 14
+\BOOKMARK [2][]{subsection.36}{3.2.3 Max Pooling Layers}{section.21}% 15
+\BOOKMARK [2][]{subsection.37}{3.2.4 Dropout Layers}{section.21}% 16
+\BOOKMARK [2][]{subsection.38}{3.2.5 Autoencoders}{section.21}% 17
+\BOOKMARK [2][]{subsection.40}{3.2.6 Stacked Autoencoder}{section.21}% 18
+\BOOKMARK [2][]{subsection.41}{3.2.7 Convolutional Autoencoder}{section.21}% 19
+\BOOKMARK [1][]{section.42}{3.3 Model Evaluation}{chapter.19}% 20
+\BOOKMARK [0][]{chapter.47}{4 Implementation}{}% 21
+\BOOKMARK [1][]{section.48}{4.1 Project Structure}{chapter.47}% 22
+\BOOKMARK [1][]{section.49}{4.2 Deep Learning Framework}{chapter.47}% 23
+\BOOKMARK [0][]{chapter.50}{5 Preprocessing Labeled Faces}{}% 24
+\BOOKMARK [1][]{section.51}{5.1 Introduction}{chapter.50}% 25
+\BOOKMARK [1][]{section.58}{5.2 Methods}{chapter.50}% 26
+\BOOKMARK [2][]{subsection.61}{5.2.1 Contrast Normalisation}{section.58}% 27
+\BOOKMARK [2][]{subsection.66}{5.2.2 Mean Face Normalisation}{section.58}% 28
+\BOOKMARK [2][]{subsection.69}{5.2.3 Range Scaling}{section.58}% 29
+\BOOKMARK [0][]{chapter.73}{6 Modelling DISFA}{}% 30
+\BOOKMARK [1][]{section.74}{6.1 Joint classification}{chapter.73}% 31
+\BOOKMARK [1][]{section.76}{6.2 Autoencoder classifier branching}{chapter.73}% 32
+\BOOKMARK [1][]{section.77}{6.3 A single hidden layer}{chapter.73}% 33
+\BOOKMARK [1][]{section.79}{6.4 Convolutional Networks}{chapter.73}% 34
+\BOOKMARK [2][]{subsection.80}{6.4.1 Preprocessing search}{section.79}% 35
+\BOOKMARK [2][]{subsection.81}{6.4.2 Dropout}{section.79}% 36
+\BOOKMARK [2][]{subsection.82}{6.4.3 L2 Reg}{section.79}% 37
+\BOOKMARK [2][]{subsection.83}{6.4.4 Contrast Normalisation}{section.79}% 38
+\BOOKMARK [1][]{section.84}{6.5 Resnet}{chapter.73}% 39
+\BOOKMARK [1][]{section.85}{6.6 Autoencoder transfer functions}{chapter.73}% 40
+\BOOKMARK [1][]{section.86}{6.7 Data balancing}{chapter.73}% 41
+\BOOKMARK [1][]{section.87}{6.8 Intensity Estimation}{chapter.73}% 42
+\BOOKMARK [0][]{chapter.88}{7 Discussion}{}% 43
+\BOOKMARK [0][]{chapter.89}{8 Conclusion}{}% 44
+\BOOKMARK [0][]{appendix.90}{A Networks}{}% 45
