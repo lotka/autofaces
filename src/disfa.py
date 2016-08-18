@@ -11,6 +11,166 @@ import os
 from helper import hash_anything
 
 class Batch:
+
+
+    def __init__(self,
+                 config,
+                 batch_type,
+                 debug=False):
+
+        self.batch_counter = 0
+        # copy ensures accurate hashing later on
+        self.config = config
+        self.batch_type = batch_type
+        subjects = config[batch_type + '_subjects']
+        self.ranges = None
+        self.min = None
+        self.max = None
+        self.mean = None
+        self.std = None
+        self.absmax = None
+        self.mean_image = None
+        self.subject_idx = []
+        self.debug = debug
+
+        if 'preprocessing' not in self.config:
+            p = {'contrast'    : False,
+                 'face'        : False,
+                 'per_subject' : False,
+                 'range'       : False}
+        if 'normalisation_type' in self.config:
+            if self.config['normalisation_type'] == 'face_ps' or self.config['normalisation_type'] == 'face':
+                p['face']     = True
+            if self.config['normalisation_type'] == 'contrast':
+                p['contrast'] = True
+        if 'scaling' in self.config:
+            if self.config['scaling'] == '[-1,1]':
+                p['range'] = True
+
+            assert not (p['face'] and p['contrast']), 'Can\'t do face and contrast at the same time'
+
+            self.config['preprocessing'] = p
+
+        self.options = self.config['preprocessing']
+
+        print 'Creating',batch_type,'batch.'
+        print 'Loading labels and images for subjects:',subjects
+        subjects_set = [(i, np.s_[:]) for i in sorted(set(subjects))]
+        self.labels, _ = data_array.IndicesCollection(subjects_set).getitem(disfa.disfa['AUall'])
+
+        # Save original label ordering
+        self.raw_labels = self.labels.copy()
+
+        self.image_region_config = self.config[self.config['image_region']]
+
+        def hash_config(conf):
+            _conf = copy(conf)
+            ignore_for_hashing = ['path','image_shape','label_size','results']
+            for name in ignore_for_hashing:
+                if name in _conf:
+                    del _conf[name]
+            return hash_anything(_conf)
+
+        hashing_enabled = False
+
+        if hashing_enabled:
+            h1 = hash_config(self.config)
+            h2 = hash_config(subjects)
+            h3 = 0
+
+            with open('disfa.py','r') as file:
+                h3 = hash(file.read())
+
+            h = h1 ^ h2 ^ h3
+            hash_folder = join(join(self.config['path'],'..'),'hashed_datasets')
+            hash_file = join(hash_folder,batch_type+'_'+str(h))
+
+            if not os.path.isdir(hash_folder):
+                os.mkdir(hash_folder)
+
+            print hash_file+'.npz'
+
+        if hashing_enabled and os.path.isfile(hash_file+'.npz'):
+            try:
+                d = np.load(hash_file+'.npz')
+            except IOError:
+                time.sleep(60)
+                d = np.load(hash_file + '.npz')
+
+            self.images = d['images']
+            self.subject_idx = d['subject_idx']
+            self.nSamples = self.images.shape[0]
+            self.labels = d['labels']
+            self.min = d['min']
+            self.max = d['max']
+            self.absmax = d['absmax']
+            self.mean = d['mean']
+            self.std = d['std']
+            self.ranges = d['ranges']
+            self.mean_image = d['mean_image']
+            assert (self.images.shape[0] + self.labels.shape[0]) == d['checksum']
+            print 'LOADED FROM HASHED DATASET FILE', batch_type
+        else:
+            for i,s in enumerate(subjects):
+                images = disfa.disfa['images'][s][:].astype(np.float32)
+
+                # Discover dimensions of images
+                if i == 0:
+                    number_of_frames_per_subject = images.shape[0]
+                    # Process one image to see the output
+                    x,y = self.image_pre_process(images[0,:,:]).shape
+
+                    # Set up variable for image data
+                    self.images = np.empty((0,x,y))
+
+
+                # Allocate memory for downsized images
+                r_images = np.zeros((images.shape[0],x,y))
+
+                # Process each image
+                for i in tqdm(xrange(images.shape[0])):
+                    r_images[i,:,:] = self.image_pre_process(images[i,:,:])
+
+                # r_images = self.subject_pre_process(r_images)
+
+                # append down_sized images to all_images
+                self.subject_idx.append([s,self.images.shape[0]])
+                if self.debug:
+                    print 'new subject idx tuple: ', self.subject_idx[-1]
+                self.images = np.append(self.images,r_images,axis=0)
+
+                del r_images
+            self.nSamples = self.images.shape[0]
+            if self.config['batch_randomisation'] and batch_type == 'train':
+                # Generate some random indices
+                np.random.seed(0)
+                idx = np.random.choice(self.nSamples, self.nSamples, replace=False)
+                # Shuffle the train and validation set with the indicies
+                self.images = self.images[idx, :, :]
+                self.labels = self.labels[idx, :]
+            self.images_original = self.images.copy()
+            self.mean_image = self.images.mean(axis=0)
+            # Finally perform processing on all of the images as a whole
+            self.all_images_pre_process()
+            self.nSamples = self.images.shape[0]
+
+            if hashing_enabled:
+                print 'SAVING HASHFILE FOR FUTURE USE', batch_type
+                checksum = self.images.shape[0] + self.labels.shape[0]
+                np.savez(hash_file,images=self.images,
+                                   labels=self.labels,
+                                   min=self.min,
+                                   max=self.max,
+                                   mean=self.mean,
+                                   absmax=self.absmax,
+                                   mean_image=self.mean_image,
+                                   std=self.std,
+                                   ranges=self.ranges,
+                                   subject_idx=self.subject_idx,
+                                   checksum=checksum)
+
+
+
     def image_pre_process(self,image):
         # unpack required information
         lc,rc,tc,bc = self.image_region_config['crop']
@@ -27,58 +187,82 @@ class Batch:
         new_image = image[u:d,l:r]
 
         # Resize the image
-        new_image = scipy.misc.imresize(new_image,[int(new_image.shape[0]*scale),int(new_image.shape[1]*scale)])
+        new_image = scipy.misc.imresize(new_image,[int(new_image.shape[0]*scale),int(new_image.shape[1]*scale)],interp='nearest')
 
         return new_image
 
-    def inverse_process(self,input,base=0,idx=None):
+    def get_subject_id(self,s):
+        if hasattr(s, '__iter__'):
+            res = []
+            for i in s:
+                res.append(self.get_subject_id(i))
+            return res
+        else:
+            for j in xrange(len(self.subject_idx) - 1):
+                if s >= self.subject_idx[j][1] and s <= self.subject_idx[j + 1][1]:
+                    return self.subject_idx[j][0]
+            return self.subject_idx[-1][0]
 
+    def get_local_subject_id(self,s):
+        if type(s) == type([]):
+            res = []
+            for i in s:
+                res.append(self.get_local_subject_id(i))
+            return res
+        else:
+            subs = self.config[self.batch_type + '_subjects']
+            for i in xrange(len(subs)):
+                if subs[i] == s:
+                    return i
+
+    def inverse_process(self,input,base=0,idx=None):
+        assert base == 0 or idx == None, 'inverse_process: Either base or idx should be left as default parameters.'
+
+        if self.debug:
+            print 'DEBUG:' + self.batch_type + ':',
+            print 'Applying inverse ', self.config['normalisation_type'], 'to subjects', self.config[self.batch_type + '_subjects']
         N, xN, yN = input.shape
         output = input.copy()
-        if self.config['scaling'] == 'maxdiv':
-            output = self.normalise_range(output,inverse=True)
-        elif self.config['scaling'] == '[-1,1]':
+        if self.options['range']:
             output = self.scale_within_range(output, inverse=True)
         # elif self.config['scaling'] == '[0,1]':
         #         output = output*self.max + self.min
 
-        if self.config['normalisation_type'] == 'pixel':
-            output = output*self.std + self.mean
-        elif self.config['normalisation_type'] == 'face':
+        if self.options['face'] and self.options['per_subject']:
+
+            assert self.std.shape == output.shape[1:], 'Error in face normalisation'
+            assert self.mean.shape == output.shape[1:], 'Error in face normalisation'
+
             for i in xrange(N):
-                for j in xrange(xN):
-                    for k in xrange(yN):
-                        output[i,j,k] = (output[i,j,k]*self.std[j,k]) + self.mean[j,k]
-        elif self.config['normalisation_type'] == 'contrast':
+                output[i,:,:] = (output[i,:,:]*self.std) + self.mean
+        elif self.options['face'] and not self.options['per_subject']:
+            if idx != None:
+                indicies = self.get_local_subject_id(self.get_subject_id(idx))
+            else:
+                indicies = []
+                for i in xrange(base,output.shape[0]+base):
+                    indicies.append(self.get_local_subject_id(self.get_subject_id(i)))
+
+            # assert False, str(indicies)
+            for i in tqdm(xrange(output.shape[0])):
+                output[i, :, :] = output[i, :, :] * self.std[indicies[i]] + self.mean[indicies[i]]
+
+        elif self.options['contrast']:
 
             if idx != None:
                 mean = self.mean.copy()[idx]
                 std = self.std.copy()[idx]
             else:
-                mean = self.mean
-                std = self.std
+                mean = self.mean[base:]
+                std = self.std[base:]
 
+            # print type(output), type(std), type(mean)
+            # print base,output.shape
             for i in tqdm(xrange(N)):
-                output[i,:,:] *= std[i+base]
-                output[i,:,:] += mean[i+base]
+                output[i,:,:] *= std[i]
+                output[i,:,:] += mean[i]
 
         return output
-
-    def mean_squared(self,x,y):
-        return np.sqrt((np.power(x-y,2)).mean())
-
-    def true_loss(self,input,output,base=0):
-        assert input.shape == output.shape
-        true_input = self.inverse_process(input,base)
-        true_output = self.inverse_process(output,base)
-        N, x, y = input.shape
-        losses = np.zeros(N)
-        for i in xrange(N):
-            losses[i] = self.mean_squared(true_input[i,:,:],true_output[i,:,:])
-        return losses
-
-    def zeros_to_ones(self,array):
-        return array + (array == 0.0).astype(array.dtype)
 
     def normalise_range(self, x,inverse=False):
         assert len(x.shape) == 3
@@ -116,15 +300,10 @@ class Batch:
         return y
 
     def normalise(self,images):
-        option = self.config['normalisation_type']
-        print option
+
         N, xN, yN = images.shape
 
-        if option == 'pixel':
-            self.mean =  images.mean()
-            self.std = images.std()
-            images =  (images - self.mean)/self.std
-        elif option == 'face':
+        if self.options['face'] and not self.options['per_subject']:
             mean_face = images.mean(axis=0)
             stdd_face = self.zeros_to_ones(images.std(axis=0))
 
@@ -132,16 +311,33 @@ class Batch:
             self.std = stdd_face
 
             for i in tqdm(xrange(N)):
-                for j in xrange(xN):
-                    for k in xrange(yN):
-                        images[i,j,k] = (images[i,j,k] - self.mean[j,k])/self.std[j,k]
-        elif option == 'contrast':
+                images[i,:,:] = (images[i,:,:] - self.mean)/self.std
+        elif self.options['face'] and self.options['per_subject']:
+            self.mean = []
+            self.std = []
+            subs = self.subject_idx
+            for j in xrange(len(self.subject_idx)):
+                if j < len(self.subject_idx) - 1:
+                    left = subs[j][1]; right = subs[j+1][1]
+                else:
+                    left = subs[j][1]; right = self.images.shape[0]
+                subject_images = self.images[left:right]
+                m = subject_images.mean(axis=0); self.mean.append(m)
+                s = self.zeros_to_ones(subject_images.std(axis=0));  self.std.append(s)
+                if self.debug:
+                    print '(left,right) = (',left,',',right,')'
+                    print 'subject image shape is ', subject_images.shape
+                for i in tqdm(xrange(subject_images.shape[0])):
+                    self.images[left:right][i, :, :] = (subject_images[i, :, :] - m) / s
+            self.mean = np.array(self.mean)
+            self.std = np.array(self.std)
+        elif self.options['contrast']:
             self.mean = np.ones(N)
             self.std  = np.ones(N)
+            print self.mean
+            print self.std
             for i in tqdm(xrange(N)):
                 self.mean[i] = images[i,:,:].mean()
-                # if np.abs(self.std[i]) < 0.000001:
-                #     self.mean[i] = 0.0
                 self.std[i] = images[i,:,:].std()
                 if np.abs(self.std[i]) == 0.0:
                     self.std[i] = 1.0
@@ -152,16 +348,8 @@ class Batch:
                 images[i,:,:] -= self.mean[i]
                 images[i,:,:] /= self.std[i]
 
-
-        print 'Applying scaling: ', self.config['scaling']
-        if self.config['scaling'] == 'maxdiv':
-            images = self.normalise_range(images)
-        elif self.config['scaling'] == '[-1,1]':
+        if self.options['range']:
             images = self.scale_within_range(images)
-        # elif self.config['scaling'] == '[0,1]':
-        #     self.min = images[:, :, :].min()
-        #     self.max = images[:, :, :].max()
-        #     images = (images - self.min)/self.max
 
         return images
 
@@ -179,6 +367,26 @@ class Batch:
 
             self.labels = cropped_all_labels
 
+
+        self.images = self.images/self.images.max()
+        self.images = self.normalise(self.images)
+        # Remove the empty labels
+        good_sample_criteria = 0.0
+        if 'good_sample_criteria' in self.config:
+            good_sample_criteria = self.config['good_sample_criteria']
+        if self.config['remove_empty_labels'] and self.batch_type == 'train':
+            good_samples = []
+            for i in xrange(self.images.shape[0]):
+                #good_sample_criteria normally = 0 unless overwrriten in config
+                if self.labels[i,:].sum() > good_sample_criteria:
+                    good_samples.append(i)
+
+            self.images = self.images[good_samples,:,:]
+            self.labels = self.labels[good_samples,:]
+
+            self.N = self.images.shape[0]
+            assert self.images.shape[0] == self.labels.shape[0]
+
         # Apply threshold
         lx,ly = self.labels.shape
         for i in xrange(lx):
@@ -188,22 +396,6 @@ class Batch:
                 else:
                     self.labels[i,j] = 0.0
 
-        self.images = self.images/self.images.max()
-        self.original_images = self.images.copy()
-        self.images = self.normalise(self.images)
-        print self.images.shape
-        # Remove the empty labels
-        if self.config['remove_empty_labels'] and self.batch_type == 'train':
-            good_samples = []
-            for i in xrange(self.images.shape[0]):
-                if self.labels[i,:].sum() > 0.0:
-                    good_samples.append(i)
-
-            self.images = self.images[good_samples,:,:]
-            self.labels = self.labels[good_samples,:]
-
-            self.N = self.images.shape[0]
-            assert self.images.shape[0] == self.labels.shape[0]
         print self.images.shape
 
 
@@ -235,172 +427,32 @@ class Batch:
 
             return self.images[idx,:,:],self.labels[idx,:]
 
-
-    def __init__(self,
-                 config,
-                 batch_type):
-
-        self.batch_counter = 0
-        # copy ensures accurate hashing later on
-        self.config = config
-        self.batch_type = batch_type
-        subjects = config[batch_type + '_subjects']
-        self.ranges = None
-        self.min = None
-        self.max = None
-        self.mean = None
-        self.std = None
-        self.absmax = None
-        self.mean_image = None
-
-        print 'Creating',batch_type,'batch.'
-        print 'Loading labels and images for subjects:',subjects
-        subjects_set = [(i, np.s_[:]) for i in sorted(set(subjects))]
-        self.labels, _ = data_array.IndicesCollection(subjects_set).getitem(disfa.disfa['AUall'])
-
-        # Save original label ordering
-        self.raw_labels = self.labels.copy()
-
-        self.image_region_config = self.config[self.config['image_region']]
-
-        if 'normalisation' in config:
-            if config['normalisation'] == 'none_[0,1]':
-                config['normalisation_type'] = 'none'
-                config['scaling'] = 'none'
-
-            elif config['normalisation'] == 'none_[-1,1]':
-                config['normalisation_type'] = 'none'
-                config['scaling'] = '[-1,1]'
-
-            elif config['normalisation'] == 'face_[-inf,inf]':
-                config['normalisation_type'] = 'face'
-                config['scaling'] = 'none'
-
-            elif config['normalisation'] == 'face_[-1,1]':
-                config['normalisation_type'] = 'face'
-                config['scaling'] = '[-1,1]'
-
-            elif config['normalisation'] == 'contrast_[-inf,inf]':
-                config['normalisation_type'] = 'contrast'
-                config['scaling'] = 'none'
-
-            elif config['normalisation'] == 'contrast_[-1,1]':
-                config['normalisation_type'] = 'contrast'
-                config['scaling'] = '[-1,1]'
-
-        def hash_config(conf):
-            _conf = copy(conf)
-            ignore_for_hashing = ['path','image_shape','label_size','results']
-            for name in ignore_for_hashing:
-                if name in _conf:
-                    del _conf[name]
-            return hash_anything(_conf)
-
-        hashing_enabled = True
-
-        if hashing_enabled:
-
-            h1 = hash_config(self.config)
-            h2 = hash_config(subjects)
-            h3 = 0
-
-            with open('disfa.py','r') as file:
-                h3 = hash(file.read())
-
-            h = h1 ^ h2 ^ h3
-            hash_folder = join(join(config['path'],'..'),'hashed_datasets')
-            hash_file = join(hash_folder,batch_type+'_'+str(h))
-
-            if not os.path.isdir(hash_folder):
-                os.mkdir(hash_folder)
-
-            print hash_file+'.npz'
-
-        if hashing_enabled and os.path.isfile(hash_file+'.npz'):
-            try:
-                d = np.load(hash_file+'.npz')
-            except IOError:
-                time.sleep(60)
-                d = np.load(hash_file + '.npz')
-
-            self.images = d['images']
-            self.nSamples = self.images.shape[0]
-            self.labels = d['labels']
-            self.min = d['min']
-            self.max = d['max']
-            self.absmax = d['absmax']
-            self.mean = d['mean']
-            self.std = d['std']
-            self.ranges = d['ranges']
-            self.mean_image = d['mean_image']
-            assert (self.images.sum() + self.labels.sum()) == d['checksum']
-            print 'LOADED FROM HASHED DATASET FILE', batch_type
-        else:
-            for i,s in enumerate(subjects):
-                images = disfa.disfa['images'][s][:].astype(np.float32)
-
-                # Discover dimensions of images
-                if i == 0:
-                    number_of_frames_per_subject = images.shape[0]
-                    # Process one image to see the output
-                    x,y = self.image_pre_process(images[0,:,:]).shape
-
-                    # Set up variable for image data
-                    self.images = np.empty((0,x,y))
-
-                # Allocate memory for downsized images
-                r_images = np.zeros((images.shape[0],x,y))
-
-                # Process each image
-                for i in tqdm(xrange(images.shape[0])):
-                    r_images[i,:,:] = self.image_pre_process(images[i,:,:])
-
-                # r_images = self.subject_pre_process(r_images)
-
-                # append down_sized images to all_images
-                self.images = np.append(self.images,r_images,axis=0)
-
-                del r_images
-            self.nSamples = self.images.shape[0]
-            if self.config['batch_randomisation']:
-                if batch_type == 'train':
-                    # Generate some random indices
-                    np.random.seed(0)
-                    idx = np.random.choice(self.nSamples, self.nSamples, replace=False)
-                    # Shuffle the train and validation set with the indicies
-                    self.images = self.images[idx, :, :]
-                    self.labels = self.labels[idx, :]
-
-            self.mean_image = self.images.mean(axis=0)
-            # Finally perform processing on all of the images as a whole
-            self.all_images_pre_process()
-
-            self.nSamples = self.images.shape[0]
-
-            if hashing_enabled:
-                print 'SAVING HASHFILE FOR FUTURE USE', batch_type
-                checksum = self.images.sum() + self.labels.sum()
-                np.savez(hash_file,images=self.images,
-                                   labels=self.labels,
-                                   min=self.min,
-                                   max=self.max,
-                                   mean=self.mean,
-                                   absmax=self.absmax,
-                                   mean_image=self.mean_image,
-                                   std=self.std,
-                                   ranges=self.ranges,
-                                   checksum=checksum)
+    def mean_squared(self, x, y):
+        return np.sqrt((np.power(x - y, 2)).mean())
 
 
+    def true_loss(self, input, output, base=0):
+        assert input.shape == output.shape
+        true_input = self.inverse_process(input, base)
+        true_output = self.inverse_process(output, base)
+        N, x, y = input.shape
+        losses = np.zeros(N)
+        for i in xrange(N):
+            losses[i] = self.mean_squared(true_input[i, :, :], true_output[i, :, :])
+        return losses
 
+
+    def zeros_to_ones(self, array):
+        return array + (array == 0.0).astype(array.dtype)
+
+
+from copy import copy
 
 class Disfa:
-    def __init__(self,config):
-
-
-        # self.test       = Batch(config,'test')
-        self.train      = Batch(config,'train')
-        self.validation = Batch(config,'validation')
+    def __init__(self,config,debug=False):
+        # self.test       = Batch(copy(config),'test',debug=debug)
+        self.train      = Batch(copy(config),'train',debug=debug)
+        self.validation = Batch(copy(config),'validation',debug=debug)
 
         self.config = config
         self.config['image_shape'] = [self.train.images.shape[1],self.train.images.shape[2]]

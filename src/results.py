@@ -10,7 +10,8 @@ from IPython.core.display import display
 
 sys.path.append('../src')
 import yaml
-
+import helper
+helper = reload(helper)
 
 class DictTable(dict):
     # Overridden dict class which takes a dict in the form {'a': 2, 'b': 3},
@@ -55,6 +56,9 @@ def prefix(i, zeros):
 
 class Results(object):
     def __init__(self, date, experiment_number,local=False,experiment_group=''):
+
+        self.date = date
+        self.id = experiment_number
 
         if socket.gethostname() == 'ux305':
             if local:
@@ -102,16 +106,6 @@ class Results(object):
         self.colors = matplotlib.cm.nipy_spectral(np.linspace(0,1,self.train_auac_axis.shape[1]))
 
         self.final_model = np.load(join(ssv_path, 'final_model_analysis.npz'))
-
-        plt.figure()
-        plt.imshow(self.final_model['i_big'][0,0])
-        plt.colorbar()
-        plt.show()
-
-        plt.figure()
-        plt.imshow(self.final_model['i_big'][1, 0])
-        plt.colorbar()
-        plt.show()
 
         f = join(ssv_path, 'early_model_analysis.npz')
         if isfile(f):
@@ -283,6 +277,16 @@ class Results(object):
             rocs.append(auac_axis[0, i, 3])
         display(ListTable(rocs))
 
+    def report_losses(self):
+        lines = []
+        names = ['Classifer:\nMean Squared Loss', 'Classifer:\nCross Entropy Loss', 'Autoencoder:\nMean Squared Loss']
+        lines.append((self.x_axis,(self.lmsq_axis[0, :],self.lmsq_axis[1, :], self.alpha_axis)))
+        lines.append((self.x_axis, (self.cent_axis[0, :], self.cent_axis[1, :], self.alpha_axis)))
+        lines.append((self.x_axis, (self.auto_axis[0, :], self.auto_axis[1, :], self.alpha_axis)))
+        fname = '../graphs/losses_' + self.date + '_' + prefix(self.id,3) + '.pdf'
+        helper.plot_lines(lines=lines,names=names,ylim=(-0.1,1.1),save=fname,labels=('validation loss', 'train loss', r'$\alpha$ coefficient'))
+
+
 
     def lmsq(self):
         plt.figure()
@@ -318,8 +322,9 @@ class Results(object):
         CUT = 0
         plt.plot(self.x_axis[CUT:], self.cent_axis[0, CUT:], label='validation')
         plt.plot(self.x_axis[CUT:], self.cent_axis[1, CUT:], label='train')
-        if (self.cent_axis < 1.0).sum() > 2:
-            plt.ylim(0,1)
+        # if (self.cent_axis < 1.0).sum() > 2:
+        #     plt.ylim(0,1)
+        # plt.ylim(0,5)
         plt.legend()
         # plt.ylim(-1.0,cent_axis.max()+1.0)
         plt.show()

@@ -4,7 +4,7 @@ reload(tf)
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
-from src.pyexp import PyExp
+from pyexp import PyExp
 import sys
 from os.path import join
 from model import cnn
@@ -17,7 +17,25 @@ data = disfa.Disfa(config['data'])
 config.update('data',data.config,save=False)
 
 # Load model
-x,y_,train_step,loss, y_conv,output_dim,keep_prob,lmsq_loss,cross_entropy,accuracy = cnn(config)
+model = cnn(config)
+
+x = model['x']
+y_ = model['y']
+train_step = model['train_step']
+loss = model['loss']
+y_conv = model['y_conv']
+output_dim = model['output_dim']
+keep_prob = model['keep_prob']
+lmsq_loss = model['classifer_lmsq_loss']
+cross_entropy = model['cross_entropy']
+accuracy = model['accuracy']
+alpha = model['alpha']
+auto_loss = model['auto_loss']
+mask = model['mask']
+N = config['iterations']
+batch_size = config['batch_size']
+validation_batch_size = config['validation_batch_size']
+dropout_rate = config['dropout_rate']
 
 def data_statistics(d):
     # Train statistics
@@ -29,7 +47,7 @@ def data_statistics(d):
             au_stats[j,int(d.raw_labels[i,j])] += 1
 
     for i in xrange(ly):
-        print i,au_stats[i,:]
+        print i,au_stats[i,:],float(au_stats[i,1:].sum())/float(au_stats[i,:1])
 
 print 'train'
 print '########################'
@@ -37,10 +55,7 @@ data_statistics(data.train)
 print 'validation'
 print '########################'
 data_statistics(data.validation)
-print 'test'
-print '########################'
-data_statistics(data.test)
-
+exit()
 
 saver = tf.train.Saver()
 

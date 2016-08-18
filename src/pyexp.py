@@ -28,6 +28,9 @@ class PyExp:
             with open(config_file, 'r') as stream:
                 try:
                     self.config = yaml.load(stream,yaml.RoundTripLoader)
+                    if config_overwrite != None:
+                        print 'OVERWRITING'
+                        self.apply_overwrite(config_overwrite)
                 except yaml.YAMLError as exc:
                     print exc
         if make_new:
@@ -36,6 +39,7 @@ class PyExp:
             """
             self.experiment_group = self.config['experiment_group']
             ts = strftime("%Y_%m_%d", gmtime())
+            # ts = '2016_08_10' # Use this to fix the date
             if not os.path.isdir(path):
                 os.mkdir(path)
 
@@ -62,9 +66,6 @@ class PyExp:
             label = subprocess.check_output(["git", "describe","--always"]).rstrip()
             self.config['global']['commit'] = label
 
-            if config_overwrite != None:
-                print 'OVERWRITING'
-                self.apply_overwrite(config_overwrite)
             self.save_config()
 
             """
@@ -89,7 +90,6 @@ class PyExp:
         return self.experiment_group + '_' + res
 
     def apply_overwrite(self,config_overwrite):
-        pass
         print config_overwrite
         for key in config_overwrite:
             nested_dict_write(key,self.config,config_overwrite[key])

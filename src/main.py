@@ -38,6 +38,28 @@ def alpha_sigmoid(_x,_N,a=20,b=0.5):
     arg = x/N - b
     return 1.0/(1.0 + np.exp(a*arg))
 
+def alpha_sin(_x,_N,n=5):
+    x = float(_x)
+    N = float(_N)
+    w = 2 * np.pi * n / float(N)
+    return 1.0 - np.cos(w * x) ** 2
+
+def alpha_flip(_x,_N,p=5):
+    x = float(_x)
+    N = float(_N)
+    if hasattr(x,'__iter__'):
+        y = x.copy()
+        for i in xrange(x.shape[0]):
+            y[i] = f(x[i],p,N)
+        return y
+    else:
+        if x < np.abs(p):
+            if p > 0:
+                return 1.0
+            else:
+                return 0.0
+        else:
+            return f(x-np.abs(p),-p,N)
 
 def conv_vis(i, sess, hconv, w, path, x, batch_x, keep_prob):
     # to visualize 1st conv layer Weights
@@ -234,6 +256,8 @@ def run(data, config):
         alpha_function = lambda x, N: alpha_poly(x,N,config['autoencoder']['poly_order'])
     elif config['autoencoder']['function'] == 'sigmoid':
         alpha_function = lambda x, N: alpha_sigmoid(x,N)
+    elif config['autoencoder']['function'] == 'sin':
+        alpha_function = lambda x, N: alpha_sin(x,N,n=config['autoencoder']['frequency'])
     else:
         print 'INCORRECT ALPHA FUNCTION'
         exit()
@@ -283,8 +307,8 @@ def run(data, config):
             train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: dropout_rate, alpha : alpha_function(i,N), mask :  train_mask_batch}
             _train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: 1.0, alpha : alpha_function(i,N) , mask :  train_mask_batch}
         else:
-            train = {x: batch_x, y_: batch_y, keep_prob: dropout_rate, alpha : alpha_function(i,N) }
-            _train = {x: batch_x, y_: batch_y, keep_prob: 1.0, alpha : alpha_function(i,N) }
+            train = {x: batch_x, y_: batch_y, keep_prob: dropout_rate, alpha : alpha_function(i,N) , mask :  train_mask_batch}
+            _train = {x: batch_x, y_: batch_y, keep_prob: 1.0, alpha : alpha_function(i,N) , mask :  train_mask_batch}
 
         if (i + 1*0) % test_period == 0:
             j = i / test_period
@@ -294,15 +318,15 @@ def run(data, config):
             # if 'h_conv1' in locals():
             #     conv_vis(i,sess,h_conv1,w1,path,x,batch_x,keep_prob)
 
-            run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-            run_metadata = tf.RunMetadata()
+            # run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+            # run_metadata = tf.RunMetadata()
 
-            summary = sess.run(merged,
-                               feed_dict=_train,
-                               options=run_options,
-                               run_metadata=run_metadata)
-            train_writer.add_run_metadata(run_metadata, 'step%d' % i)
-            train_writer.add_summary(summary, i)
+            # summary = sess.run(merged,
+            #                    feed_dict=_train,
+            #                    options=run_options,
+            #                    run_metadata=run_metadata)
+            # train_writer.add_run_metadata(run_metadata, 'step%d' % i)
+            # train_writer.add_summary(summary, i)
 
             """
             Get stuff for graphs
@@ -334,7 +358,7 @@ def run(data, config):
                 accu_axis[0, j] += _accu/float(validation_batch_size/batch_size)
                 auto_axis[0, j] += _auto/float(validation_batch_size/batch_size)
                 validation_y_out[batch_size * k:batch_size * (k + 1), :] = _validation_y_out
-
+                # TENSORBOARD
                 # summary = sess.run(merged,
                 #                    feed_dict=_validation,
                 #                    options=run_options,
@@ -387,8 +411,9 @@ def run(data, config):
 
         else:  # Record a summary
             sess.run(train_step, feed_dict=train)
-            summary = sess.run(merged, feed_dict=_train)
-            train_writer.add_summary(summary, i)
+            # TENSORBOARD
+            # summary = sess.run(merged, feed_dict=_train)
+            # train_writer.add_summary(summary, i)
 
     # print 'Test set analysis'
     #
@@ -464,6 +489,35 @@ def main(path,config_file,config_overwrite=None):
                    path=path,
                    config_overwrite=config_overwrite)
 
+    if 'normalisation' in config['data']:
+        if config['data']['normalisation'] == 'manual':
+            pass
+        elif config['data']['normalisation'] == 'contrast':
+            config['data']['normalisation_type'] = 'contrast'
+            config['data']['scaling'] = 'none'
+
+        elif config['data']['normalisation'] == 'contrast_with_[-1,1]':
+            config['data']['normalisation_type'] = 'contrast'
+            config['data']['scaling'] = '[-1,1]'
+
+        elif config['data']['normalisation'] == 'face':
+            config['data']['normalisation_type'] = 'face'
+            config['data']['scaling'] = 'none'
+
+        elif config['data']['normalisation'] == 'face_ps':
+            config['data']['normalisation_type'] = 'face_ps'
+            config['data']['scaling'] = 'none'
+
+        elif config['data']['normalisation'] == 'none_[-1,1]':
+            config['data']['normalisation_type'] = 'none'
+            config['data']['scaling'] = '[-1,1]'
+
+        elif config['data']['normalisation'] == 'none_[0,1]':
+            config['data']['normalisation_type'] = 'none'
+            config['data']['scaling'] = 'none'
+
+    config.save_config()
+
     if config['data']['dataset'] == 'disfa':
         import disfa
 
@@ -516,6 +570,8 @@ def run_experiment(args,config_overwrite=None):
     tf.reset_default_graph()
     test_set_analysis.main((sys.argv[0], data_path, 'early', args.device), data=data, overwrite_dict=config_overwrite)
 
+    del data
+
 
 if __name__ == "__main__":
 
@@ -553,14 +609,49 @@ if __name__ == "__main__":
                                        'face_[-inf,inf]',
                                        'face_[-1,1]',
                                        'none_[0,1]'][::-1]
-    # print args.batch
-    # o['autoencoder:activation'] =  [args.batch]
+        if args.config_file == 'config/both.yaml':
+            # o['autoencoder:decoder'] = ['auto_cnn_2_cnc',
+            #                             'auto_cnn_2_mpc',
+            #                             'auto_cnn_2_5']
+            o['experiment_group'] = ['softmax']
+            o['copy'] = [1,2,3,4]
+            o['global:final_activation'] = ['sigmoid']
+            # o['global:binary_softmax'] = [True,False]
+        if args.config_file == 'config/l2.yaml':
+            o['global:l2_coeff'] = [0.0,0.1]
+        if args.config_file == 'config/dp.yaml':
+            o['global:dropout_rate'] = [0.6,0.7,0.8,0.9,1.0]
+        # if args.config_file == 'config/both.yaml':
+        #     o['data:normalisation'] = ['contrast',
+        #                                'contrast_with_[-1,1]',
+        #                                'face',
+        #                                'face_ps',
+        #                                'none_[-1,1]',
+        #                                'none_[0,1]']
+        #     o['autoencoder:activation'] = ['sigmoid']
     overwrite_dicts = get_all_experiments(o)
     for i,x in enumerate(overwrite_dicts):
         print i+1,x
-    # raw_input('any key plz')
+    import yaml
+    with open(args.config_file, 'r') as stream:
+        try:
+            conf = yaml.load(stream)
+            del conf['weights']
+            for key_1 in conf:
+                print key_1,':',
+                if type(conf[key_1]) == type({}):
+                    for key_2 in conf[key_1]:
+                        print '\n\t',key_2,'=', conf[key_1][key_2],
+                    print
+                else:
+                    print ':', conf[key_1]
+        except yaml.YAMLError as exc:
+            print exc
+    raw_input('any key plz')
     if o == None:
         run_experiment(args)
+    elif type(args.batch) == type(42):
+        run_experiment(args,overwrite_dicts[args.batch])
     else:
         for exp in overwrite_dicts:
             run_experiment(args, config_overwrite=exp)

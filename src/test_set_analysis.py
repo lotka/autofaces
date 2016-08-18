@@ -83,7 +83,7 @@ def test_model(name,data,config,path):
     train_images = (data.train.inverse_process(a),data.train.inverse_process(b))
     # train_images = (a,b)
 
-    print 'VALIDATION: Getting autoencoder loss..'
+    print 'VALIDATION: Feeding validation set through network..'
     true_losses = np.array([])
     for i in tqdm(xrange(nBatches)):
         l = batch_size*i
@@ -91,10 +91,10 @@ def test_model(name,data,config,path):
         current_batch = data.validation.images[l:r]
 
         y_out[l:r] = sess.run(y_conv, feed_dict={x: current_batch, keep_prob : 1.0, alpha : 0.0, mask : mask_batch})
-        autoencoder_loss += sess.run(auto_loss, feed_dict={x: current_batch, mask : mask_batch})/float(nBatches)
+        autoencoder_loss += sess.run(auto_loss, feed_dict={x: current_batch, mask : mask_batch, keep_prob: 1.0})/float(nBatches)
         # calculate true loss
         _in  = data.validation.images[l:r,:,:]
-        _out = sess.run(y_image, feed_dict={x: current_batch, mask : mask_batch})[:,:,:,0]
+        _out = sess.run(y_image, feed_dict={x: current_batch, mask : mask_batch, keep_prob: 1.0})[:,:,:,0]
         true_losses = np.append(true_losses,data.validation.true_loss(_in,_out,base=l))
 
 
@@ -115,28 +115,29 @@ def test_model(name,data,config,path):
     i_big   = data.validation.images[idx_big,   :,:]
     i_small = data.validation.images[idx_small, :, :]
     i_mean  = data.validation.images[idx_mean,  :, :]
-    i_big_original   = data.validation.images_original[idx_big,   :,:]
-    i_small_original = data.validation.images_original[idx_small, :, :]
-    i_mean_original  = data.validation.images_original[idx_mean,  :, :]
+    if hasattr(data.validation, 'images_original'):
+        i_big_original   = data.validation.images_original[idx_big,   :,:]
+        i_small_original = data.validation.images_original[idx_small, :, :]
+        i_mean_original  = data.validation.images_original[idx_mean,  :, :]
+    else:
+        # Just so we don't always have to have these images
+        i_big_original   = np.zeros(i_mean.shape)
+        i_small_original = np.zeros(i_mean.shape)
+        i_mean_original  = np.zeros(i_mean.shape)
 
     o_big   = sess.run(model['y_image'], feed_dict={x: i_big,   keep_prob: 1.0, alpha: 1.0, mask : mask_batch})[:, :, :, 0]
     o_small = sess.run(model['y_image'], feed_dict={x: i_small, keep_prob: 1.0, alpha: 1.0, mask : mask_batch})[:, :, :, 0]
     o_mean  = sess.run(model['y_image'], feed_dict={x: i_mean,  keep_prob: 1.0, alpha: 1.0, mask : mask_batch})[:, :, :, 0]
 
-    i_big       = (i_big_original, i_big.copy(),       data.validation.inverse_process(i_big.copy()))
-    i_small     = (i_small_original, i_small.copy(),     data.validation.inverse_process(i_small.copy()))
-    i_mean      = (i_mean_original, i_mean.copy(),      data.validation.inverse_process(i_mean.copy()))
+    i_big       = (i_big_original, i_big.copy(),       data.validation.inverse_process(i_big.copy(),idx=idx_big))
+    i_small     = (i_small_original, i_small.copy(),     data.validation.inverse_process(i_small.copy(),idx=idx_small))
+    i_mean      = (i_mean_original, i_mean.copy(),      data.validation.inverse_process(i_mean.copy(),idx=idx_mean))
     label_big   = data.validation.labels[idx_big,:]
     label_small = data.validation.labels[idx_small,:]
     label_mean  = data.validation.labels[idx_mean,:]
-    o_big       = (o_big.copy()     ,  data.validation.inverse_process(o_big.copy()))
-    o_small     = (o_small.copy()   ,  data.validation.inverse_process(o_small.copy()))
-    o_mean      = (o_mean.copy()    ,  data.validation.inverse_process(o_mean.copy()))
-
-    plt.figure()
-    plt.imshow(i_big[0][0])
-    plt.colorbar()
-    plt.show()
+    o_big       = (o_big.copy()     ,  data.validation.inverse_process(o_big.copy(),idx=idx_big))
+    o_small     = (o_small.copy()   ,  data.validation.inverse_process(o_small.copy(),idx=idx_small))
+    o_mean      = (o_mean.copy()    ,  data.validation.inverse_process(o_mean.copy(),idx=idx_mean))
 
     true_autoencoder_loss = true_losses.mean()
 
@@ -176,6 +177,11 @@ def test_model(name,data,config,path):
              o_big=o_big,
              o_small=o_small,
              o_mean=o_mean,
+             idx_small=idx_small,
+             idx_big=idx_big,
+             idx_mean=idx_mean,
+             valid_subject_idx=data.validation.subject_idx,
+             train_subject_idx=data.train.subject_idx,
              auto_images=(train_images,validation_images))
 
     plt.figure()

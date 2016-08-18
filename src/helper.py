@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-def plot_images(images,names=None,cmap='Spectral',interpolation='none',title=None,inverse=False,range=None):
-
+def plot_images(images,names=None,cmap='Spectral',interpolation='none',title=None,range=None,save=None):
+    #wtf
     if names == None:
         names = ['image_'+str(i) for i in xrange(len(images))]
 
@@ -28,8 +28,67 @@ def plot_images(images,names=None,cmap='Spectral',interpolation='none',title=Non
         else:
             plt.imshow(images[i], interpolation='none', cmap=cmap,vmin=range[0],vmax=range[1])
         plt.title(names[i])
-        plt.colorbar()
+        if images[i].sum() == 0:
+            ticks=None
+        else:
+            ticks = [images[i].min(), 0, images[i].max()]
+        if range != None:
+            ticks = [range[0],0,range[1]]
+        cbar = plt.colorbar(ticks=ticks,orientation='horizontal')
+        ticks = [round(images[i].min(), 1), 0, round(images[i].max(), 1)]
+        if ticks[0] == ticks[-1]:
+            ticks = [images[i].min(), 0, images[i].max()]
+
+
+        for i,t in enumerate(ticks):
+            ticks[i] = round(t,5)
+
+        cbar.ax.set_xticklabels(ticks, rotation=90)
+    if save != None:
+        # plt.tight_layout()
+        print 'save to', save
+        plt.savefig(save,bbox_inches='tight', pad_inches=0.1)
+    else:
+        print 'not saving nothing for you mate'
     plt.show()
+
+def plot_lines(lines,names=None,labels=None,title=None,ylim=None,save=None):
+
+    if names == None:
+        names = [str(i) for i in xrange(len(lines))]
+
+    fig_size = matplotlib.rcParams['figure.figsize']
+    matplotlib.rcParams['figure.figsize'] = (20.0, 6.0)
+    matplotlib.rcParams['savefig.dpi'] = 400
+    matplotlib.rcParams['font.size'] = 20
+    matplotlib.rcParams['figure.dpi'] = 400
+    matplotlib.rcParams['text.usetex'] = False
+    # matplotlib.rcParams['font.family'] ='serif'
+
+    fig = plt.figure()
+    if title != None:
+        fig.suptitle(title,fontsize=30)
+
+    for i,line in enumerate(lines):
+        x,ys = line
+        plt.subplot(1,len(lines),i+1)
+        plt.title(names[i])
+        for i,y in enumerate(ys):
+            if labels == None:
+                plt.plot(x,y,label=None)
+            else:
+                plt.plot(x, y, label=labels[i])
+            if ylim != None:
+                plt.ylim(ylim[0],ylim[1])
+    horz = -0.8
+    vert = -.3
+    lgd = plt.legend(loc='lower center', bbox_to_anchor=(horz, vert), ncol=len(lines))
+
+    if save != None:
+        # plt.tight_layout()
+        plt.savefig(save,bbox_inches='tight', pad_inches=0.1)
+    plt.show()
+    return
 
 def get_all_experiments(bounds):
     """
@@ -74,6 +133,8 @@ def is_flat_list(l):
     return True
 
 def nested_dict_read(keys,dictionary):
+    if type(keys) == type(''):
+        keys = keys.split(':')
     val = dictionary
     for key in keys:
         if type(val) == type({}):
