@@ -200,7 +200,7 @@ def main(argv,data=None,overwrite_dict=None):
         # Load yaml config file
         config = PyExp(config_file=join(path, 'config.yaml'), make_new=False,config_overwrite=overwrite_dict)
         # Load data
-        if data == None:
+        if data is None:
             data = disfa.Disfa(config['data'])
 
         config.update('data', data.config, save=False)

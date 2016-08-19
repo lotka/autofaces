@@ -479,7 +479,7 @@ def run(data, config):
 
 
 def main(path,config_file,config_overwrite=None):
-    if path == None:
+    if path is None:
         if socket.gethostname() == 'ux305':
             path = '/home/luka/Documents/autofaces/data'
         else:
@@ -559,7 +559,7 @@ def run_experiment(args,config_overwrite=None):
 
     import test_set_analysis
 
-    if args.device == None:
+    if args.device is None:
         args.device = 'gpu'
 
     data.validation.batch_counter = 0
@@ -587,7 +587,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.device == None:
+    if args.device is None:
         print 'Error. Program requires device flag to be cpu or gpu.'
         exit()
 
@@ -648,7 +648,7 @@ if __name__ == "__main__":
         except yaml.YAMLError as exc:
             print exc
     raw_input('any key plz')
-    if o == None:
+    if o is None:
         run_experiment(args)
     elif type(args.batch) == type(42):
         run_experiment(args,overwrite_dicts[args.batch])

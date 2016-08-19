@@ -18,7 +18,7 @@ class PyExp:
 
         # XOR between config and config_file
         assert config != None or config_file != None
-        assert config == None or config_file == None
+        assert config is None or config_file is None
 
         # Load config dictionary
         if config != None:

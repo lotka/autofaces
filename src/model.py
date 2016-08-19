@@ -107,7 +107,7 @@ def nn_layer(input_tensor, input_dim, output_dim, layer_name, config, act=tf.nn.
     # Adding a name scope ensures logical grouping of the layers in the graph.
     with tf.name_scope(layer_name):
         # This Variable will hold the state of the weights for the layer
-        if weights == None:
+        if weights is None:
             with tf.name_scope('weights'):
                     name = layer_name + '/weights'
                     weights = weight_variable([input_dim, output_dim], name, config)
@@ -134,7 +134,7 @@ def dcnn_layer(input_tensor, convolution_shape,output_shape, padding, layer_name
     # Adding a name scope ensures logical grouping of the layers in the graph.
     with tf.name_scope(layer_name):
         # This Variable will hold the state of the weights for the layer
-        if weights == None:
+        if weights is None:
             with tf.name_scope('weights'):
                 name = layer_name + '/weights'
                 weights = weight_variable(convolution_shape, name, config)
@@ -146,7 +146,7 @@ def dcnn_layer(input_tensor, convolution_shape,output_shape, padding, layer_name
             preactivate = conv2d_transpose(input_tensor, weights,output_shape, padding=padding,strides=strides) + biases
             tf.histogram_summary(layer_name + '/pre_activations', preactivate)
 
-        if act == None:
+        if act is None:
             act = tf.identity
 
         # Combine the feature maps if this is the last deconvolution
@@ -262,7 +262,7 @@ def cnn(config):
     use_autoencoder = config['use_autoencoder']
 
     # Switch of the autoencoder if we don't know the batch size
-    if batch_size == None:
+    if batch_size is None:
         use_autoencoder = False
 
     if type(input_dim) == type([]):

@@ -8,7 +8,7 @@ class Analysis:
     """
     def __init__(self,old_dictionary=None,tf_sess=None):
         # Juist Initialize data
-        if old_dictionary == None:
+        if old_dictionary is None:
             pass
         else:
             pass

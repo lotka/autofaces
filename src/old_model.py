@@ -244,7 +244,7 @@ def cnn(config):
     use_autoencoder = config['use_autoencoder']
 
     # Switch of the autoencoder if we don't know the batch size
-    if batch_size == None:
+    if batch_size is None:
         use_autoencoder = False
 
     if type(input_dim) == type([]):

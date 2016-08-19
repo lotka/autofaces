@@ -3,10 +3,11 @@ from collections import OrderedDict
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib import ticker
 
 def plot_images(images,names=None,cmap='Spectral',interpolation='none',title=None,range=None,save=None):
     #wtf
-    if names == None:
+    if names is None:
         names = ['image_'+str(i) for i in xrange(len(images))]
 
     fig_size = matplotlib.rcParams['figure.figsize']
@@ -23,27 +24,30 @@ def plot_images(images,names=None,cmap='Spectral',interpolation='none',title=Non
 
     for i,image in enumerate(images):
         plt.subplot(1,len(images),i+1)
-        if range == None:
-            plt.imshow(images[i],interpolation='none',cmap=cmap)
+        if range is None:
+            plt.imshow(images[i].round(5)),interpolation='none',cmap=cmap)
         else:
             plt.imshow(images[i], interpolation='none', cmap=cmap,vmin=range[0],vmax=range[1])
         plt.title(names[i])
-        if images[i].sum() == 0:
-            ticks=None
-        else:
-            ticks = [images[i].min(), 0, images[i].max()]
-        if range != None:
-            ticks = [range[0],0,range[1]]
-        cbar = plt.colorbar(ticks=ticks,orientation='horizontal')
-        ticks = [round(images[i].min(), 1), 0, round(images[i].max(), 1)]
-        if ticks[0] == ticks[-1]:
-            ticks = [images[i].min(), 0, images[i].max()]
+        cbar = plt.colorbar(orientation='horizontal')
 
+        tick_locator = ticker.MaxNLocator(nbins=4)
+        cbar.locator = tick_locator
+        cbar.update_ticks()
 
-        for i,t in enumerate(ticks):
-            ticks[i] = round(t,5)
-
-        cbar.ax.set_xticklabels(ticks, rotation=90)
+        # ticks = cbar.ax.get_xticks()
+        # cbar.ax.set_xticklabels(np.linspace(round(images[i].min(),1),round(images[i].max(),1),4), rotation=90)
+        # if images[i].sum() == 0:
+        #     ticks=None
+        # else:
+        #     ticks = [images[i].min(), 0, images[i].max()]
+        # if range != None:
+        #     ticks = [range[0],0,range[1]]
+        # ticks = [images[i].min(), 0, images[i].max()]
+        # for i,t in enumerate(ticks):
+        #     ticks[i] = round(t,10)
+        # cbar = plt.colorbar(ticks=ticks,orientation='horizontal')
+        # cbar.ax.set_xticklabels(ticks, rotation=90)
     if save != None:
         # plt.tight_layout()
         print 'save to', save
@@ -54,7 +58,7 @@ def plot_images(images,names=None,cmap='Spectral',interpolation='none',title=Non
 
 def plot_lines(lines,names=None,labels=None,title=None,ylim=None,save=None):
 
-    if names == None:
+    if names is None:
         names = [str(i) for i in xrange(len(lines))]
 
     fig_size = matplotlib.rcParams['figure.figsize']
@@ -74,7 +78,7 @@ def plot_lines(lines,names=None,labels=None,title=None,ylim=None,save=None):
         plt.subplot(1,len(lines),i+1)
         plt.title(names[i])
         for i,y in enumerate(ys):
-            if labels == None:
+            if labels is None:
                 plt.plot(x,y,label=None)
             else:
                 plt.plot(x, y, label=labels[i])

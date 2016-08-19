@@ -16,22 +16,40 @@ class Batch:
     def __init__(self,
                  config,
                  batch_type,
+                 preset_faces=None,
                  debug=False):
+
+
+        def noneSet(original_value,new_value):
+            if new_value is None:
+                return original_value
+            else:
+                return new_value
+
+        self.min = None
+        self.max = None
+        self.mean = None
+        self.std = None
+        self.contrast_mean = None
+        self.contrast_std = None
+
+        if preset_faces != None:
+            self.min  = noneSet(self.min,  preset_faces['min'])
+            self.max  = noneSet(self.max,  preset_faces['max'])
+            self.mean = noneSet(self.mean, preset_faces['mean'])
+            self.std  = noneSet(self.std,  preset_faces['std'])
+
 
         self.batch_counter = 0
         # copy ensures accurate hashing later on
         self.config = config
         self.batch_type = batch_type
         subjects = config[batch_type + '_subjects']
-        self.ranges = None
-        self.min = None
-        self.max = None
-        self.mean = None
-        self.std = None
         self.absmax = None
         self.mean_image = None
         self.subject_idx = []
         self.debug = debug
+        self.ranges = None
 
         if 'preprocessing' not in self.config:
             p = {'contrast'    : False,
@@ -46,8 +64,6 @@ class Batch:
         if 'scaling' in self.config:
             if self.config['scaling'] == '[-1,1]':
                 p['range'] = True
-
-            assert not (p['face'] and p['contrast']), 'Can\'t do face and contrast at the same time'
 
             self.config['preprocessing'] = p
 
@@ -106,6 +122,8 @@ class Batch:
             self.absmax = d['absmax']
             self.mean = d['mean']
             self.std = d['std']
+            self.contrast_mean = d['contrast_mean']
+            self.contrast_std = d['contrast_std']
             self.ranges = d['ranges']
             self.mean_image = d['mean_image']
             assert (self.images.shape[0] + self.labels.shape[0]) == d['checksum']
@@ -141,6 +159,9 @@ class Batch:
 
                 del r_images
             self.nSamples = self.images.shape[0]
+            self.images_original = self.images.copy()
+            self.mean_image = self.images.mean(axis=0)
+            self.all_images_pre_process()
             if self.config['batch_randomisation'] and batch_type == 'train':
                 # Generate some random indices
                 np.random.seed(0)
@@ -148,10 +169,6 @@ class Batch:
                 # Shuffle the train and validation set with the indicies
                 self.images = self.images[idx, :, :]
                 self.labels = self.labels[idx, :]
-            self.images_original = self.images.copy()
-            self.mean_image = self.images.mean(axis=0)
-            # Finally perform processing on all of the images as a whole
-            self.all_images_pre_process()
             self.nSamples = self.images.shape[0]
 
             if hashing_enabled:
@@ -162,9 +179,11 @@ class Batch:
                                    min=self.min,
                                    max=self.max,
                                    mean=self.mean,
+                                   std=self.std,
+                                   contrast_mean=self.contrast_mean,
+                                   contrast_std=self.contrast_std,
                                    absmax=self.absmax,
                                    mean_image=self.mean_image,
-                                   std=self.std,
                                    ranges=self.ranges,
                                    subject_idx=self.subject_idx,
                                    checksum=checksum)
@@ -216,26 +235,40 @@ class Batch:
                     return i
 
     def inverse_process(self,input,base=0,idx=None):
-        assert base == 0 or idx == None, 'inverse_process: Either base or idx should be left as default parameters.'
+        assert base == 0 or idx is None, 'inverse_process: Either base or idx should be left as default parameters.'
 
         if self.debug:
             print 'DEBUG:' + self.batch_type + ':',
-            print 'Applying inverse ', self.config['normalisation_type'], 'to subjects', self.config[self.batch_type + '_subjects']
         N, xN, yN = input.shape
         output = input.copy()
+
+        if self.options['contrast']:
+            if idx != None:
+                mean = self.contrast_mean.copy()[idx]
+                std = self.contrast_std.copy()[idx]
+            else:
+                mean = self.contrast_mean[base:]
+                std = self.contrast_std[base:]
+
+            for i in tqdm(xrange(N)):
+                output[i,:,:] *= std[i]
+                output[i,:,:] += mean[i]
+
         if self.options['range']:
-            output = self.scale_within_range(output, inverse=True)
+            output,_,_ = self.scale_within_range(output, inverse=True)
         # elif self.config['scaling'] == '[0,1]':
         #         output = output*self.max + self.min
 
-        if self.options['face'] and self.options['per_subject']:
+        if self.options['face'] and not self.options['per_subject']:
 
-            assert self.std.shape == output.shape[1:], 'Error in face normalisation'
-            assert self.mean.shape == output.shape[1:], 'Error in face normalisation'
+            assert self.std.shape == output.shape[1:], 'Error in face normalisation'+str(self.std.shape)+'!='+str(output.shape[1:])
+            assert self.mean.shape == output.shape[1:], 'Error in face normalisation'+str(self.mean.shape)+'!='+str(output.shape[1:])
 
             for i in xrange(N):
                 output[i,:,:] = (output[i,:,:]*self.std) + self.mean
-        elif self.options['face'] and not self.options['per_subject']:
+        elif self.options['face'] and self.options['per_subject']:
+            assert self.std.shape[1:] == output.shape[1:], 'Error in face normalisation'
+            assert self.mean.shape[1:] == output.shape[1:], 'Error in face normalisation'
             if idx != None:
                 indicies = self.get_local_subject_id(self.get_subject_id(idx))
             else:
@@ -246,21 +279,6 @@ class Batch:
             # assert False, str(indicies)
             for i in tqdm(xrange(output.shape[0])):
                 output[i, :, :] = output[i, :, :] * self.std[indicies[i]] + self.mean[indicies[i]]
-
-        elif self.options['contrast']:
-
-            if idx != None:
-                mean = self.mean.copy()[idx]
-                std = self.std.copy()[idx]
-            else:
-                mean = self.mean[base:]
-                std = self.std[base:]
-
-            # print type(output), type(std), type(mean)
-            # print base,output.shape
-            for i in tqdm(xrange(N)):
-                output[i,:,:] *= std[i]
-                output[i,:,:] += mean[i]
 
         return output
 
@@ -280,16 +298,22 @@ class Batch:
             # y[i,:,:] = (M - m) * (x[i,:,:] - Min) /self.zeros_to_ones((Max - Min) + m)
         return y
 
-    def scale_within_range(self, x,inverse=False):
+    def scale_within_range(self, x,inverse=False,max=None,min=None):
         assert len(x.shape) == 3
         y = np.zeros(x.shape)
         N = x.shape[0]
-        if not inverse:
-            self.min = x.min(axis=0)
-            self.max = x.max(axis=0)
+        if not inverse and max is None and min is None:
+            _min = x.min(axis=0)
+            _max = x.max(axis=0)
+        if max != None and min !=None:
+            _min = min
+            _max = max
+        if inverse:
+            _max = self.max
+            _min = self.min
 
-        _range = self.max - self.min
-        sub = (self.min + _range / 2.0)
+        _range = _max - _min
+        sub = (_min + _range / 2.0)
         div = self.zeros_to_ones((_range / 2.0))
 
         for i in xrange(N):
@@ -297,24 +321,46 @@ class Batch:
                 y[i] = (x[i] - sub) / div
             if inverse:
                 y[i] = (x[i] * div) + sub
-        return y
+        return y, _max, _min
 
-    def normalise(self,images):
+    def mean_face_preprocess(self, input,mean=None,std=None):
+        output = input.copy()
+        if mean is None and std is None:
+            mean_face = output.mean(axis=0)
+            stdd_face = self.zeros_to_ones(output.std(axis=0))
+        else:
+            mean_face = mean
+            stdd_face = std
+
+        N, _, _ = output.shape
+        for i in tqdm(xrange(N)):
+            output[i, :, :] = (output[i, :, :] - mean_face) / stdd_face
+
+        return output, mean_face, stdd_face
+
+    def apply_preprocessing(self, images):
 
         N, xN, yN = images.shape
 
-        if self.options['face'] and not self.options['per_subject']:
-            mean_face = images.mean(axis=0)
-            stdd_face = self.zeros_to_ones(images.std(axis=0))
+        if not self.options['per_subject']:
+            if self.options['face']:
+                if self.mean is None and self.std is None:
+                    images, self.mean, self.std = self.mean_face_preprocess(images)
+                else:
+                    images, self.mean, self.std = self.mean_face_preprocess(images,mean=self.mean,std=self.std)
+            if self.options['range']:
+                if self.max is None and self.min is None:
+                    images, self.max, self.min = self.scale_within_range(images)
+                else:
+                    images, self.max, self.min = self.scale_within_range(images,max=self.max,min=self.min)
+        elif self.options['per_subject']:
+            if self.options['face']:
+                self.mean = []
+                self.std = []
+            if self.options['range']:
+                self.max = []
+                self.min = []
 
-            self.mean =  mean_face
-            self.std = stdd_face
-
-            for i in tqdm(xrange(N)):
-                images[i,:,:] = (images[i,:,:] - self.mean)/self.std
-        elif self.options['face'] and self.options['per_subject']:
-            self.mean = []
-            self.std = []
             subs = self.subject_idx
             for j in xrange(len(self.subject_idx)):
                 if j < len(self.subject_idx) - 1:
@@ -322,34 +368,35 @@ class Batch:
                 else:
                     left = subs[j][1]; right = self.images.shape[0]
                 subject_images = self.images[left:right]
-                m = subject_images.mean(axis=0); self.mean.append(m)
-                s = self.zeros_to_ones(subject_images.std(axis=0));  self.std.append(s)
+                if self.options['face']:
+                    self.images[left:right], m, s = self.mean_face_preprocess(subject_images)
+                    self.mean.append(m); self.std.append(s)
+                if self.options['range']:
+                    images, _max, _min = self.scale_within_range(images)
+                    self.max.append(_max); self.min.append(_min)
                 if self.debug:
-                    print '(left,right) = (',left,',',right,')'
+                    print '(left,right) = (', left, ',', right, ')'
                     print 'subject image shape is ', subject_images.shape
-                for i in tqdm(xrange(subject_images.shape[0])):
-                    self.images[left:right][i, :, :] = (subject_images[i, :, :] - m) / s
-            self.mean = np.array(self.mean)
-            self.std = np.array(self.std)
-        elif self.options['contrast']:
-            self.mean = np.ones(N)
-            self.std  = np.ones(N)
-            print self.mean
-            print self.std
-            for i in tqdm(xrange(N)):
-                self.mean[i] = images[i,:,:].mean()
-                self.std[i] = images[i,:,:].std()
-                if np.abs(self.std[i]) == 0.0:
-                    self.std[i] = 1.0
 
-            self.mean[i] = np.random.rand()
-            self.std[i] = np.random.rand()
+            if self.options['face']:
+                self.mean = np.array(self.mean)
+                self.std = np.array(self.std)
+            if self.options['range']:
+                self.max = np.array(self.max)
+                self.min = np.array(self.min)
+        if self.options['contrast']:
+            self.contrast_mean = np.zeros(N)
+            self.contrast_std  = np.zeros(N)
+            print self.contrast_mean
+            print self.contrast_std
             for i in tqdm(xrange(N)):
-                images[i,:,:] -= self.mean[i]
-                images[i,:,:] /= self.std[i]
+                self.contrast_mean[i] = images[i,:,:].mean()
+                self.contrast_std[i] = images[i,:,:].std()
+                if np.abs(self.contrast_std[i]) == 0.0:
+                    self.contrast_std[i] = 1.0
 
-        if self.options['range']:
-            images = self.scale_within_range(images)
+                images[i,:,:] -= self.contrast_mean[i]
+                images[i,:,:] /= self.contrast_std[i]
 
         return images
 
@@ -369,7 +416,7 @@ class Batch:
 
 
         self.images = self.images/self.images.max()
-        self.images = self.normalise(self.images)
+        self.images = self.apply_preprocessing(self.images)
         # Remove the empty labels
         good_sample_criteria = 0.0
         if 'good_sample_criteria' in self.config:
@@ -452,7 +499,12 @@ class Disfa:
     def __init__(self,config,debug=False):
         # self.test       = Batch(copy(config),'test',debug=debug)
         self.train      = Batch(copy(config),'train',debug=debug)
-        self.validation = Batch(copy(config),'validation',debug=debug)
+        p = {}
+        p['min']  = self.train.min
+        p['max']  = self.train.max
+        p['mean'] = self.train.mean
+        p['std']  = self.train.std
+        self.validation = Batch(copy(config),'validation',debug=debug,preset_faces=p)
 
         self.config = config
         self.config['image_shape'] = [self.train.images.shape[1],self.train.images.shape[2]]
