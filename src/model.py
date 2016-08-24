@@ -2,7 +2,13 @@ import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
 
+
+def leaky_relu(x, name):
+    return tf.maximum(0.01 * x, x, name)
+
 def string_to_tf_function(function_name):
+    if function_name == 'leaky_relu':
+        return leaky_relu
     if function_name == 'relu':
         return tf.nn.relu
     if function_name == 'sigmoid':
@@ -11,6 +17,9 @@ def string_to_tf_function(function_name):
         return tf.nn.tanh
     if function_name == 'linear':
         return tf.identity
+    if function_name == 'softmax':
+        return tf.nn.softmax
+    raise AssertionError, 'string_to_tf_function did not recognise function: ' + str(function_name)
 
 
 def batched_feed(data, nBatches, op, sess):
@@ -57,18 +66,32 @@ def weight_variable(shape, name, config):
         a, b = conf['weights_uniform_range']
         initial = tf.random_uniform(shape, a, b, name=name,seed=seed)
     elif conf['weights_start_type'] == 'constant':
-        initial = tf.constant(conf['weights_constant'], shape=shape)
+        initial = tf.constant(float(conf['weights_constant']), shape=shape,dtype=tf.float32)
     elif conf['weights_start_type'] == 'std_dev':
         initial = tf.truncated_normal(shape, stddev=conf['weights_std_dev'],seed=seed)
-
+    elif conf['weights_start_type'] == 'normal_prop_n':
+        n = 1.0
+        for s in shape:
+            n *= float(s)
+        initial = tf.truncated_normal(shape, stddev=1/np.sqrt(n),seed=seed)
     return tf.Variable(initial, name=name)
 
 
 def bias_variable(shape, config):
-    # initial = tf.constant(0.1, shape=shape)
-    # return tf.Variable(initial)
-    start_value = config['weights']['bias_start']
-    return tf.Variable(tf.constant(start_value, shape=shape))
+    if config['seed_randomness']:
+        seed = config['seed']
+    else:
+        seed = None
+
+    conf = config['weights']
+    if conf['weights_start_type'] == 'normal_prop_n':
+        n = 1.0
+        for s in shape:
+            n *= float(s)
+        return tf.Variable(tf.truncated_normal(shape, stddev=1/np.sqrt(n),seed=seed))
+    else:
+        start_value = float(config['weights']['bias_start'])
+        return tf.Variable(tf.constant(start_value, shape=shape,dtype=tf.float32))
 
 
 def conv2d(x, W, padding='SAME',strides=[1,1,1,1]):
@@ -140,7 +163,7 @@ def dcnn_layer(input_tensor, convolution_shape,output_shape, padding, layer_name
                 weights = weight_variable(convolution_shape, name, config)
                 variable_summaries(weights, name)
         with tf.name_scope('biases'):
-            biases = bias_variable([convolution_shape[-1]], config)
+            biases = bias_variable([convolution_shape[-2]], config)
             variable_summaries(biases, layer_name + '/biases')
         with tf.name_scope('convolution'):
             preactivate = conv2d_transpose(input_tensor, weights,output_shape, padding=padding,strides=strides) + biases
@@ -250,7 +273,7 @@ def example_acnn(config):
     pass
 
 
-def cnn(config):
+def cnn(config,train=True):
     """
 
     :param config:
@@ -259,7 +282,13 @@ def cnn(config):
     batch_size = config['batch_size']
     input_dim = config['data']['image_shape']
     output_dim = config['data']['label_size']
+
+    if config['seed_randomness']:
+        tf.set_random_seed(config['seed'])
+
     use_autoencoder = config['use_autoencoder']
+    # Balance parameter
+    alpha = tf.placeholder(np.float32)
 
     # Switch of the autoencoder if we don't know the batch size
     if batch_size is None:
@@ -274,6 +303,12 @@ def cnn(config):
 
     x = tf.placeholder(np.float32, shape=shape_1, name='Images')
     x_ = tf.reshape(x, shape=shape_2)
+    if config['noise'] and train:
+        x_noise = x_ + tf.random_normal(shape=shape_2,
+                                        mean=config['noise_mean'],
+                                        stddev=config['noise_stddev']) * alpha
+    else:
+        x_noise = x_
     mask = tf.placeholder(np.float32,shape=shape_2)
 
     if config['binary_softmax']:
@@ -306,9 +341,6 @@ def cnn(config):
             print ' unflatten to ', unflatten.get_shape()
             decoder.append((unflatten, None))
 
-    def leaky_relu(x, name):
-        return tf.maximum(0.01 * x, x, name)
-
     def ll(network,i=-1):
         return network[i][0]
 
@@ -317,6 +349,10 @@ def cnn(config):
         act = string_to_tf_function(config['global']['default_activation'])
     else:
         print 'WARNING: default_activation not in config file'
+
+    def lrn(x):
+        print 'Local Response Normalisation'
+        return (tf.nn.lrn(x, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name='norm1'), None)
 
     print '\nENCODER'
     using_convolutions = True
@@ -331,20 +367,28 @@ def cnn(config):
         flatten(network)
     elif config['network'] == 'gudi_test_network_2':
         network.append(cnn_layer(ll(network), [5, 5, 1, 64], 'VALID', 'Convolution_1', config, act=act))
-        # if config['global']['local_response_norm']:
-        #     network.append(tf.nn.lrn(ll(network), 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75,name='norm1'))
         network.append(pool_layer('max',ll(network), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME',layer_name='Max_Pool_1'))
+        if config['local_response_norm']:
+            network.append(lrn(ll(network)))
         flatten(network,network)
     elif config['network'] == 'gudi_test_network_3':
         network.append(cnn_layer(ll(network), [5, 5, 1, 64], 'VALID', 'Convolution_1', config, act=act))
         network.append(pool_layer('max',ll(network), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME',layer_name='Max_Pool_1'))
+        if config['local_response_norm']:
+            network.append(lrn(ll(network)))
         network.append(cnn_layer(ll(network), [5, 5, 64, 64], 'VALID', 'Convolution_2', config, act=act))
+        if config['local_response_norm']:
+            network.append(lrn(ll(network)))
         flatten(network, network)
     elif config['network'] == 'gudi_test_network_4':
         network.append(cnn_layer(ll(network), [5, 5, 1, 64], 'VALID', 'Convolution_1', config, act=act))
         network.append(pool_layer('max',ll(network), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME',layer_name='Max_Pool_1'))
+        if config['local_response_norm']:
+            network.append(lrn(ll(network)))
         network.append(cnn_layer(ll(network), [5, 5, 64, 64], 'VALID', 'Convolution_2', config, act=act))
         network.append(cnn_layer(ll(network), [4, 4, 64, 128], 'VALID', 'Convolution_3', config, act=act))
+        if config['local_response_norm']:
+            network.append(lrn(ll(network)))
         flatten(network, network)
     elif config['network'] == 'gudi_test_network_4_avgpool':
         network.append(cnn_layer(ll(network), [5, 5, 1, 64], 'VALID', 'Convolution_1', config, act=act))
@@ -374,8 +418,6 @@ def cnn(config):
         flatten(network, network)
         network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 12, 'encoder',config,  act=act))
 
-    # Balance parameter
-    alpha = tf.placeholder(np.float32)
     decoder = []
 
 
@@ -396,6 +438,10 @@ def cnn(config):
         keep_prob = tf.placeholder(tf.float32)
         network.append((tf.nn.dropout(ll(network), keep_prob,seed=config['seed']),None))
 
+    if config['local_response_norm']:
+        lrn_offset = 1
+    else:
+        lrn_offset = 0
 
     if use_autoencoder:
 
@@ -438,21 +484,32 @@ def cnn(config):
             else:
                 w = None
             decoder.append( dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_1', config,strides=[1,1,1,1],act=act,weights=w) )
-        elif config['network'] == 'gudi_test_network_2' or config['network'] == 'gudi_test_network_3':
+        elif config['network'] == 'gudi_test_network_2' or config['network'] == 'gudi_test_network_3' or config['network'] == 'gudi_test_network_4':
             if config['autoencoder']['shared_weights']:
                 w = tf.transpose(network[-2][1])
             else:
                 w = None
             decoder.append(nn_layer(ll(network), network_shape_list[-1][1], network_shape_list[-2][1], 'dec_fc_2', config, act=act,weights=w))
 
-            if config['network'] == 'gudi_test_network_3':
+            if config['network'] == 'gudi_test_network_3' or config['network'] == 'gudi_test_network_4':
 
-                print 'Reshape:', ll(decoder).get_shape(), '-->',
-                decoder.append((tf.reshape(ll(decoder), shape=[batch_size, 18, 18, 64]), None))
-                print ll(decoder).get_shape()
+                if config['network'] == 'gudi_test_network_4':
+                    print 'Reshape:', ll(decoder).get_shape(), '-->',
+                    decoder.append((tf.reshape(ll(decoder), shape=[batch_size, 15, 15, 128]), None))
+                    print ll(decoder).get_shape()
+
+                    if config['autoencoder']['shared_weights']:
+                        w = network[4+lrn_offset][1]
+                    else:
+                        w = None
+                    decoder.append(dcnn_layer(ll(decoder), [4, 4, 64, 128], [batch_size, 18, 18, 64], 'VALID', 'Deconvolution_3',config, strides=[1, 1, 1, 1], act=act, weights=w))
+                else:
+                    print 'Reshape:', ll(decoder).get_shape(), '-->',
+                    decoder.append((tf.reshape(ll(decoder), shape=[batch_size, 18, 18, 64]), None))
+                    print ll(decoder).get_shape()
 
                 if config['autoencoder']['shared_weights']:
-                    w = network[3][1]
+                    w = network[3+lrn_offset][1]
                 else:
                     w = None
                 decoder.append(dcnn_layer(ll(decoder), [5, 5, 64, 64], [batch_size, 22, 22, 64], 'VALID', 'Deconvolution_2', config,strides=[1, 1, 1, 1], act=act, weights=w))
@@ -470,23 +527,23 @@ def cnn(config):
             else:
                 w = None
             decoder.append( dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_1', config,strides=[1,1,1,1],act=act,weights=w) )
-        elif config['autoencoder']['decoder'] == 'auto_cnn_4':
-            decoder.append(dcnn_layer(ll(network,-2), [5, 5, 64, 64], [100,22,22,64], 'VALID', 'Deconvolution_1', config))
-            print 'Resize:', ll(decoder).get_shape(), '-->', [100, 43, 43, 64]
-            decoder.append((tf.image.resize_nearest_neighbor(ll(decoder), size=[43, 43]),None))
-            decoder.append(dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_2', config))
-        elif config['autoencoder']['decoder'] == 'auto_cnn_6':
-            decoder.append(dcnn_layer(ll(network,-3), [5, 5, 64, 64], [100,22,22,64], 'VALID', 'Deconvolution_1', config))
-            print 'Resize:', ll(decoder).get_shape(), '-->', [100, 43, 43, 64]
-            decoder.append((tf.image.resize_nearest_neighbor(ll(decoder), size=[43, 43]),None))
-            decoder.append(dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_2', config))
+        elif config['autoencoder']['decoder'] == 'test':
+            decoder.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), shape_2[1]*shape_2[2], 'decoder', config, act=act))
+        # elif config['autoencoder']['decoder'] == 'auto_cnn_4':
+        #     decoder.append(dcnn_layer(ll(network,-2), [5, 5, 64, 64], [batch_size,22,22,64], 'VALID', 'Deconvolution_1', config))
+        #     print 'Resize:', ll(decoder).get_shape(), '-->', [batch_size, 43, 43, 64]
+        #     decoder.append((tf.image.resize_nearest_neighbor(ll(decoder), size=[43, 43]),None))
+        #     decoder.append(dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_2', config))
+        # elif config['autoencoder']['decoder'] == 'auto_cnn_6':
+        #     decoder.append(dcnn_layer(ll(network,-3), [5, 5, 64, 64], [batch_size,22,22,64], 'VALID', 'Deconvolution_1', config))
+        #     print 'Resize:', ll(decoder).get_shape(), '-->', [batch_size, 43, 43, 64]
+        #     decoder.append((tf.image.resize_nearest_neighbor(ll(decoder), size=[43, 43]),None))
+        #     decoder.append(dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_2', config))
         elif config['autoencoder']['decoder'] == 'auto_fc_1':
             decoder.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 1000, 'dec_fc_2', config, act=act))
             decoder.append(nn_layer(ll(decoder), int(ll(decoder).get_shape()[1]), 1500, 'dec_fc_3', config, act=act))
             decoder.append(nn_layer(ll(decoder), int(ll(decoder).get_shape()[1]), 2000, 'dec_fc_4', config, act=act))
             decoder.append(nn_layer(ll(decoder), int(ll(decoder).get_shape()[1]), 2209, 'dec_fc_5', config, act=act))
-        elif config['autoencoder']['decoder'] == 'test':
-            decoder.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), shape_2[1]*shape_2[2], 'decoder', config, act=act))
 
 
 
@@ -539,7 +596,6 @@ def cnn(config):
         with tf.name_scope('inference'):
             y_conv = tf.concat(concat_dim=1, values=metric_outputs)
     else:
-        # oops
         y_conv, _ = nn_layer(ll(network), int(ll(network).get_shape()[1]), output_dim, 'output', config, act=final_act)
         y_train = y_conv
 

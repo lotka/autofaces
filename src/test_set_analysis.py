@@ -29,7 +29,7 @@ def test_model(name,data,config,path):
         sess = tf.Session(config=tensorflow_config)
     # Load model
     nBatches = int(500)
-    model = cnn(config)
+    model = cnn(config,train=False)
 
     saver = tf.train.Saver()
 
@@ -73,13 +73,13 @@ def test_model(name,data,config,path):
     autoencoder_loss = 0.0
     true_autoencoder_loss = 0.0
 
-    a = data.validation.next_batch(100)[0]
-    b = sess.run(model['y_image'],feed_dict={x: data.validation.next_batch(100)[0], keep_prob: 1.0,alpha: 1.0, mask : mask_batch})[:,:,:,0]
+    a = data.validation.next_batch(batch_size)[0]
+    b = sess.run(model['y_image'],feed_dict={x: data.validation.next_batch(batch_size)[0], keep_prob: 1.0,alpha: 1.0, mask : mask_batch})[:,:,:,0]
     validation_images = (data.validation.inverse_process(a),data.validation.inverse_process(b))
     # validation_images = (a,b)
 
-    a = data.train.next_batch(100)[0]
-    b = sess.run(model['y_image'],feed_dict={x: data.train.next_batch(100)[0],keep_prob: 1.0, alpha: 1.0, mask : mask_batch})[:,:,:,0]
+    a = data.train.next_batch(batch_size)[0]
+    b = sess.run(model['y_image'],feed_dict={x: data.train.next_batch(batch_size)[0],keep_prob: 1.0, alpha: 1.0, mask : mask_batch})[:,:,:,0]
     train_images = (data.train.inverse_process(a),data.train.inverse_process(b))
     # train_images = (a,b)
 
@@ -99,18 +99,18 @@ def test_model(name,data,config,path):
 
 
 
-    idx_big   = get_n_idx_biggest(true_losses, 100)
-    idx_small = get_n_idx_smallest(true_losses, 100)
-    idx_mean  = get_n_idx_near_mean(true_losses, 100)
+    idx_big   = get_n_idx_biggest(true_losses, batch_size)
+    idx_small = get_n_idx_smallest(true_losses, batch_size)
+    idx_mean  = get_n_idx_near_mean(true_losses, batch_size)
     print 'idx_big'
     print idx_big
     print 'idx_small'
     print idx_small
     print 'idx_mean'
     print idx_mean
-    assert len(idx_big) == 100
-    assert len(idx_small) == 100
-    assert len(idx_mean) == 100
+    assert len(idx_big) == batch_size
+    assert len(idx_small) == batch_size
+    assert len(idx_mean) == batch_size
 
     i_big   = data.validation.images[idx_big,   :,:]
     i_small = data.validation.images[idx_small, :, :]
@@ -160,7 +160,7 @@ def test_model(name,data,config,path):
     if not isdir(ssv_path):
         mkdir(ssv_path)
     print 'VALIDATION: Saving results..'
-    np.savez(join(ssv_path,name+'_model_analysis.npz'),
+    np.savez_compressed(join(ssv_path,name+'_model_analysis.npz'),
              threshold_values=threshold_values,
              test_threshold_data=test_threshold_data,
              test_confusion=test_confusion,

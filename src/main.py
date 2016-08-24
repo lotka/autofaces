@@ -14,52 +14,9 @@ from pyexp import PyExp
 from os.path import join
 from sklearn.metrics import roc_curve, auc
 from helper import get_all_experiments
+from alpha import *
 
-def alpha_function(x,N):
-    return 0.0
 
-def alpha_constant(x,N,c=0.5):
-    return c
-
-def alpha_step(x,N,step=0.5):
-    if float(x) > step*float(N):
-        return 0.0
-    else:
-        return 1.0
-
-def alpha_poly(_x,_N,order=1):
-    x = float(_x)
-    N = float(_N)
-    return (1.0 - x/N)**order
-
-def alpha_sigmoid(_x,_N,a=20,b=0.5):
-    x = float(_x)
-    N = float(_N)
-    arg = x/N - b
-    return 1.0/(1.0 + np.exp(a*arg))
-
-def alpha_sin(_x,_N,n=5):
-    x = float(_x)
-    N = float(_N)
-    w = 2 * np.pi * n / float(N)
-    return 1.0 - np.cos(w * x) ** 2
-
-def alpha_flip(_x,_N,p=5):
-    x = float(_x)
-    N = float(_N)
-    if hasattr(x,'__iter__'):
-        y = x.copy()
-        for i in xrange(x.shape[0]):
-            y[i] = f(x[i],p,N)
-        return y
-    else:
-        if x < np.abs(p):
-            if p > 0:
-                return 1.0
-            else:
-                return 0.0
-        else:
-            return f(x-np.abs(p),-p,N)
 
 def conv_vis(i, sess, hconv, w, path, x, batch_x, keep_prob):
     # to visualize 1st conv layer Weights
@@ -219,7 +176,7 @@ def run(data, config):
         sess = tf.Session()
     else:
         tensorflow_config = tf.ConfigProto(allow_soft_placement=True)
-        tensorflow_config.gpu_options.allow_growth = True
+        tensorflow_config.gpu_options.allow_growth = False
         sess = tf.Session(config=tensorflow_config)
 
     path = config.get_path()
@@ -386,12 +343,13 @@ def run(data, config):
             print  i, '/', N, ' | ',
             if config['data']['dataset'] == 'disfa':
                 print data.train.batch_counter,'/',data.train.nSamples,' | ',
-            print round(lmsq_axis[0, j], 5), ' ',
-            print round(lmsq_axis[1, j], 5), ' ',
-            print round(cent_axis[0, j], 5), ' ', #valid
-            print round(cent_axis[1, j], 5), ' ', #train
-            print round(auto_axis[0, j], 5), ' ', #valid
-            print round(auto_axis[1, j], 5), ' ', #train
+            prec = 10
+            print round(lmsq_axis[0, j], prec), ' ',
+            print round(lmsq_axis[1, j], prec), ' ',
+            print round(cent_axis[0, j], prec), ' ', #valid
+            print round(cent_axis[1, j], prec), ' ', #train
+            print round(auto_axis[0, j], prec), ' ', #valid
+            print round(auto_axis[1, j], prec), ' ', #train
             alpha_axis[j] = alpha_function(i,N)
             print alpha_function(i,N), ' ', #alpha
             if early_model_saved:
@@ -490,31 +448,60 @@ def main(path,config_file,config_overwrite=None):
                    config_overwrite=config_overwrite)
 
     if 'normalisation' in config['data']:
-        if config['data']['normalisation'] == 'manual':
-            pass
-        elif config['data']['normalisation'] == 'contrast':
-            config['data']['normalisation_type'] = 'contrast'
-            config['data']['scaling'] = 'none'
-
+        if 'preprocessing' not in config['data']:
+            config['data']['preprocessing'] = {}
+            print 'preprocessing is not in data config'
+        else:
+            print 'preprocessing already defined'
+        if config['data']['normalisation'] == 'contrast':
+            config['data']['preprocessing'] = {'contrast'   : True,
+                                              'face'        : False,
+                                              'per_subject' : False,
+                                              'range'       : False }
         elif config['data']['normalisation'] == 'contrast_with_[-1,1]':
-            config['data']['normalisation_type'] = 'contrast'
-            config['data']['scaling'] = '[-1,1]'
-
+            config['data']['preprocessing'] = {'contrast'   : True,
+                                              'face'        : False,
+                                              'per_subject' : False,
+                                              'range'       : True}
         elif config['data']['normalisation'] == 'face':
-            config['data']['normalisation_type'] = 'face'
-            config['data']['scaling'] = 'none'
-
+            config['data']['preprocessing'] = {'contrast'   : False,
+                                              'face'        : True,
+                                              'per_subject' : False,
+                                              'range'       : False }
         elif config['data']['normalisation'] == 'face_ps':
-            config['data']['normalisation_type'] = 'face_ps'
-            config['data']['scaling'] = 'none'
-
+            config['data']['preprocessing'] = {'contrast'   : False,
+                                              'face'        : True,
+                                              'per_subject' : True,
+                                              'range'       : False }
         elif config['data']['normalisation'] == 'none_[-1,1]':
-            config['data']['normalisation_type'] = 'none'
-            config['data']['scaling'] = '[-1,1]'
-
+            config['data']['preprocessing'] = {'contrast'   : False,
+                                              'face'        : False,
+                                              'per_subject' : False,
+                                              'range'       : True }
+        elif config['data']['normalisation'] == 'none_[-1,1]_ps':
+            config['data']['preprocessing'] = {'contrast'   : False,
+                                              'face'        : False,
+                                              'per_subject' : True,
+                                              'range'       : True }
+        elif config['data']['normalisation'] == 'contrast_face':
+            config['data']['preprocessing'] = {'contrast'   : True,
+                                              'face'        : True,
+                                              'per_subject' : False,
+                                              'range'       : False }
+        elif config['data']['normalisation'] == 'contrast_face_ps':
+            config['data']['preprocessing'] = {'contrast'   : True,
+                                              'face'        : True,
+                                              'per_subject' : True,
+                                              'range'       : False }
         elif config['data']['normalisation'] == 'none_[0,1]':
-            config['data']['normalisation_type'] = 'none'
-            config['data']['scaling'] = 'none'
+            config['data']['preprocessing'] = {'contrast'    : False,
+                                              'face'        : False,
+                                              'per_subject' : False,
+                                              'range'       : False }
+
+
+    print config['data']['preprocessing']
+    assert config['data']['preprocessing'] != {}, 'aoifoiasjfioas'
 
     config.save_config()
 
@@ -529,10 +516,8 @@ def main(path,config_file,config_overwrite=None):
             plt.figure()
             # print i,im[i].shape[0]*im[i].shape[1], 48**2
             print i, lb[i]
-            if config['data']['scaling'] == '[-1,1]':
+            if config['data']['preprocessing']['range']:
                 plt.imshow(im[i], vmax=1.0, vmin=-1.0)
-            elif config['data']['scaling'] == '[0,1]':
-                plt.imshow(im[i], vmax=1.0, vmin=0.0)
             else:
                 plt.imshow(im[i])
             plt.colorbar()
@@ -608,35 +593,42 @@ if __name__ == "__main__":
                                        'contrast_[-1,1]',
                                        'face_[-inf,inf]',
                                        'face_[-1,1]',
-                                       'none_[0,1]'][::-1]
-        if args.config_file == 'config/both.yaml':
-            # o['autoencoder:decoder'] = ['auto_cnn_2_cnc',
-            #                             'auto_cnn_2_mpc',
-            #                             'auto_cnn_2_5']
-            o['experiment_group'] = ['softmax']
-            o['copy'] = [1,2,3,4]
-            o['global:final_activation'] = ['sigmoid']
-            # o['global:binary_softmax'] = [True,False]
+                                       'none_[0,1]']
+        # if args.config_file == 'config/both.yaml':
+        #     # o['autoencoder:decoder'] = ['auto_cnn_2_cnc',
+        #     #                             'auto_cnn_2_mpc',
+        #     #                             'auto_cnn_2_5']
+        #     o['experiment_group'] = ['softmax']
+        #     o['copy'] = [1,2,3,4]
+        #     o['global:final_activation'] = ['sigmoid']
+        #     # o['global:binary_softmax'] = [True,False]
         if args.config_file == 'config/l2.yaml':
             o['global:l2_coeff'] = [0.0,0.1]
         if args.config_file == 'config/dp.yaml':
             o['global:dropout_rate'] = [0.6,0.7,0.8,0.9,1.0]
-        # if args.config_file == 'config/both.yaml':
-        #     o['data:normalisation'] = ['contrast',
-        #                                'contrast_with_[-1,1]',
-        #                                'face',
-        #                                'face_ps',
-        #                                'none_[-1,1]',
-        #                                'none_[0,1]']
-        #     o['autoencoder:activation'] = ['sigmoid']
+        if args.config_file == 'config/both.yaml' or args.config_file == 'config/test.yaml':
+            # o['experiment_group'] = ['weights']
+            # o['weights:weights_start_type'] = ['normal_prop_n', 'std_dev']
+            o['experiment_group'] = ['dropout']
+            # o['data:normalisation'] = ['contrast','contrast_face_ps','face','face_ps','none_[-1,1]','none_[0,1]','contrast_face']
+            o['global:network'] = ['gudi_test_network_4','gudi_test_network_3','gudi_test_network_2']
+            o['global:local_response_norm'] = [True]
+            o['global:dropout_rate'] = [0.8]
+            o['global:iterations'] = [2000]
+            o['autoencoder:step_percent'] = [0.5]
+            o['global:early_stop_percent'] = [0.5]
+            # o['autoencoder:activation'] = ['sigmoid']
     overwrite_dicts = get_all_experiments(o)
     for i,x in enumerate(overwrite_dicts):
         print i+1,x
+    if o != {}:
+        raw_input('MAN GONNA DO THIS NOW K?')
+
+
     import yaml
     with open(args.config_file, 'r') as stream:
         try:
             conf = yaml.load(stream)
-            del conf['weights']
             for key_1 in conf:
                 print key_1,':',
                 if type(conf[key_1]) == type({}):
@@ -647,12 +639,11 @@ if __name__ == "__main__":
                     print ':', conf[key_1]
         except yaml.YAMLError as exc:
             print exc
-    raw_input('any key plz')
-    if o is None:
+    print 'o',o
+    if o == {}:
         run_experiment(args)
-    elif type(args.batch) == type(42):
+    elif type(args.batch) == type(444222):
         run_experiment(args,overwrite_dicts[args.batch])
     else:
         for exp in overwrite_dicts:
             run_experiment(args, config_overwrite=exp)
-

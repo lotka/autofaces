@@ -284,7 +284,7 @@ class Results(object):
         lines.append((self.x_axis, (self.cent_axis[0, :], self.cent_axis[1, :], self.alpha_axis)))
         lines.append((self.x_axis, (self.auto_axis[0, :], self.auto_axis[1, :], self.alpha_axis)))
         fname = '../graphs/losses_' + self.date + '_' + prefix(self.id,3) + '.pdf'
-        helper.plot_lines(lines=lines,names=names,ylim=(-0.1,1.1),save=fname,labels=('validation loss', 'train loss', r'$\alpha$ coefficient'))
+        helper.plot_lines(lines=lines,names=names,ylim=(0,5),save=fname,labels=('validation loss', 'train loss', r'$\alpha$ coefficient'))
 
 
 

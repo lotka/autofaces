@@ -51,22 +51,6 @@ class Batch:
         self.debug = debug
         self.ranges = None
 
-        if 'preprocessing' not in self.config:
-            p = {'contrast'    : False,
-                 'face'        : False,
-                 'per_subject' : False,
-                 'range'       : False}
-        if 'normalisation_type' in self.config:
-            if self.config['normalisation_type'] == 'face_ps' or self.config['normalisation_type'] == 'face':
-                p['face']     = True
-            if self.config['normalisation_type'] == 'contrast':
-                p['contrast'] = True
-        if 'scaling' in self.config:
-            if self.config['scaling'] == '[-1,1]':
-                p['range'] = True
-
-            self.config['preprocessing'] = p
-
         self.options = self.config['preprocessing']
 
         print 'Creating',batch_type,'batch.'
@@ -85,9 +69,9 @@ class Batch:
             for name in ignore_for_hashing:
                 if name in _conf:
                     del _conf[name]
-            return hash_anything(_conf)
+            return hash(str(_conf))
 
-        hashing_enabled = False
+        hashing_enabled = True
 
         if hashing_enabled:
             h1 = hash_config(self.config)
@@ -166,7 +150,7 @@ class Batch:
                 # Generate some random indices
                 np.random.seed(0)
                 idx = np.random.choice(self.nSamples, self.nSamples, replace=False)
-                # Shuffle the train and validation set with the indicies
+                # Shuffle
                 self.images = self.images[idx, :, :]
                 self.labels = self.labels[idx, :]
             self.nSamples = self.images.shape[0]
@@ -174,7 +158,7 @@ class Batch:
             if hashing_enabled:
                 print 'SAVING HASHFILE FOR FUTURE USE', batch_type
                 checksum = self.images.shape[0] + self.labels.shape[0]
-                np.savez(hash_file,images=self.images,
+                np.savez_compressed(hash_file,images=self.images,
                                    labels=self.labels,
                                    min=self.min,
                                    max=self.max,
@@ -438,7 +422,7 @@ class Batch:
         lx,ly = self.labels.shape
         for i in xrange(lx):
             for j in xrange(ly):
-                if self.labels[i,j] >= self.config['threshold']:
+                if float(self.labels[i,j]) > 0.0:
                     self.labels[i,j] = 1.0
                 else:
                     self.labels[i,j] = 0.0
@@ -496,16 +480,23 @@ class Batch:
 from copy import copy
 
 class Disfa:
-    def __init__(self,config,debug=False):
+    def __init__(self,config,debug=False,skip='nothing'):
         # self.test       = Batch(copy(config),'test',debug=debug)
-        self.train      = Batch(copy(config),'train',debug=debug)
-        p = {}
-        p['min']  = self.train.min
-        p['max']  = self.train.max
-        p['mean'] = self.train.mean
-        p['std']  = self.train.std
-        self.validation = Batch(copy(config),'validation',debug=debug,preset_faces=p)
+        if skip != 'train':
+            self.train      = Batch(copy(config),'train',debug=debug)
+            p = {}
+            p['min']  = self.train.min
+            p['max']  = self.train.max
+            p['mean'] = self.train.mean
+            p['std']  = self.train.std
+        else:
+            p = None
+
+        if skip != 'validation':
+            self.validation = Batch(copy(config),'validation',debug=debug,preset_faces=p)
 
         self.config = config
-        self.config['image_shape'] = [self.train.images.shape[1],self.train.images.shape[2]]
-        self.config['label_size'] = self.train.labels.shape[1]
+
+        if skip != 'train':
+            self.config['image_shape'] = [self.train.images.shape[1],self.train.images.shape[2]]
+            self.config['label_size'] = self.train.labels.shape[1]

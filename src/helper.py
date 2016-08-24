@@ -12,29 +12,45 @@ def plot_images(images,names=None,cmap='Spectral',interpolation='none',title=Non
 
     fig_size = matplotlib.rcParams['figure.figsize']
     matplotlib.rcParams['figure.figsize'] = (20.0, 4.0)
-    matplotlib.rcParams['savefig.dpi'] = 200
+    matplotlib.rcParams['savefig.dpi'] = 600
     matplotlib.rcParams['font.size'] = 15
+    matplotlib.rcParams['font.family'] = 'serif'
     matplotlib.rcParams['figure.dpi'] = 400
 
     fig = plt.figure()
     if title != None:
         fig.suptitle(title,fontsize=30)
 
-    cmap = 'Spectral'
+    print cmap
+    if type(cmap) == str:
+        cmap = [cmap for i in xrange(len(images))]
+    print cmap
+
 
     for i,image in enumerate(images):
-        plt.subplot(1,len(images),i+1)
+        ax = plt.subplot(1,len(images),i+1)
         if range is None:
-            plt.imshow(images[i].round(5)),interpolation='none',cmap=cmap)
+            _min = images[i].min()
+            _max = images[i].max()
+            plt.imshow(images[i].round(2),interpolation='none',cmap=cmap[i],vmin=_min,vmax=_max)
         else:
-            plt.imshow(images[i], interpolation='none', cmap=cmap,vmin=range[0],vmax=range[1])
+            plt.imshow(images[i], interpolation='none', cmap=cmap[i],vmin=range[0],vmax=range[1])
         plt.title(names[i])
         cbar = plt.colorbar(orientation='horizontal')
 
-        tick_locator = ticker.MaxNLocator(nbins=4)
-        cbar.locator = tick_locator
-        cbar.update_ticks()
+        if np.abs(images[0].min() - images[0].max())>0.01 and range is None:
+            k = 3
+            cbar.ax.set_xticklabels(cbar.ax.get_xticks(), rotation=45)
+            loc    = np.linspace(_min,_max,k,endpoint=True)
+            labels = np.linspace(_min,_max,k,endpoint=True).round(2)
+            cbar.set_ticks(loc)
+            cbar.set_ticklabels(labels)
+        else:
+            tick_locator = ticker.MaxNLocator(nbins=5)
+            cbar.locator = tick_locator
+            cbar.update_ticks()
 
+        ax.text(-0.1, 1.15, chr(97+i) + ')', transform=ax.transAxes,fontsize=20, fontweight='bold', va='top', ha='right')
         # ticks = cbar.ax.get_xticks()
         # cbar.ax.set_xticklabels(np.linspace(round(images[i].min(),1),round(images[i].max(),1),4), rotation=90)
         # if images[i].sum() == 0:
