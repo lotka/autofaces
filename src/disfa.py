@@ -71,7 +71,7 @@ class Batch:
                     del _conf[name]
             return hash(str(_conf))
 
-        hashing_enabled = True
+        hashing_enabled = False
 
         if hashing_enabled:
             h1 = hash_config(self.config)

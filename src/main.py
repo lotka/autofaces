@@ -203,8 +203,6 @@ def run(data, config):
                 print '?',
         print
 
-
-
     if config['autoencoder']['function'] == 'constant':
         alpha_function = lambda x,N:  config['autoencoder']['constant']
     elif config['autoencoder']['function'] == 'step':
@@ -212,9 +210,10 @@ def run(data, config):
     elif config['autoencoder']['function'] == 'poly':
         alpha_function = lambda x, N: alpha_poly(x,N,config['autoencoder']['poly_order'])
     elif config['autoencoder']['function'] == 'sigmoid':
-        alpha_function = lambda x, N: alpha_sigmoid(x,N)
-    elif config['autoencoder']['function'] == 'sin':
-        alpha_function = lambda x, N: alpha_sin(x,N,n=config['autoencoder']['frequency'])
+        a,b=config['autoencoder']['sigmoid_a_b']
+        alpha_function = lambda x, N: alpha_sigmoid(x,N,a=a,b=b)
+    elif config['autoencoder']['function'] == 'flip':
+        alpha_function = lambda x, N: alpha_flip(x,N,p=config['autoencoder']['flip_frequency'])
     else:
         print 'INCORRECT ALPHA FUNCTION'
         exit()
@@ -308,8 +307,13 @@ def run(data, config):
                 else:
                     _validation = {x: vbatch_x, y_: vbatch_y, keep_prob: 1.0, alpha: alpha_function(i,N), mask :  validation_mask_batch}
 
-                out = sess.run([lmsq_loss, cross_entropy, accuracy,auto_loss, y_conv], feed_dict=_validation)
+                out = (sess.run(lmsq_loss, feed_dict=_validation),
+                       sess.run(cross_entropy, feed_dict=_validation),
+                       sess.run(accuracy, feed_dict=_validation),
+                       sess.run(auto_loss, feed_dict=_validation),
+                       sess.run(y_conv, feed_dict=_validation))
                 _lmsq,_cent,_accu,_auto, _validation_y_out = out
+
                 lmsq_axis[0, j] += _lmsq/float(validation_batch_size/batch_size)
                 cent_axis[0, j] += _cent/float(validation_batch_size/batch_size)
                 accu_axis[0, j] += _accu/float(validation_batch_size/batch_size)
@@ -326,7 +330,11 @@ def run(data, config):
             """
             """
 
-            out = sess.run([lmsq_loss, cross_entropy, accuracy, auto_loss, y_conv], feed_dict=_train)
+            out = (sess.run(lmsq_loss, feed_dict=_train),
+                   sess.run(cross_entropy, feed_dict=_train),
+                   sess.run(accuracy, feed_dict=_train),
+                   sess.run(auto_loss, feed_dict=_train),
+                   sess.run(y_conv, feed_dict=_train))
             lmsq_axis[1, j], cent_axis[1, j], accu_axis[1, j], auto_axis[1,j], train_y_out = out
             # train_writer.add_summary(summary, i)
 
@@ -343,7 +351,7 @@ def run(data, config):
             print  i, '/', N, ' | ',
             if config['data']['dataset'] == 'disfa':
                 print data.train.batch_counter,'/',data.train.nSamples,' | ',
-            prec = 10
+            prec = 4
             print round(lmsq_axis[0, j], prec), ' ',
             print round(lmsq_axis[1, j], prec), ' ',
             print round(cent_axis[0, j], prec), ' ', #valid
@@ -609,20 +617,23 @@ if __name__ == "__main__":
         if args.config_file == 'config/both.yaml' or args.config_file == 'config/test.yaml':
             # o['experiment_group'] = ['weights']
             # o['weights:weights_start_type'] = ['normal_prop_n', 'std_dev']
-            o['experiment_group'] = ['dropout']
+            o['experiment_group'] = ['noise']
             # o['data:normalisation'] = ['contrast','contrast_face_ps','face','face_ps','none_[-1,1]','none_[0,1]','contrast_face']
-            o['global:network'] = ['gudi_test_network_4','gudi_test_network_3','gudi_test_network_2']
+            o['global:network'] = ['gudi_test_network_2'] #'gudi_test_network_4','gudi_test_network_3',
             o['global:local_response_norm'] = [True]
             o['global:dropout_rate'] = [0.8]
             o['global:iterations'] = [2000]
             o['autoencoder:step_percent'] = [0.5]
             o['global:early_stop_percent'] = [0.5]
+            o['global:noise_stddev'] = [0.0,0.1,0.5,1.0,2.0,3.0]
+            o['autoencoder:function'] = ['constant']
+            o['autoencoder:constant'] = [1.0]
             # o['autoencoder:activation'] = ['sigmoid']
     overwrite_dicts = get_all_experiments(o)
     for i,x in enumerate(overwrite_dicts):
         print i+1,x
     if o != {}:
-        raw_input('MAN GONNA DO THIS NOW K?')
+        raw_input('Press any key to continue.')
 
 
     import yaml

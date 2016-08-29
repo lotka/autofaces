@@ -100,9 +100,18 @@ def plot_lines(lines,names=None,labels=None,title=None,ylim=None,save=None):
                 plt.plot(x, y, label=labels[i])
             if ylim != None:
                 plt.ylim(ylim[0],ylim[1])
-    horz = -0.8
-    vert = -.3
-    lgd = plt.legend(loc='lower center', bbox_to_anchor=(horz, vert), ncol=len(lines))
+
+    if len(lines)==3:
+        horz = -0.8
+        vert = -.3
+    else:
+        horz = -0.1
+        vert = -.3
+
+    lgd = plt.legend(loc='lower center', bbox_to_anchor=(horz, vert), ncol=len(labels))
+
+
+
 
     if save != None:
         # plt.tight_layout()

@@ -2,7 +2,7 @@ experiment_group: 'test'
 autoencoder:
   # constant, step, poly
   function: step
-  constant : 0.0
+  constant : 0.5
   step_percent: 0.5
   shared_weights : True
   poly_order: 1
@@ -23,7 +23,7 @@ global:
     # ignore_empty_labels: False
     batch_size: 100
     validation_batch_size: 500
-    network: gudi_test_network_2
+    network: gudi_test_network_4
     use_autoencoder : True
     fc1_neuron_count : 3000 #3136
     fc2_neuron_count : 0
@@ -89,12 +89,12 @@ data:
       range       : False
       face        : True
     mouth:
-      resize_scale: 0.4
+      resize_scale: 0.6
       AUs: [6,7,8,9,10,11]
       crop: [0.1,0.1,0.5,0.2] # left,right,top,bottom
     full:
       crop: [0,0,0,0] #left,right,top,bottom
-      resize_scale: 0.4
+      resize_scale: 0.8
 
 
 

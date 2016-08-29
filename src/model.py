@@ -416,7 +416,8 @@ def cnn(config,train=True):
         network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 100,  'enc_fc_5', config, act=act))
     elif config['network'] == 'test':
         flatten(network, network)
-        network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 12, 'encoder',config,  act=act))
+        network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 2000, 'encoder',config,  act=act))
+        network.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 100, 'encoder', config, act=act))
 
     decoder = []
 
@@ -433,6 +434,9 @@ def cnn(config,train=True):
             for i in xrange(1,len(s)):
                 n *= int(s[i])
             network_shape_list.append((s,n))
+
+    for k,shape in enumerate(network_shape_list):
+        print k,shape
 
     with tf.name_scope('dropout'):
         keep_prob = tf.placeholder(tf.float32)
@@ -495,31 +499,32 @@ def cnn(config,train=True):
 
                 if config['network'] == 'gudi_test_network_4':
                     print 'Reshape:', ll(decoder).get_shape(), '-->',
-                    decoder.append((tf.reshape(ll(decoder), shape=[batch_size, 15, 15, 128]), None))
+                    decoder.append((tf.reshape(ll(decoder), shape=network_shape_list[6][0]), None))
                     print ll(decoder).get_shape()
 
                     if config['autoencoder']['shared_weights']:
                         w = network[4+lrn_offset][1]
                     else:
                         w = None
-                    decoder.append(dcnn_layer(ll(decoder), [4, 4, 64, 128], [batch_size, 18, 18, 64], 'VALID', 'Deconvolution_3',config, strides=[1, 1, 1, 1], act=act, weights=w))
+                    decoder.append(dcnn_layer(ll(decoder), [4, 4, 64, 128], network_shape_list[4][0], 'VALID', 'Deconvolution_3',config, strides=[1, 1, 1, 1], act=act, weights=w))
                 else:
                     print 'Reshape:', ll(decoder).get_shape(), '-->',
-                    decoder.append((tf.reshape(ll(decoder), shape=[batch_size, 18, 18, 64]), None))
+                    decoder.append((tf.reshape(ll(decoder), shape=network_shape_list[4][0]), None))
                     print ll(decoder).get_shape()
 
                 if config['autoencoder']['shared_weights']:
                     w = network[3+lrn_offset][1]
                 else:
                     w = None
-                decoder.append(dcnn_layer(ll(decoder), [5, 5, 64, 64], [batch_size, 22, 22, 64], 'VALID', 'Deconvolution_2', config,strides=[1, 1, 1, 1], act=act, weights=w))
+                decoder.append(dcnn_layer(ll(decoder), [5, 5, 64, 64], network_shape_list[3][0], 'VALID', 'Deconvolution_2', config,strides=[1, 1, 1, 1], act=act, weights=w))
             elif config['network'] == 'gudi_test_network_2':
                 print 'Reshape:', ll(decoder).get_shape(), '-->',
-                decoder.append((tf.reshape(ll(decoder), shape=[batch_size, 22, 22, 64]), None))
+                decoder.append((tf.reshape(ll(decoder), shape=network_shape_list[2][0]), None))
                 print ll(decoder).get_shape()
 
             print 'Resize:', ll(decoder).get_shape(), '-->',
-            decoder.append( (tf.image.resize_nearest_neighbor(ll(decoder), size=[43,43]), None) )
+            _,s0,s1,_ = network_shape_list[1][0]
+            decoder.append( (tf.image.resize_nearest_neighbor(ll(decoder), size=[int(s0),int(s1)]), None) )
             print ll(decoder).get_shape()
 
             if config['autoencoder']['shared_weights']:
@@ -528,7 +533,8 @@ def cnn(config,train=True):
                 w = None
             decoder.append( dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_1', config,strides=[1,1,1,1],act=act,weights=w) )
         elif config['autoencoder']['decoder'] == 'test':
-            decoder.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), shape_2[1]*shape_2[2], 'decoder', config, act=act))
+            decoder.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 2000, 'encoder', config, act=act))
+            decoder.append(nn_layer(ll(decoder), int(ll(network).get_shape()[1]), shape_2[1]*shape_2[2], 'decoder', config, act=act))
         # elif config['autoencoder']['decoder'] == 'auto_cnn_4':
         #     decoder.append(dcnn_layer(ll(network,-2), [5, 5, 64, 64], [batch_size,22,22,64], 'VALID', 'Deconvolution_1', config))
         #     print 'Resize:', ll(decoder).get_shape(), '-->', [batch_size, 43, 43, 64]
@@ -628,7 +634,8 @@ def cnn(config,train=True):
                 norm = float(output_dim * batch_size)
             else:
                 norm = float(output_dim)
-            cross_entropy = -tf.reduce_sum(y_ * tf.log(tf.clip_by_value(y_train, 1e-10, 1.0)))/norm
+            # cross_entropy = -tf.reduce_sum(y_ * tf.log(tf.clip_by_value(y_train, 1e-10, 1.0)))/norm
+            cross_entropy = -tf.reduce_sum(y_*tf.log(y_train + 1e-10))/norm
             tf.scalar_summary('loss/cross entropy', cross_entropy)
 
         r = config['learning_rate']

@@ -219,19 +219,13 @@ class Results(object):
                 p = round(auac_axis[:, i, 0].max(), 2)
                 r = round(auac_axis[:, i, 1].max(), 2)
                 print self.au_map[i], '\t', round(roc, 2), '\t',
-                if roc < 0.6:
-                    print 'fail',
-                elif roc < 0.7:
-                    print 'poor',
-                elif roc < 0.8:
-                    print 'fair',
-                elif roc < 0.9:
-                    print 'good',
-                else:
-                    print 'great',
+                print self.rank_roc(roc),
                 print '\t', f1, '\t', p, '\t', r
-            print 'average f1 = ', auac_axis[:, :, 2].max(axis=0).mean()
-            print 'average roc = ', auac_axis[5, :, 3].mean()
+            print auac_axis[5, :, 3].mean(), #roc
+            print self.rank_roc(auac_axis[5, :, 3].mean()),  # roc
+            print auac_axis[:, :, 2].max(axis=0).mean(), #f1
+            print auac_axis[:, :, 0].max(axis=0).mean(), #p
+            print auac_axis[:, :, 1].max(axis=0).mean() #r
             return
             print 'best thresholds'
             print 'au\tbest roc\tbest f1\t\tcol3-col2'
@@ -242,6 +236,18 @@ class Results(object):
                     c1 = round(t[2][f.argmax()], 2)
                     c2 = round(self.final_model['threshold_values'][auac_axis[:, i, 2].argmax()],2)
                     print self.au_map[i],'\t',c1,'\t\t',c2,'\t\t',c2-c1
+
+    def rank_roc(self,roc):
+        if roc < 0.6:
+            return 'fail'
+        elif roc < 0.7:
+            return 'poor'
+        elif roc < 0.8:
+            return 'fair'
+        elif roc < 0.9:
+            return 'good'
+        else:
+            return 'great'
 
     def get_f1_roc(self, prefix, model=None):
 
@@ -279,12 +285,12 @@ class Results(object):
 
     def report_losses(self):
         lines = []
-        names = ['Classifer:\nMean Squared Loss', 'Classifer:\nCross Entropy Loss', 'Autoencoder:\nMean Squared Loss']
-        lines.append((self.x_axis,(self.lmsq_axis[0, :],self.lmsq_axis[1, :], self.alpha_axis)))
+        names = ['Classifer:\nMean Squared Loss', 'Classifer:\nCross Entropy Loss', 'Autoencoder:\nMean Squared Loss'][1:]
+        # lines.append((self.x_axis,(self.lmsq_axis[0, :],self.lmsq_axis[1, :], self.alpha_axis)))
         lines.append((self.x_axis, (self.cent_axis[0, :], self.cent_axis[1, :], self.alpha_axis)))
         lines.append((self.x_axis, (self.auto_axis[0, :], self.auto_axis[1, :], self.alpha_axis)))
         fname = '../graphs/losses_' + self.date + '_' + prefix(self.id,3) + '.pdf'
-        helper.plot_lines(lines=lines,names=names,ylim=(0,5),save=fname,labels=('validation loss', 'train loss', r'$\alpha$ coefficient'))
+        helper.plot_lines(lines=lines,names=names,ylim=(0,1),save=fname,labels=('validation loss', 'train loss', r'$\alpha$ coefficient'))
 
 
 
