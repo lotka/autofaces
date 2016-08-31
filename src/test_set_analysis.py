@@ -67,6 +67,7 @@ def test_model(name,data,config,path):
     padding = 0.1
     threshold_values = np.linspace(-padding, thresholds+padding, thresholds)/float(thresholds)
     test_threshold_data = np.zeros((thresholds,output_dim,4))
+    accuracy_data = np.zeros(thresholds)
 
     nBatches = int(float(data.validation.labels.shape[0])/float(batch_size))
     y_out = np.zeros(data.validation.labels.shape)
@@ -149,7 +150,7 @@ def test_model(name,data,config,path):
     test_confusion = []
     test_roc_data = []
     for i in tqdm(xrange(thresholds)):
-        results, confusion, roc_data = metric.multi_eval(y_out,
+        results, confusion, roc_data, accuracy_data[i] = metric.multi_eval(y_out,
                                                          data.validation.labels,
                                                          threshold_values[i])
         test_confusion.append(confusion)
@@ -165,6 +166,7 @@ def test_model(name,data,config,path):
              test_threshold_data=test_threshold_data,
              test_confusion=test_confusion,
              test_roc_data=test_roc_data,
+             accuracy_data=accuracy_data,
              autoencoder_loss=autoencoder_loss,
              true_autoencoder_loss=true_autoencoder_loss,
              true_losses=true_losses,

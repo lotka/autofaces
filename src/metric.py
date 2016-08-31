@@ -70,6 +70,20 @@ def confuse_2d(y_true,y_pred):
         f1 = hmean([prec,recall])
     return prec,recall,f1,confuse
 
+def array_similarity(true,pred):
+    assert true.shape == pred.shape
+    assert len(true.shape) == 2
+    acc = 0
+    sum = 0
+    for i in xrange(true.shape[0]):
+        for j in xrange(true.shape[1]):
+            sum += 1
+            if true[i,j] == pred[i,j]:
+                acc += 1
+
+    return float(acc)/float(sum)
+
+
 def multi_eval(y_pred,y_true,threshold=0.4):
 
     yp_shape = y_pred.shape
@@ -95,6 +109,9 @@ def multi_eval(y_pred,y_true,threshold=0.4):
     y_true = y_true.astype(int)
     y_pred_binary = y_pred_binary.astype(int)
 
+    accuracy = array_similarity(y_pred_binary,y_true)
+
+
 
     res = np.zeros((classes,4))
     confusion_matrices = []
@@ -119,4 +136,4 @@ def multi_eval(y_pred,y_true,threshold=0.4):
         res[i,3] = roc_auc
         confusion_matrices.append(confuse)
 
-    return res,confusion_matrices,roc_data
+    return res,confusion_matrices,roc_data,accuracy

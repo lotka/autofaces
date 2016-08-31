@@ -13,6 +13,9 @@ import yaml
 import helper
 helper = reload(helper)
 
+def R(x,p):
+    return round(x,p)
+
 class DictTable(dict):
     # Overridden dict class which takes a dict in the form {'a': 2, 'b': 3},
     # and renders an HTML Table in IPython Notebook.
@@ -138,10 +141,13 @@ class Results(object):
             if model == 'final':
                 x_axis = self.final_model['threshold_values'].copy()
                 auac_axis = self.final_model['test_threshold_data'].copy()
+                # accuracy_thresholds = self.final_model['accuracy_data'].copy()
             elif model == 'early':
                 x_axis = self.early_model['threshold_values'].copy()
                 auac_axis = self.early_model['test_threshold_data'].copy()
+                # accuracy_thresholds = self.early_model['accuracy_data'].copy()
 
+            # print accuracy_thresholds
         elif prefix == 'validation':
             x_axis = self.x_axis
             auac_axis = self.validation_auac_axis
@@ -215,17 +221,19 @@ class Results(object):
             print 'class\troc\troc\tf1\tp\tr\t'
             for i in xrange(classes):
                 roc = auac_axis[0, i, 3]
-                f1 = round(auac_axis[:, i, 2].max(), 2)
-                p = round(auac_axis[:, i, 0].max(), 2)
-                r = round(auac_axis[:, i, 1].max(), 2)
-                print self.au_map[i], '\t', round(roc, 2), '\t',
+                f1 = R(auac_axis[:, i, 2].max(), 2)
+                p = R(auac_axis[:, i, 0].max(), 2)
+                r = R(auac_axis[:, i, 1].max(), 2)
+                print self.au_map[i], '\t', R(roc, 2), '\t',
                 print self.rank_roc(roc),
                 print '\t', f1, '\t', p, '\t', r
-            print auac_axis[5, :, 3].mean(), #roc
-            print self.rank_roc(auac_axis[5, :, 3].mean()),  # roc
-            print auac_axis[:, :, 2].max(axis=0).mean(), #f1
-            print auac_axis[:, :, 0].max(axis=0).mean(), #p
-            print auac_axis[:, :, 1].max(axis=0).mean() #r
+            print '-----------------------------------------------------'
+            print 'av:\t',
+            print R(auac_axis[5, :, 3].mean(),2),'\t', #roc
+            print self.rank_roc(auac_axis[5, :, 3].mean()),'\t',  # roc
+            print R(auac_axis[:, :, 2].max(axis=0).mean(),2),'\t', #f1
+            print R(auac_axis[:, :, 0].max(axis=0).mean(),2),'\t', #p
+            print R(auac_axis[:, :, 1].max(axis=0).mean(),2) #r
             return
             print 'best thresholds'
             print 'au\tbest roc\tbest f1\t\tcol3-col2'
@@ -351,10 +359,10 @@ class Results(object):
 
         for j in xrange(t[0].shape[0]):
             best_threshold = test_threshold_data[:, j, 2].argmax()
-            roc = round(test_threshold_data[0, j, 3], 2)
-            f1 = round(test_threshold_data[best_threshold, j, 2].max(), 2)
-            p = round(test_threshold_data[best_threshold, j, 0].max(), 2)
-            r = round(test_threshold_data[best_threshold, j, 1].max(), 2)
+            roc = R(test_threshold_data[0, j, 3], 2)
+            f1 = R(test_threshold_data[best_threshold, j, 2].max(), 2)
+            p = R(test_threshold_data[best_threshold, j, 0].max(), 2)
+            r = R(test_threshold_data[best_threshold, j, 1].max(), 2)
             print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
             print 'Class ', self.au_map[j], 'threshold: ', round(thresholds[best_threshold],2)
             # print 'roc = ', roc,

@@ -8,7 +8,6 @@ autoencoder:
   poly_order: 1
   # relu, linear, sigmoid, tanh
   activation : linear
-  decoder: test
 global:
     early_stop_percent: 0.5
     binary_softmax: True
@@ -18,12 +17,12 @@ global:
 
     dump_frames: False
     path: data
-    iterations: 100
+    iterations: 1000
     # defunct:
     # ignore_empty_labels: False
     batch_size: 100
     validation_batch_size: 500
-    network: test
+    network: gudi_test_network_2
     use_autoencoder : True
     fc1_neuron_count : 3000 #3136
     fc2_neuron_count : 0
@@ -48,12 +47,6 @@ global:
 
     seed_randomness : True
     seed : 1
-
-    local_response_norm : True
-
-    noise : True
-    noise_stddev : 0.1
-    noise_mean : 0.0
 weights:
     bias_start: 0.01
 
@@ -82,21 +75,19 @@ data:
 #    test_subjects  : [2]
     batch_randomisation: True
     image_region: full
-#    normalisation : face
+    normalisation : 'none'
     preprocessing:
-      per_subject : True
+      per_subject : False
       contrast    : False
       range       : False
-      face        : True
+      face        : False
     mouth:
       resize_scale: 0.6
       AUs: [6,7,8,9,10,11]
       crop: [0.1,0.1,0.5,0.2] # left,right,top,bottom
     full:
       crop: [0,0,0,0] #left,right,top,bottom
-      resize_scale: 0.1
-
-
+      resize_scale: 0.4
 
     disfa_au_map : [1,2,4,5,6,9,12,15,17,20,25,26]
 results:

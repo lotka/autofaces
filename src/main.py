@@ -338,10 +338,10 @@ def run(data, config):
             lmsq_axis[1, j], cent_axis[1, j], accu_axis[1, j], auto_axis[1,j], train_y_out = out
             # train_writer.add_summary(summary, i)
 
-            train_res, train_conf, _ = metric.multi_eval(train_y_out, batch_y)
+            train_res, train_conf, _, _ = metric.multi_eval(train_y_out, batch_y)
             train_auac_axis[j, :, :] = train_res
 
-            validation_res, validation_conf, _ = metric.multi_eval(validation_y_out, data.validation.next_batch(validation_batch_size)[1])
+            validation_res, validation_conf, _, _ = metric.multi_eval(validation_y_out, data.validation.next_batch(validation_batch_size)[1])
             validation_auac_axis[j, :, :] = validation_res
 
             train_confusion.append(train_conf)

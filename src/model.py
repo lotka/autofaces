@@ -304,11 +304,20 @@ def cnn(config,train=True):
     x = tf.placeholder(np.float32, shape=shape_1, name='Images')
     x_ = tf.reshape(x, shape=shape_2)
     if config['noise'] and train:
-        x_noise = x_ + tf.random_normal(shape=shape_2,
-                                        mean=config['noise_mean'],
-                                        stddev=config['noise_stddev']) * alpha
+        x_noise = tf.add(x_,
+                         tf.mul(alpha,tf.random_normal(shape=x_.get_shape(),
+                                                       mean=config['noise_mean'],
+                                                       stddev=config['noise_stddev'])))
+        print '######################################################################'
+        print '########################| |############| |############################'
+        print '#################################.####################################'
+        print '######################################################################'
+        print '############################_________#################################'
+        print '######################################################################'
+        print '######################################################################'
     else:
         x_noise = x_
+    x_noise.set_shape(shape_2)
     mask = tf.placeholder(np.float32,shape=shape_2)
 
     if config['binary_softmax']:
@@ -350,13 +359,13 @@ def cnn(config,train=True):
     else:
         print 'WARNING: default_activation not in config file'
 
-    def lrn(x):
+    def lrn(x,name=None):
         print 'Local Response Normalisation'
-        return (tf.nn.lrn(x, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name='norm1'), None)
+        return (tf.nn.lrn(x, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name=name), None)
 
     print '\nENCODER'
     using_convolutions = True
-    network = [(x_,None)]
+    network = [(x_noise,None)]
     # http://stats.stackexchange.com/questions/65877/convergence-of-neural-network-weights
     #2209
     if config['network'] == 'gudi_test_network_0':
@@ -370,6 +379,7 @@ def cnn(config,train=True):
         network.append(pool_layer('max',ll(network), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME',layer_name='Max_Pool_1'))
         if config['local_response_norm']:
             network.append(lrn(ll(network)))
+        print network
         flatten(network,network)
     elif config['network'] == 'gudi_test_network_3':
         network.append(cnn_layer(ll(network), [5, 5, 1, 64], 'VALID', 'Convolution_1', config, act=act))
@@ -534,7 +544,7 @@ def cnn(config,train=True):
             decoder.append( dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_1', config,strides=[1,1,1,1],act=act,weights=w) )
         elif config['autoencoder']['decoder'] == 'test':
             decoder.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 2000, 'encoder', config, act=act))
-            decoder.append(nn_layer(ll(decoder), int(ll(network).get_shape()[1]), shape_2[1]*shape_2[2], 'decoder', config, act=act))
+            decoder.append(nn_layer(ll(decoder), int(ll(decoder).get_shape()[1]), shape_2[1]*shape_2[2], 'decoder', config, act=act))
         # elif config['autoencoder']['decoder'] == 'auto_cnn_4':
         #     decoder.append(dcnn_layer(ll(network,-2), [5, 5, 64, 64], [batch_size,22,22,64], 'VALID', 'Deconvolution_1', config))
         #     print 'Resize:', ll(decoder).get_shape(), '-->', [batch_size, 43, 43, 64]
