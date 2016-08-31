@@ -45,8 +45,6 @@ for s in [1,2,3]:
     print all_images.shape
 
 
-exit()
-
 # print the AU annotations and plot the image of the first sample
 #print('annotated AUs are {}'.format(targets[0,:]))
 #plt.imshow(images[0,:,:], cmap='gray')
@@ -63,45 +61,4 @@ targets_all, id_array = data_array.IndicesCollection(disfa.disfa_ic_all).getitem
 # id_array contains the subjects and frame number of each sample:
 id_array[0,:]
 #this means the first sample is from subject 1 frame 0
-
-
-# In[7]:
-
-a = 5000
-print 'subject', id_array[a,0], 'frame', id_array[a,1]
-print targets_all[a]
-print targets_all.shape
-
-
-# In[ ]:
-
-import sPickle
-import gzip
-sPickle.s_dump(all_images, gzip.open( "disfa_images.p", "wb" ) )
-sPickle.s_dump((targets_all,id_array), gzip.open( "disfa_labels.p", "wb" ) )
-
-
-# In[ ]:
-
-print 'done!'
-
-
-# In[ ]:
-
-import pickle
-import gzip
-
-#store the object
-myObject = {'a':'blah','b':range(10)}
-f = gzip.open('testPickleFile.pklz','wb')
-pickle.dump(myObject,f)
-f.close()
-
-#restore the object
-f = gzip.open('testPickleFile.pklz','rb')
-myNewObject = pickle.load(f)
-f.close()
-
-print myObject
-print myNewObject
 

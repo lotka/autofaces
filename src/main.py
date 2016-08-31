@@ -6,7 +6,7 @@ import sys
 
 import numpy as np
 
-import etc
+from src.includes import etc
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
