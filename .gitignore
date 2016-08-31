@@ -14,3 +14,4 @@ MNIST_data/
 *.dropbox*
 doc/
 .idea
+.ipynb_checkpoints

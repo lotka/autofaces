@@ -1,6 +1,6 @@
 import numpy as np
-import seb.data_array as data_array
-import seb.disfa as disfa
+import includes.data_array as data_array
+import includes.disfa as disfa
 from scipy import ndimage
 import scipy
 from tqdm import tqdm

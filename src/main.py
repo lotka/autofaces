@@ -10,7 +10,7 @@ import etc
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from pyexp import PyExp
+from expman import PyExp
 from os.path import join
 from sklearn.metrics import roc_curve, auc
 from helper import get_all_experiments

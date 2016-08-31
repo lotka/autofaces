@@ -1,3 +1,6 @@
+# Taken from: https://github.com/arp2600/Etc
+
+
 import time
 import math
 

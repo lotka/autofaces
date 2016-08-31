@@ -6,7 +6,7 @@ import matplotlib.pylab as plt
 
 import sys,os
 sys.path.append('../src')
-from pyexp import PyExp
+from expman import PyExp
 
 def convert(s):
     f = False

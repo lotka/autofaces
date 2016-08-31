@@ -5,7 +5,7 @@ import numpy as np
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from pyexp import PyExp
+from expman import PyExp
 import sys
 import metric
 import socket

@@ -26,7 +26,7 @@ import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
 import metric
-from src.pyexp import PyExp
+from src.expman import PyExp
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS

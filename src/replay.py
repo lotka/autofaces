@@ -4,7 +4,7 @@ reload(tf)
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
-from pyexp import PyExp
+from expman import PyExp
 import sys
 from os.path import join
 from model import cnn
