@@ -74,7 +74,8 @@ AU26      & 105778 & 13443 & 7473  & 3529  & 314  & 217  \\ \hline
 \begin{figure}[h!]
   \includegraphics[width=\textwidth]{../graphs/maximum_label_intensity_disfa.pdf}
   \caption{DISFA dataset: This graph shows what the maximum value in each label is in the DISFA dataset per subject. This
-  is done to illustrate the number of labels which contain absolutely no information.}\label{disfastats}
+  is done to illustrate the number of labels which contain very little information
+  and pose an issue for a typical neural network structure.}\label{disfastats}
 \end{figure}
 \newpage
 
@@ -165,13 +166,13 @@ networks.
 
 \begin{tabular}{lcccc}
 \hline
-Score    & \multicolumn{1}{l}{Ghosh et. al\cite{Ghosh2015}} & \multicolumn{1}{l}{Network \cite{Gudi2015}} & \multicolumn{1}{l}{Gudi et. al.\cite{Gudi2015}} & \multicolumn{1}{l}{Khorrami et. al.\cite{dodeeplearn}} \\ \hline
-Accuracy & \checkmark                            &                                      &                                         & \checkmark                              \\
-F1       &                                       & \checkmark                           & \checkmark                              &                                         \\
-AUC      &                                       &                                      &                                         &                                         \\
-2AFC     & \checkmark                            &                                      & \checkmark                              &                                         \\ \hline
+Score    & \multicolumn{1}{l}{Ghosh et. al\cite{Ghosh2015}} & \multicolumn{1}{l}{Gudi et. al.\cite{Gudi2015}} & \multicolumn{1}{l}{Khorrami et. al.\cite{dodeeplearn}} & \multicolumn{1}{l}{Jaiswal et. al.\cite{Jaiswal2016}} \\ \hline
+Accuracy & \checkmark                                       &                                                 & \checkmark                                             &                                             \\
+F1       &                                                  & \checkmark                                      &                                                        & \checkmark                                  \\
+AUC      &                                                  &                                                 &                                                        &                                             \\
+2AFC     & \checkmark                                       & \checkmark                                      &                                                        &                                             \\ \hline
 \end{tabular}
-\caption{A comparison of which evaluation methods were used in a selection of papers.} \label{compscore}
+\caption{A comparison of which evaluation methods were used in the relevant papers.} \label{compscore}
 \end{table}
 
 \begin{table}[h!]
@@ -179,14 +180,14 @@ AUC      &                                       &                              
 
 \begin{tabular}{lcccc}
 \hline
-Dataset  & \multicolumn{1}{l}{Ghosh et. al\cite{Ghosh2015}} & \multicolumn{1}{l}{Network Gudi2015} & \multicolumn{1}{l}{Gudi et. al.\cite{Gudi2015}} & \multicolumn{1}{l}{Khorrami et. al.\cite{dodeeplearn}} \\ \hline
+Dataset    & \multicolumn{1}{l}{Ghosh et. al\cite{Ghosh2015}} & \multicolumn{1}{l}{Gudi et. al.\cite{Gudi2015}} & \multicolumn{1}{l}{Khorrami et. al.\cite{dodeeplearn}} & \multicolumn{1}{l}{Jaiswal et. al.\cite{Jaiswal2016}} \\ \hline
 CK+      & \checkmark                            &                                      &                                         & \checkmark                              \\
 DISFA    & \checkmark                            &                                      &                                         &                                         \\
 SEMAINE* &                                       & \checkmark                           & \checkmark                              &                                         \\
 BP4D*    & \checkmark                            & \checkmark                           & \checkmark                              &                                         \\
 TFD      &                                       &                                      &                                         & \checkmark                              \\ \hline
 \end{tabular}
-\caption{A comparison of which datasets were used in a selection of papers.} \label{compdat}
+\caption{A comparison of which datasets were used in the relevant papers.} \label{compdat}
 \end{table}
 
 

@@ -1,218 +1,245 @@
-\chapter{PPrepraring the Data}
-\section{Introduction}
-It is typical to apply some sort of preprocessing operations to any data fed into
-a neural network. Although in theory a neural network can learn very complex
-non-linear transformations, it is often the case that learning this at the same
-time as learning other abilities is unrealistic. Preprocessing methods can
-also embedd information about the dataset into each frame which the network is
-unlikely to learn as it works on a per example basis (this is a motivation for
-recurrent networks).
- Therefore it is vital to try
-different pre-processing methods on the data.
-Recalling of the aims of this project it is also vital to try a range of methods
-because only a few
-might allow the autoencoder and classifer structures to cooperate with each other.
-This section describes some preprocessing methods which are to be
-tested in section \ref{sec:psearc}.
+\chapter{Prepraring the Data}
+  \section{Introduction}
+    It is typical to apply some sort of preprocessing operations to any data fed into
+    a neural network. Although in theory a neural network can learn very complex
+    non-linear transformations, it is often the case that learning this at the same
+    time as learning other abilities is unrealistic. Preprocessing methods can
+    also embedd information about the dataset into each frame which the network is
+    unlikely to learn as it works on a per example basis (this is a motivation for
+    recurrent networks).
+     Therefore it is vital to try
+    different pre-processing methods on the data.
+    Recalling of the aims of this project it is also vital to try a range of methods
+    because only a few
+    might allow the autoencoder and classifer structures to cooperate with each other.
+    This section describes some preprocessing methods which are to be
+    tested in section \ref{sec:psearc}.
 
 
-The DISFA dataset as described in section \ref{disfa_list} has frames of size $ 1024 \times 764 $
-but using previous work of Sebastian Kaltwang (See acknowledgements) faces are
-centered and normalised to give an image of size $118 \times 128$
-with pixels being integers between
-0 and 255. An illustration is shown in figure \ref{fig:sebproc}
+    The DISFA dataset as described in section \ref{disfa_list} has frames of size $ 1024 \times 764 $
+    but using previous work of Sebastian Kaltwang (See acknowledgements) faces are
+    centered and normalised to give an image of size $118 \times 128$
+    with pixels being integers between
+    0 and 255. An illustration is shown in figure \ref{fig:sebproc}
 
-\begin{figure}[!h] \centering
-\includegraphics[width =\hsize]{figures/seb_preproc.pdf}
-\caption{ {\bf a) b) c)} An example of the original $764 \times 1024$ image with
-the 3 RGB channels displayed seperately. {\bf d)} the resultant image
-$118 \times 128$ after face registration.} \label{fig:sebproc} \end{figure}
+    \begin{figure}[!h] \centering
+    \includegraphics[width =\hsize]{figures/seb_preproc.pdf}
+    \caption{ {\bf a) b) c)} An example of the original $764 \times 1024$ image with
+    the 3 RGB channels displayed seperately. {\bf d)} the resultant image
+    $118 \times 128$ after face registration.} \label{fig:sebproc} \end{figure}
 
-This section defines and visualizes 3 different methods of normalising and scaling
-this data which can be combined to create further methods. In order to illustrate
-the effect of such operations figures such as figure \ref{fig:faces_none} are used which
-show an example face and some statisically generated faces. The ideal method will
-have minimum and maximum faces which express high degrees of facial expression, so that
-high pixel values can easily be correlated to various AU's in the classifier.
+    This section defines and visualizes 3 different methods of normalising and scaling
+    this data which can be combined to create further methods. In order to illustrate
+    the effect of such operations figures such as figure \ref{fig:faces_none} are used which
+    show an example face and some statisically generated faces. The ideal method will
+    have minimum and maximum faces which express high degrees of facial expression, so that
+    high pixel values can easily be correlated to various AU's in the classifier.
 
-Finally some methods for processing the labels are discussed.
+    Finally some methods for processing the labels are discussed.
 
-\section{Methods For Images} \label{sec:methods}
+  \section{Methods For Images} \label{sec:methods}
 
-\begin{figure}[!h] \centering
-\includegraphics[width =\hsize]{figures/faces.pdf}
-\caption{The DISFA dataset with no preprocessing, it shows
-the images at the last stage of figure \ref{fig:sebproc}. Plots {\bf b)}, {\bf c)}, {\bf d)}
-and {\bf e)}
-correspond to the minimum, maximum, mean and standard deviation values of each pixel across
-the whole dataset respectively.} \label{fig:faces_none} \end{figure}
+    \begin{figure}[!h] \centering
+    \includegraphics[width =\hsize]{figures/faces.pdf}
+    \caption{The DISFA dataset with no preprocessing, it shows
+    the images at the last stage of figure \ref{fig:sebproc}. Plots {\bf b)}, {\bf c)}, {\bf d)}
+    and {\bf e)}
+    correspond to the minimum, maximum, mean and standard deviation values of each pixel across
+    the whole dataset respectively.} \label{fig:faces_none} \end{figure}
 
-The preprocessing methods assume that a dataset of a number of subjects
-is described as a matrix of the form:
-\begin{equation}
-{\bf x} \in \mathbb{R}^{N\times X \times Y},\quad {\bf y} \in \mathbb{N}^{N\times F}
-\end{equation}
-Where $\mathbf{x}$ contains the images, $\mathbf{y}$ contains the labels,
-$N$ is the number of images, $X$ is the width of the image, $Y$ is the height of the
-image and $F$ is the number of AU's labeled. Furthermore in some cases an extra dimension
-for the subject may be added:
-\begin{equation}
-{\bf x} \in \mathbb{R}^{S\times N\times X \times Y},\quad {\bf y} \in \mathbb{N}^{S\times N\times F}
-\end{equation}
-Some subjects may have a slightly different number of frames and this is reflected
-in the implementation but not in this section.
+    The preprocessing methods assume that a dataset of a number of subjects
+    is described as a matrix of the form:
+    \begin{equation}
+    {\bf x} \in \mathbb{R}^{N\times X \times Y},\quad {\bf y} \in \mathbb{N}^{N\times F}
+    \end{equation}
+    Where $\mathbf{x}$ contains the images, $\mathbf{y}$ contains the labels,
+    $N$ is the number of images, $X$ is the width of the image, $Y$ is the height of the
+    image and $F$ is the number of AU's labeled. Furthermore in some cases an extra dimension
+    for the subject may be added:
+    \begin{equation}
+    {\bf x} \in \mathbb{R}^{S\times N\times X \times Y},\quad {\bf y} \in \mathbb{N}^{S\times N\times F}
+    \end{equation}
+    Some subjects may have a slightly different number of frames and this is reflected
+    in the implementation but not in this section.
 
-Each preprocessing method will be denoted by a function ${\bf P}$ defined as follows:
-\begin{equation}
-  {\bf P}({\bf x},i) = {\bf x'}_i
-\end{equation}
-For the per subject case:
-\begin{equation}
-  {\bf P}({\bf x},i,s) = {\bf x'}_{si}
-\end{equation}
+    Each preprocessing method will be denoted by a function ${\bf P}$ defined as follows:
+    \begin{equation}
+      {\bf P}({\bf x},i) = {\bf x'}_i
+    \end{equation}
+    For the per subject case:
+    \begin{equation}
+      {\bf P}({\bf x},i,s) = {\bf x'}_{si}
+    \end{equation}
 
-This notation aims to express the fact that each image in the resultant dataset
-may use information from all other frames. In order to compactly express the operations
-we define some statistical operations which clearly show which
+    This notation aims to express the fact that each image in the resultant dataset
+    may use information from all other frames. In order to compactly express the operations
+    we define some statistical operations which clearly show which
 
-\subsection{Contrast Normalisation}
-\begin{figure}[!h]
-\centering
-\includegraphics[width =\hsize]{figures/faces_contrast.pdf}
-\caption{The DISFA dataset with {\bf contrast normalisation}.
-Plots {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)} correspond to the minimum,
-maximum, mean and standard deviation values of each pixel across the whole
-dataset respectively.}
-\label{fig:simple}
-\end{figure}
+    %
+    %
+    %
+    %
+    %
+    \subsection{Contrast Normalisation}
+      \begin{figure}[!h]
+      \centering
+      \includegraphics[width =\hsize]{figures/faces_contrast.pdf}
+      \caption{The DISFA dataset with {\bf contrast normalisation}.
+      Plots {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)} correspond to the minimum,
+      maximum, mean and standard deviation values of each pixel across the whole
+      dataset respectively.}
+      \label{fig:simple}
+      \end{figure}
 
-For each image find the mean pixel value and standard deviation and then subtract the mean
-and divide by the standard deviation. This standardises the amount of contrast in each image.
-\begin{equation}
-   P({\bf x},i)= ({\bf x}_{ijk} - \mu({\bf x}_{i}))/\sigma ({\bf x}_{i}) = {\bf x}_{ijk}'
-   \label{eq:con}
-\end{equation}
-Where $\mu$ and $\sigma$ gives the mean and standard deviation value of a matrix respectively.
-Equation \ref{eq:con} shows this, a disadvantage of this normalisation is that it
-has no regard of facial structures.
-\subsection{Mean Face Normalisation}
-Here the mean face and standard deviation face is subtracted and divided away from the
-image, these faces might be per subject or per dataset, as shown:
-\begin{equation}
-  P({\bf x},i) =  ({\bf x}_{i} - {\boldsymbol \mu}_0( {\bf x}))/{\boldsymbol \sigma}_0({\bf x}_{i})  = {\bf x}_{i}'
-\end{equation}
-\begin{equation}
-  P_s({\bf x},s,i) = ({\bf x}_{si} - {\boldsymbol \mu}_{0,1}( {\bf x}_s))/{\boldsymbol \sigma}_{0,1}( {\bf x}_s))  = {\bf x}_{si}'
-\end{equation}
-Where ${\boldsymbol \mu}_{i,j..}$ denotes the mean over the axes $i,j..$ and
-similarly for ${\boldsymbol \sigma} $ the standard deviation.
-The point of this normalisaiton is to enhance the intensity of any pixels which
-are unusal, these pixels should hold most information about potential facial expressions.
-\begin{figure}[!h] \centering
-\includegraphics[width =\hsize]{figures/faces_per_subject_face.pdf}
-\caption{The DISFA dataset with {\bf per subject mean face normalisation}.
-Plots {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)} correspond to the minimum,
-maximum, mean and standard deviation values of each pixel across the whole
-dataset respectively.}
-\label{fig:}
-\end{figure}
-\subsection{Range Scaling}
-This normalisation stretches the data between -1 and 1, this contains no feature engineering
-intution but is simply another type of normalisation to try.
-\begin{equation}
-  {\boldsymbol r}({\bf x})_{axis} = {\boldsymbol \min}_{axis}({\bf x}) - {\boldsymbol \min}_{axis}({\bf x})
-\end{equation}
-\begin{equation}
-   P({\bf x},i) =
-   \frac{{\bf x}_{i} - \frac{1}{2}\left ( {\boldsymbol \min}_0({\bf x}) + {\boldsymbol \min}_0({\bf x}) \right ) }{\frac{1}{2}{\boldsymbol r}_0({\bf x})}
-   = {\bf x}_{i}'
-\end{equation}
-For the per subject case:
-\begin{equation}
-   P_s({\bf x},i,s) =
-   \frac{{\bf x}_{si} - {\boldsymbol \min}_0({\bf x}_s) - \frac{1}{2}{\boldsymbol r}_0({\bf x}_s) }{\frac{1}{2}{\boldsymbol r}_0({\bf x}_s)}
-   = {\bf x}_{si}'
-\end{equation}
-\begin{figure}[!h] \centering
-\includegraphics[width =\hsize]{figures/faces_range.pdf}
-\caption{The DISFA dataset with {\bf range scaling between -1 and 1}.
-Plots {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)} correspond to the minimum,
-maximum, mean and standard deviation values of each pixel across the whole
-dataset respectively.} \label{fig:simple} \end{figure}
-\subsection{Combining methods}
-Some methods can be combined, figures \ref{fig:faces_contrast_face} and \ref{fig:faces_per_subject_contrast_face}
-shows the result of combining the mean face subtraction and then the
-contrast normalisation (in the per subject and whole set cases respectively). It is clear the effect is to
-reduce the range of the data, which may be useful for the classifier, however parts of the image
-which were all zero are now not which may result in lower performance.
+      For each image find the mean pixel value and standard deviation and then subtract the mean
+      and divide by the standard deviation. This standardises the amount of contrast in each image.
+      \begin{equation}
+         P({\bf x},i)= ({\bf x}_{ijk} - \mu({\bf x}_{i}))/\sigma ({\bf x}_{i}) = {\bf x}_{ijk}'
+         \label{eq:con}
+      \end{equation}
+      Where $\mu$ and $\sigma$ gives the mean and standard deviation value of a matrix respectively.
+      Equation \ref{eq:con} shows this, a disadvantage of this normalisation is that it
+      has no regard of facial structures.
 
-\begin{figure}[!h] \centering
-\includegraphics[width =\hsize]{figures/faces_contrast_face.pdf}
-\caption{The DISFA dataset with {\bf mean face normalisation and then contrast normalisation} applied.
-Plots {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)} correspond to the minimum,
-maximum, mean and standard deviation values of each pixel across the whole
-dataset respectively.} \label{fig:faces_contrast_face} \end{figure}
+    %
+    %
+    %
+    %
+    %
+    \subsection{Mean Face Normalisation} \label{sec:meanface}
+      Here the mean face and standard deviation face is subtracted and divided away from the
+      image, these faces might be per subject or per dataset, as shown:
+      \begin{equation}
+        P({\bf x},i) =  ({\bf x}_{i} - {\boldsymbol \mu}_0( {\bf x}))/{\boldsymbol \sigma}_0({\bf x}_{i})  = {\bf x}_{i}'
+      \end{equation}
+      \begin{equation}
+        P_s({\bf x},s,i) = ({\bf x}_{si} - {\boldsymbol \mu}_{0,1}( {\bf x}_s))/{\boldsymbol \sigma}_{0,1}( {\bf x}_s))  = {\bf x}_{si}'
+      \end{equation}
+      Where ${\boldsymbol \mu}_{i,j..}$ denotes the mean over the axes $i,j..$ and
+      similarly for ${\boldsymbol \sigma} $ the standard deviation.
+      The point of this normalisaiton is to enhance the intensity of any pixels which
+      are unusal, these pixels should hold most information about potential facial expressions.
+      \begin{figure}[!h] \centering
+      \includegraphics[width =\hsize]{figures/faces_per_subject_face.pdf}
+      \caption{The DISFA dataset with {\bf per subject mean face normalisation}.
+      Plots {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)} correspond to the minimum,
+      maximum, mean and standard deviation values of each pixel across the whole
+      dataset respectively.}
+      \label{fig:}
+      \end{figure}
 
-\begin{figure}[!h] \centering
-\includegraphics[width =\hsize]{figures/faces_per_subject_contrast_face.pdf}
-\caption{The DISFA dataset with {\bf per subject mean face normalisation and then contrast normalisation} applied.
-Plots {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)} correspond to the minimum,
-maximum, mean and standard deviation values of each pixel across the whole
-dataset respectively.} \label{fig:faces_per_subject_contrast_face} \end{figure}
+    %
+    %
+    %
+    %
+    %
+    \subsection{Range Scaling}
+      This normalisation stretches the data between -1 and 1, this contains no feature engineering
+      intution but is simply another type of normalisation to try.
+      \begin{equation}
+        {\boldsymbol r}({\bf x})_{axis} = {\boldsymbol \min}_{axis}({\bf x}) - {\boldsymbol \min}_{axis}({\bf x})
+      \end{equation}
+      \begin{equation}
+         P({\bf x},i) =
+         \frac{{\bf x}_{i} - \frac{1}{2}\left ( {\boldsymbol \min}_0({\bf x}) + {\boldsymbol \min}_0({\bf x}) \right ) }{\frac{1}{2}{\boldsymbol r}_0({\bf x})}
+         = {\bf x}_{i}'
+      \end{equation}
+      For the per subject case:
+      \begin{equation}
+         P_s({\bf x},i,s) =
+         \frac{{\bf x}_{si} - {\boldsymbol \min}_0({\bf x}_s) - \frac{1}{2}{\boldsymbol r}_0({\bf x}_s) }{\frac{1}{2}{\boldsymbol r}_0({\bf x}_s)}
+         = {\bf x}_{si}'
+      \end{equation}
+      \begin{figure}[!h] \centering
+      \includegraphics[width =\hsize]{figures/faces_range.pdf}
+      \caption{The DISFA dataset with {\bf range scaling between -1 and 1}.
+      Plots {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)} correspond to the minimum,
+      maximum, mean and standard deviation values of each pixel across the whole
+      dataset respectively.} \label{fig:simple} \end{figure}
 
-\subsection{Masking}
-From figure \ref{fig:faces_none} it is evident some pixels have a maximum and minimum value
-of zero and no deviation. This means there is no information in these areas and hence
-the would ideally not even know about them. If the network was a set of fully connected layers
-these pixels could just be removed from the system, however convolutional layers require
-rectangular inputs and so a solution is to apply a mask at the level of the cost function.
+    %
+    %
+    %
+    %
+    %
+    \subsection{Combining methods}
+      Some methods can be combined, figures \ref{fig:faces_contrast_face} and \ref{fig:faces_per_subject_contrast_face}
+      shows the result of combining the mean face subtraction and then the
+      contrast normalisation (in the per subject and whole set cases respectively). It is clear the effect is to
+      reduce the range of the data, which may be useful for the classifier, however parts of the image
+      which were all zero are now not which may result in lower performance.
 
-As this applies only to the autoencoder who has a cost function (equation \ref{eq:autoencoder_cost}):
-\begin{equation}
-    J(\tilde{\mathbf{x}},\tilde{\mathbf{y}})
-    = \frac{1}{N}\left |\mathbf{y}(\tilde{\mathbf{x}})-\tilde{\mathbf{x}}\right | ^2
-\end{equation}
-Instead becomes:
-\begin{equation}
-    J(\tilde{\mathbf{x}},\tilde{\mathbf{y}})
-    = \frac{1}{N}\left |\mathbf{y}(\tilde{\mathbf{x}}) \odot \mathbf{M}-\tilde{\mathbf{x}}\right | ^2
-\end{equation}
+      \begin{figure}[!h] \centering
+      \includegraphics[width =\hsize]{figures/faces_contrast_face.pdf}
+      \caption{The DISFA dataset with {\bf mean face normalisation and then contrast normalisation} applied.
+      Plots {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)} correspond to the minimum,
+      maximum, mean and standard deviation values of each pixel across the whole
+      dataset respectively.} \label{fig:faces_contrast_face} \end{figure}
 
-Where M is a two dimensional matrix with elements unity where the dataset is nonzero
-and zero when the dataset is zero for that pixel. Here $\odot$ denotes an elementwise
-product between two matrices.
+      \begin{figure}[!h] \centering
+      \includegraphics[width =\hsize]{figures/faces_per_subject_contrast_face.pdf}
+      \caption{The DISFA dataset with {\bf per subject mean face normalisation and then contrast normalisation} applied.
+      Plots {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)} correspond to the minimum,
+      maximum, mean and standard deviation values of each pixel across the whole
+      dataset respectively.} \label{fig:faces_per_subject_contrast_face} \end{figure}
 
-\section{Methods For Labels}
+    %
+    %
+    %
+    %
+    %
+    \subsection{Masking}
+      From figure \ref{fig:faces_none} it is evident some pixels have a maximum and minimum value
+      of zero and no deviation. This means there is no information in these areas and hence
+      the would ideally not even know about them. If the network was a set of fully connected layers
+      these pixels could just be removed from the system, however convolutional layers require
+      rectangular inputs and so a solution is to apply a mask at the level of the cost function.
 
-As breifly discussed earlier in this section, the labels are defined as a matrix:
-\begin{equation}
-  {\bf y} \in \{0,1,2,3,4,5\}^{N\times F}
-\end{equation}
+      As this applies only to the autoencoder who has a cost function (equation \ref{eq:autoencoder_cost}):
+      \begin{equation}
+          J(\tilde{\mathbf{x}},\tilde{\mathbf{y}})
+          = \frac{1}{N}\left |\mathbf{y}(\tilde{\mathbf{x}})-\tilde{\mathbf{x}}\right | ^2
+      \end{equation}
+      Instead becomes:
+      \begin{equation}
+          J(\tilde{\mathbf{x}},\tilde{\mathbf{y}})
+          = \frac{1}{N}\left |\mathbf{y}(\tilde{\mathbf{x}}) \odot \mathbf{M}-\tilde{\mathbf{x}}\right | ^2
+      \end{equation}
 
-Where 5 is the highest intensity for an AU and 0 is the abscence of that AU.
-Typically a neural network outputs values between 0 and 1 so these values are divided by 5 to make them compatible.
-For an intensity estimation problem that is all that is required, however for classification
-the AU labels need to binary and so a threshold is chosen at which an AU is considered present.
-Finally in some cases such as the one described in section \ref{sec:binsoft} the label vector
-needs to be expanded to also contain the negative case for presence, hence doubling its size.
+      Where M is a two dimensional matrix with elements unity where the dataset is nonzero
+      and zero when the dataset is zero for that pixel. Here $\odot$ denotes an elementwise
+      product between two matrices.
 
-\subsection{Train, Test and Validation set split}
+  \section{Methods For Labels}
 
-Splitting the data is important, this is how it was done.
-\subsubsection{Splitting Method 1} \label{sec:splitting}
-\begin{table}[h!]
-  \centering
-  \begin{tabular}{|l|l|}
-  \hline
-  set & subjects   \\
-  \hline
-   Train          & 2,4,6,8,10,12,16,18,23,25,27,29,31      \\
-  \hline
-  Validation      & 1,3,5,7,9,11,13,17,21,24,26,28,30,32 minus test set     \\
-  \hline
-  Test           & 500 chosen randomly taken from validation set      \\
- \hline
-  \end{tabular}
-  \caption{Typical split of the DISFA dataset for experimentation perposes}
-  \label{sec:splitting}
-\end{table}
+    As breifly discussed earlier in this section, the labels are defined as a matrix:
+    \begin{equation}
+      {\bf y} \in \{0,1,2,3,4,5\}^{N\times F}
+    \end{equation}
+
+    Where 5 is the highest intensity for an AU and 0 is the abscence of that AU.
+    Typically a neural network outputs values between 0 and 1 so these values are divided by 5 to make them compatible.
+    For an intensity estimation problem that is all that is required, however for classification
+    the AU labels need to binary and so a threshold is chosen at which an AU is considered present.
+    Finally in some cases such as the one described in section \ref{sec:binsoft} the label vector
+    needs to be expanded to also contain the negative case for presence, hence doubling its size.
+
+    \subsection{Train, Test and Validation set split}
+      Splitting the data is important, this is how it was done.
+      \subsubsection{Splitting Method 1} \label{sec:splitting}
+        \begin{table}[h!]
+          \centering
+          \begin{tabular}{|l|l|}
+          \hline
+          set & subjects   \\
+          \hline
+           Train          & 2,4,6,8,10,12,16,18,23,25,27,29,31      \\
+          \hline
+          Validation      & 1,3,5,7,9,11,13,17,21,24,26,28,30,32 minus test set     \\
+          \hline
+          Test           & 500 chosen randomly taken from validation set      \\
+         \hline
+          \end{tabular}
+          \caption{Typical split of the DISFA dataset for experimentation perposes}
+          \label{sec:splitting}
+        \end{table}

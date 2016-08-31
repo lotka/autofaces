@@ -1,4 +1,4 @@
-\documentclass[8pt,twoside]{report}
+\documentclass[7pt,twoside]{report}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -6,7 +6,7 @@
 % Edit these to provide the correct information
 % e.g. \newcommand{\reportauthor}{Timothy Kimber}
 
-\newcommand{\reporttitle}{Autofaces}
+\newcommand{\reporttitle}{Combining Autoencoding and Classifying Neural Networks for Joint Facial Action Unit Recognition}
 \newcommand{\reportauthor}{Luka Milic}
 \newcommand{\supervisor}{Sebastian Kaltzwang and Maja Pantic}
 \newcommand{\degreetype}{Computing Science}
@@ -33,19 +33,23 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-  Deep neural networks typically require large amounts of labelled data to make useful
-  predictions, however in most domains this data is rare and mainly unlabelled.
-  This project aims to incorporate that unlabelled data into a deep learning algorithm.
-  A network with an autoencoder and classifier is proposed to be able to simultaneously
-  learn from labelled and unlabelled data in a semi-supervised way. Detecting
-  facial actions units is the chosen domain to benchmark this approach, with
-  the DISFA dataset being used for preliminary experiments.
+  % Datasets which contain labels of Facial Action Units (FACS) typically have
+  % many unlabelled frames representing of neutral expressions. Training neural networks
+  % on such datasets hence presents a challenge, as they typically require many labelled
+  % examples. With this motivation a structure with both an autoencoding and classifer branch
+  % is proposed and is extensively evaluated with a multitude of image preprocessing techniques.
+  % The result is a slight improvement in the classification performance over the classifier only
+  % version, furthermore the effect of dropout, L2 Regulurastion, denoising and local contrast
+  % normalisation on the interaction between autoencoder and classifier are explored.
+  % This is
+
+  Autoencoders and classifiers can be constructed with neural networks and their combined training is of interest for improving classification results particuarly in sparsely labelled datasets. Datasets which have Facial Action units are in such a category and the DISFA dataset is used as a benchmark. The construction of a convolutional neural network with both structures is explored while utilising techniques such as dropout, local contrast normalisaiton and denoising autoencoders. Various transfer functions which govern the amount of training priority that the autoencoder and classifier branches recieve are tested and some improvemets in classification performance are observed.
 \end{abstract}
 
 \cleardoublepage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{Acknowledgements}
-Sebastian - Doing face detection on the DISFA images.
+Thanks to Sebastian Kaltzwang for
 
 \clearpage{\pagestyle{empty}\cleardoublepage}
 
