@@ -1,3 +1,4 @@
+__*
 *.aux
 *~
 *.pdf
@@ -12,3 +13,4 @@ MNIST_data/
 *mnist_logs*
 *.dropbox*
 doc/
+.idea
