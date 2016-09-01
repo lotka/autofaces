@@ -1,35 +1,37 @@
-\backcite {S.ZafeiriouA.PapaioannouI.KotsiaM.A.Nicolaou}{{1}{1.1}{section.4}}
-\backcite {Corneanu2016}{{1}{1.1}{figure.caption.5}}
-\backcite {disfa}{{3}{2.1}{section.10}}
-\backcite {Lucey2010}{{3}{2.1}{section.10}}
-\backcite {Valstar}{{3}{2.1}{section.10}}
-\backcite {tfd}{{3}{2.1}{section.10}}
-\backcite {semaine}{{3}{2.1}{section.10}}
-\backcite {disfa}{{3}{2.2}{section.11}}
-\backcite {Gudi2015,Ghosh2015,dodeeplearn}{{5}{2.3}{section.14}}
-\backcite {emonet,Jaiswal2016}{{5}{2.3}{section.14}}
-\backcite {Ghosh2015}{{5}{2.3}{section*.15}}
-\backcite {precogbook}{{5}{2.3}{section*.15}}
-\backcite {Gudi2015}{{5}{2.3}{section*.15}}
-\backcite {dodeeplearn}{{5}{2.3}{section*.15}}
-\backcite {Jaiswal2016}{{5}{2.3}{section*.15}}
-\backcite {Gudi2015}{{5}{2.3}{section*.15}}
-\backcite {Ghosh2015}{{6}{\caption@xref {??}{ on input line 130}}{table.caption.16}}
-\backcite {Gudi2015}{{6}{\caption@xref {??}{ on input line 130}}{table.caption.16}}
-\backcite {dodeeplearn}{{6}{\caption@xref {??}{ on input line 130}}{table.caption.16}}
-\backcite {Jaiswal2016}{{6}{\caption@xref {??}{ on input line 130}}{table.caption.16}}
-\backcite {Ghosh2015}{{6}{\caption@xref {??}{ on input line 169}}{table.caption.17}}
-\backcite {Gudi2015}{{6}{\caption@xref {??}{ on input line 169}}{table.caption.17}}
-\backcite {dodeeplearn}{{6}{\caption@xref {??}{ on input line 169}}{table.caption.17}}
-\backcite {Jaiswal2016}{{6}{\caption@xref {??}{ on input line 169}}{table.caption.17}}
-\backcite {Ghosh2015}{{6}{\caption@xref {??}{ on input line 183}}{table.caption.18}}
-\backcite {Gudi2015}{{6}{\caption@xref {??}{ on input line 183}}{table.caption.18}}
-\backcite {dodeeplearn}{{6}{\caption@xref {??}{ on input line 183}}{table.caption.18}}
-\backcite {Jaiswal2016}{{6}{\caption@xref {??}{ on input line 183}}{table.caption.18}}
-\backcite {Amari1993}{{8}{3.2.1}{equation.33}}
-\backcite {Springenberg2015}{{9}{3.2.3}{subsection.36}}
-\backcite {autong}{{10}{3.2.8}{equation.46}}
-\backcite {Kingma2013}{{10}{3.2.8}{equation.46}}
-\backcite {stacks}{{10}{3.2.9}{subsection.47}}
-\backcite {Dosovitskiy2015}{{10}{3.2.10}{subsection.48}}
-\backcite {tensorflow}{{12}{4.1}{section.57}}
+\backcite {S.ZafeiriouA.PapaioannouI.KotsiaM.A.Nicolaou}{{1}{1.1}{section.3}}
+\backcite {Corneanu2016}{{1}{1.1}{section.3}}
+\backcite {disfa}{{3}{2.1}{section.9}}
+\backcite {Lucey2010}{{3}{2.1}{section.9}}
+\backcite {Valstar}{{3}{2.1}{section.9}}
+\backcite {tfd}{{3}{2.1}{section.9}}
+\backcite {semaine}{{3}{2.1}{section.9}}
+\backcite {disfa}{{3}{2.2}{section.10}}
+\backcite {Gudi2015,Ghosh2015,dodeeplearn}{{5}{2.3}{section.13}}
+\backcite {emonet,Jaiswal2016}{{5}{2.3}{section.13}}
+\backcite {Ghosh2015}{{5}{2.3}{section*.14}}
+\backcite {precogbook}{{5}{2.3}{section*.14}}
+\backcite {Gudi2015}{{5}{2.3}{section*.14}}
+\backcite {dodeeplearn}{{5}{2.3}{section*.14}}
+\backcite {Jaiswal2016}{{5}{2.3}{section*.14}}
+\backcite {Gudi2015}{{5}{2.3}{section*.14}}
+\backcite {Ghosh2015}{{6}{\caption@xref {??}{ on input line 129}}{table.caption.15}}
+\backcite {Gudi2015}{{6}{\caption@xref {??}{ on input line 129}}{table.caption.15}}
+\backcite {dodeeplearn}{{6}{\caption@xref {??}{ on input line 129}}{table.caption.15}}
+\backcite {Jaiswal2016}{{6}{\caption@xref {??}{ on input line 129}}{table.caption.15}}
+\backcite {Ghosh2015}{{7}{\caption@xref {??}{ on input line 168}}{table.caption.16}}
+\backcite {Gudi2015}{{7}{\caption@xref {??}{ on input line 168}}{table.caption.16}}
+\backcite {dodeeplearn}{{7}{\caption@xref {??}{ on input line 168}}{table.caption.16}}
+\backcite {Jaiswal2016}{{7}{\caption@xref {??}{ on input line 168}}{table.caption.16}}
+\backcite {Ghosh2015}{{7}{\caption@xref {??}{ on input line 182}}{table.caption.17}}
+\backcite {Gudi2015}{{7}{\caption@xref {??}{ on input line 182}}{table.caption.17}}
+\backcite {dodeeplearn}{{7}{\caption@xref {??}{ on input line 182}}{table.caption.17}}
+\backcite {Jaiswal2016}{{7}{\caption@xref {??}{ on input line 182}}{table.caption.17}}
+\backcite {Girshick2014,Krizhevsky2012}{{8}{3.1}{section.19}}
+\backcite {Jaiswal2016}{{8}{3.1}{section.19}}
+\backcite {Amari1993}{{9}{3.2.1}{equation.32}}
+\backcite {Springenberg2015}{{10}{3.2.3}{subsection.35}}
+\backcite {autong}{{11}{3.2.8}{equation.45}}
+\backcite {Kingma2013}{{11}{3.2.8}{equation.45}}
+\backcite {stacks}{{11}{3.2.9}{subsection.46}}
+\backcite {Dosovitskiy2015}{{11}{3.2.10}{subsection.47}}
+\backcite {tensorflow}{{13}{4.1}{section.56}}

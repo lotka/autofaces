@@ -1,132 +1,143 @@
 \chapter{Deep Learning Background} \label{chapter:deep}
   \section{Introduction}
-    pass
+    Deep learning algorithms have recently been applied to image classification
+    and object detection tasks with lots of success. \cite{Girshick2014,Krizhevsky2012}
+    Three main factors have been instrumental in making this happen \cite{Jaiswal2016}:
+    \begin{itemize}
+      \item Efficient methods to train deep artificial neural networks
+      \item Improved parallel processing hardware such as GPU's
+      \item An abundance of labelled data
+    \end{itemize}
+    This development has moved the focus of classification tasks away from feature engineering,
+    which seeks to find general methods of quantifying and locating features in image data, to
+    architecture design\ref{StephenMerity2016}, where the primary concern is the structure and size of the neural network that has to
+    learn the desired task.
   \section{Model Components}
     \subsection{Artificial Neural Networks}
-  An artificial neuron is a function which takes in a vector of inputs, computes their
-  weighted sum and applies a non-linearity as follows:
-  \begin{equation}
-    a(\mathbf{x}) = \sigma \left ( \sum_{i=1}^N w_ix_i + b \right )
-  \end{equation}
-  Here $\sigma$ is a scalar function, $w_i$ is a scalar weight and $b$ is its bias. $N$ is the size of the input and weight vector.
-  These neurons can be combined into layered networks to construct artificial neural networks.
-  The weights $w$ can then be rewritten as matrices $\mathbf{W}$ which define how
-  activations from one layer are transferred to the next\footnote{Note: when a vector
-  is put into a scalar function it is assumed that it acts on each element of
-  the vector. The only exception is with the softmax.}.
-  \begin{equation}
-    \mathbf{a}(\mathbf{x}) = \mathbf{\sigma} \left ( \mathbf{W}\mathbf{x} + \mathbf{b} \right ) \label{eq:softmax}
-  \end{equation}
+      An artificial neuron is a function which takes in a vector of inputs, computes their
+      weighted sum and applies a non-linearity as follows:
+      \begin{equation}
+        a(\mathbf{x}) = \sigma \left ( \sum_{i=1}^N w_ix_i + b \right )
+      \end{equation}
+      Here $\sigma$ is a scalar function, $w_i$ is a scalar weight and $b$ is its bias. $N$ is the size of the input and weight vector.
+      These neurons can be combined into layered networks to construct artificial neural networks.
+      The weights $w$ can then be rewritten as matrices $\mathbf{W}$ which define how
+      activations from one layer are transferred to the next\footnote{Note: when a vector
+      is put into a scalar function it is assumed that it acts on each element of
+      the vector. The only exception is with the softmax.}.
+      \begin{equation}
+        \mathbf{a}(\mathbf{x}) = \mathbf{\sigma} \left ( \mathbf{W}\mathbf{x} + \mathbf{b} \right ) \label{eq:softmax}
+      \end{equation}
 
-  Popular activation functions include:
-  \begin{multicols}{2}
-
-
-    \begin{equation}
-      \text{The sigmoid:}\quad
-      \sigma (x) = \frac{1}{1-e^{-x}} \label{eq:sigmoid}
-    \end{equation}
+      Popular activation functions include:
+      \begin{multicols}{2}
 
 
-    \begin{equation}
-      \text{The ReLU:}\quad
-      \sigma(x) =
-      \begin{cases}
-        x & x\geq 0 \\
-        0 & x < 0
-      \end{cases}
-    \end{equation}
+        \begin{equation}
+          \text{The sigmoid:}\quad
+          \sigma (x) = \frac{1}{1-e^{-x}} \label{eq:sigmoid}
+        \end{equation}
 
 
-    \begin{equation}
-      \text{Hyperbolic tan:}\quad
-      \sigma(x)=\frac{e^x - e^{-x}}{e^x + e^{-x}}
-    \end{equation}
+        \begin{equation}
+          \text{The ReLU:}\quad
+          \sigma(x) =
+          \begin{cases}
+            x & x\geq 0 \\
+            0 & x < 0
+          \end{cases}
+        \end{equation}
 
 
-    \begin{equation}
-      \text{The softmax:}\quad
-      \sigma(\mathbf{x})_j = \frac{e^{x_j}}{\sum_i e^{x_i}}
-    \end{equation}
+        \begin{equation}
+          \text{Hyperbolic tan:}\quad
+          \sigma(x)=\frac{e^x - e^{-x}}{e^x + e^{-x}}
+        \end{equation}
 
 
-  \end{multicols}
-
-  \begin{figure} \label{disfagraph}
-    \center
-    \includegraphics[width=.5\textwidth]{../graphs/actfuncs.pdf}
-    \caption{Comparison of common activation functions for neural networks}
-  \end{figure}
+        \begin{equation}
+          \text{The softmax:}\quad
+          \sigma(\mathbf{x})_j = \frac{e^{x_j}}{\sum_i e^{x_i}}
+        \end{equation}
 
 
+      \end{multicols}
 
-  An $N$ layer network can
-  then be thought of as a function with a recursive structure (these are also known as fully connected layers):
-  \begin{equation}
-    \mathbf{y} = \mathbf{a}_{N}(\mathbf{a}_{l-1}(...\mathbf{a}_1(\mathbf{x})...))
-  \end{equation}
-  Now assuming there exists a set of $\tilde{\mathbf{x}}$ and $\tilde{\mathbf{y}}$ which make
-  up a training data set, these could be sets of images and labels, then a cost function
-  to optimise can be defined:
-  \begin{equation}
-    J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = \frac{1}{N}\left |\mathbf{y}(\tilde{\mathbf{x}})-\tilde{\mathbf{y}}\right | ^2
-  \end{equation}
-  this is called the least mean squared error, another popular cost function is
-  the cross entropy:
-  \begin{equation}
-    J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = -\frac{1}{N}\tilde{\mathbf{y}}\cdot\log(\mathbf{y}(\tilde{\mathbf{x}}))
-  \end{equation}
-
-  The derivative of these cost functions can then be computed in order to minimise it.
-  The simplest way is to do this is per training example, however stochastic gradient
-  descent\cite{Amari1993} has emerged as a superior method. Simply put it computes the gradient with respect
-  to many randomly drawn samples, it has the advantage of following a smoother path
-  towards the local minimum.
-  \subsection{Convolutional Layers}
-  A convolutional layer is a generalisation of simple fully connected layers described
-  above. It consists of a set of $K$ filters of size $m\times m$, which are applied to the input to produce
-  a set of $K$ outputs. The filters are applied with a 2D convolution.
+      \begin{figure} \label{disfagraph}
+        \center
+        \includegraphics[width=.5\textwidth]{../graphs/actfuncs.pdf}
+        \caption{Comparison of common activation functions for neural networks}
+      \end{figure}
 
 
-  To describe them, firstly assume that any vector described in the previous section
-  can also be rewritten as a matrix, i.e $\mathbf{x} \in \mathbb{R}^{n}
-  \rightarrow \mathbf{x} \in \mathbb{R}^{N \times M} \quad NM=n$, in practice this is made
-  easy by using numbers which factorise well.
 
-  Then the following equation describes the output of a convolutional layer:
-  \begin{equation} \label{CNN}
-    \mathbf{a}(\mathbf{x})_{ijk} = \sigma \left ( \sum_{a=0}^{m-1}\sum_{b=0}^{m-1}(w_{abk}x_{(i+a)(j+b)k}) + b_k \right )
-  \end{equation}
-  Here $i,j$  denote row, column indices for the matrix (image) $\mathbf{x}$, $k$ is the filter index, $w_{abk}$
-  gives the filter element and $b_k$ is the bias for that filter. This is done for all $K$ filters.
+      An $N$ layer network can
+      then be thought of as a function with a recursive structure (these are also known as fully connected layers):
+      \begin{equation}
+        \mathbf{y} = \mathbf{a}_{N}(\mathbf{a}_{l-1}(...\mathbf{a}_1(\mathbf{x})...))
+      \end{equation}
+      Now assuming there exists a set of $\tilde{\mathbf{x}}$ and $\tilde{\mathbf{y}}$ which make
+      up a training data set, these could be sets of images and labels, then a cost function
+      to optimise can be defined:
+      \begin{equation}
+        J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = \frac{1}{N}\left |\mathbf{y}(\tilde{\mathbf{x}})-\tilde{\mathbf{y}}\right | ^2
+      \end{equation}
+      this is called the least mean squared error, another popular cost function is
+      the cross entropy:
+      \begin{equation}
+        J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = -\frac{1}{N}\tilde{\mathbf{y}}\cdot\log(\mathbf{y}(\tilde{\mathbf{x}}))
+      \end{equation}
 
-  One issue is how to deal with indices which are out of bounds, SAME padding can be used which sets out of bounds
-  elements to zero and so preserves the image size or VALID can be used, this keeps the filter within the bounds of the
-  image and hence the output is of a smaller dimension. Lastly a stride greater than 1 can be incorporated into equation
-  \ref{CNN} meaning that $\mathbf{a}$ is only computed for a fraction of indices $i,j$.
-  % \begin{equation}
-  % 	C : \mathbb{R}^{n\times m \times p \times l} \rightarrow \mathbb{R}^{N\times M \times l \times K}
-  % \end{equation}
-  %con%
-  \subsection{Max Pooling Layers}
-  A max pooling layer simply splits its input into a set of sections and extracts
-  the highest value from each. It is a simple but effective method to down sample
-  an image, it helps to keep the computational overhead of these algorithms
-  down. However a recent trend \cite{Springenberg2015} has emerged where max pooling
-  layers are not used, instead a convolutional layer with a large stride accomplishes
-  the same amount of down-sampling.
+      The derivative of these cost functions can then be computed in order to minimise it.
+      The simplest way is to do this is per training example, however stochastic gradient
+      descent\cite{Amari1993} has emerged as a superior method. Simply put it computes the gradient with respect
+      to many randomly drawn samples, it has the advantage of following a smoother path
+      towards the local minimum.
+    \subsection{Convolutional Layers}
+      A convolutional layer is a generalisation of simple fully connected layers described
+      above. It consists of a set of $K$ filters of size $m\times m$, which are applied to the input to produce
+      a set of $K$ outputs. The filters are applied with a 2D convolution.
+
+
+      To describe them, firstly assume that any vector described in the previous section
+      can also be rewritten as a matrix, i.e $\mathbf{x} \in \mathbb{R}^{n}
+      \rightarrow \mathbf{x} \in \mathbb{R}^{N \times M} \quad NM=n$, in practice this is made
+      easy by using numbers which factorise well.
+
+      Then the following equation describes the output of a convolutional layer:
+      \begin{equation} \label{CNN}
+        \mathbf{a}(\mathbf{x})_{ijk} = \sigma \left ( \sum_{a=0}^{m-1}\sum_{b=0}^{m-1}(w_{abk}x_{(i+a)(j+b)k}) + b_k \right )
+      \end{equation}
+      Here $i,j$  denote row, column indices for the matrix (image) $\mathbf{x}$, $k$ is the filter index, $w_{abk}$
+      gives the filter element and $b_k$ is the bias for that filter. This is done for all $K$ filters.
+
+      One issue is how to deal with indices which are out of bounds, SAME padding can be used which sets out of bounds
+      elements to zero and so preserves the image size or VALID can be used, this keeps the filter within the bounds of the
+      image and hence the output is of a smaller dimension. Lastly a stride greater than 1 can be incorporated into equation
+      \ref{CNN} meaning that $\mathbf{a}$ is only computed for a fraction of indices $i,j$.
+      % \begin{equation}
+      % 	C : \mathbb{R}^{n\times m \times p \times l} \rightarrow \mathbb{R}^{N\times M \times l \times K}
+      % \end{equation}
+      %con%
+    \subsection{Max Pooling Layers}
+      A max pooling layer simply splits its input into a set of sections and extracts
+      the highest value from each. It is a simple but effective method to down sample
+      an image, it helps to keep the computational overhead of these algorithms
+      down. However a recent trend \cite{Springenberg2015} has emerged where max pooling
+      layers are not used, instead a convolutional layer with a large stride accomplishes
+      the same amount of down-sampling.
     \subsection{Cost Functions}
       pass
     \subsection{Training algorithms}
       pass
-      \subsubsection{Gradient Descent}
-        pass
-      \subsubsection{Stochastic Gradient Descent}
-        pass
-      \subsubsection{Adam}
-        pass
-      \subsubsection{Comparison}
-        pass
+    \subsubsection{Gradient Descent}
+      pass
+    \subsubsection{Stochastic Gradient Descent}
+      pass
+    \subsubsection{Adam}
+      pass
+    \subsubsection{Comparison}
+      pass
     \subsection{Regularisers}
       pass
     \subsection{Dropout Layers} \label{sec:dropout}
@@ -175,7 +186,7 @@
       a convolutional autoencoder can be constructed.
     \subsection{LRN}
       pass
-  \section{Model Evaluation}
+  \section{Model Evaluation} \label{sec:eval}
     With any kind of classification model it is crucial to be able to evaluate its
     performance in a standard and reproducible way. For the problem of classifying
     AUs the simplest case is to split the problem into a set of $n_C$ decision problems
@@ -240,16 +251,3 @@
         $0.9 \leq ROC \leq 1.0$   & Great              \\ \hline
       \end{tabular}
     \end{table}
-
-
-
-    % if roc < 0.6:
-    %     return 'fail'
-    % elif roc < 0.7:
-    %     return 'poor'
-    % elif roc < 0.8:
-    %     return 'fair'
-    % elif roc < 0.9:
-    %     return 'good'
-    % else:
-    %     return 'great'

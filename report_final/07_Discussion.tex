@@ -1,15 +1,20 @@
 \chapter{Discussion}
-\section{Eval}
-\section{Things to do better}
+  Limitations of a network which has no concept of time.
 
+  Maybe CNN isn't the right tool for the job here
+  Should have just used a slightly deep fully connected network
+  with loads of dropout, noise and shit.
 
-Maybe CNN isn't the right tool for the job here
-Should have just used a slightly deep fully connected network
-with loads of dropout, noise and shit.
+  Maybe doing the preprocessing before the reszie is better than what I'm doing,
+  and should max pool instead of resize.
 
-Maybe doing the preprocessing before the reszie is better than what I'm doing,
-and maybe the resize should be a max pool.
+  Databalancing and cropping techniques would have helped.
 
-Databalancing and cropping techniques
+  Joint versus stacked training of the autoencoder.
 
-Joint versus stacked training of the autoencoder.
+  I really wish I had taken exisiting good networks and adapted them instead of doing
+  everything from scartch.
+
+  Is there enough variance in the data?
+
+  Could including other datasets help? Fusing datasources etc.

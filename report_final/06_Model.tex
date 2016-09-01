@@ -1,4 +1,4 @@
-\chapter{Modelling DISFA}
+\chapter{Modelling DISFA} \label{sec:model}
   This chapter details the path followed in exploring different network structures
   and using quantitative results to make design decisions.
   The most important metric for a network will be the Average ROC score of the classifier
@@ -319,9 +319,9 @@
     \multicolumn{1}{|l|}{$L_4$}   & fc       & \multicolumn{1}{l|}{$3000\times30976$}              &          & \multicolumn{1}{l|}{}            \\
     \multicolumn{1}{|l|}{$y_4$}   &          & \multicolumn{1}{l|}{$3000$}                         &          & \multicolumn{1}{l|}{}            \\ \hline
     \multicolumn{1}{|l|}{$L_5$}   & resize\& reshape & \multicolumn{1}{l|}{$2$}                    &          & \multicolumn{1}{l|}{}            \\
-    \multicolumn{1}{|l|}{$y_5$}   &          & \multicolumn{1}{l|}{$43\times43\times 64$}          &          & \multicolumn{1}{l|}{}            \\ \hline
+    \multicolumn{1}{|l|}{$y_5$}   &            & \multicolumn{1}{l|}{$43\times43\times 64$}          &          & \multicolumn{1}{l|}{}            \\ \hline
     \multicolumn{1}{|l|}{$L_6$}   & deconv 1   & \multicolumn{1}{l|}{$5\times 5\times1\times 64$}  &          & \multicolumn{1}{l|}{}            \\
-    \multicolumn{1}{|l|}{$y_6$}   &          & \multicolumn{1}{l|}{$47\times47\times1$}            &          & \multicolumn{1}{l|}{}             \\ \hline
+    \multicolumn{1}{|l|}{$y_6$}   &            & \multicolumn{1}{l|}{$47\times47\times1$}            &          & \multicolumn{1}{l|}{}             \\ \hline
     \end{tabular}
 
     \caption{A network used many times in the report, for further details see appendix \ref{appendix1}} \label{compnet}
@@ -334,7 +334,7 @@
     %
     %
     %
-    \subsection{Preprocessing search} \label{sec:psearc}
+    \subsection{Preprocessing methods} \label{sec:psearc}
 
       With the goal of creating the AEC network we performed a search on some hyperparameters
       including the preprocessing method from section \ref{sec:methods} and on the 4 main activation functions
@@ -383,19 +383,19 @@
          28& Contrast Face    & sigmoid &    0.44 &   0.19 &     0.25 &    0.71 &   0.34 &     0.26 \\
          \hline
         \end{tabular}
-      \caption{Comparison of four activation functions for the autoencoder for each type of preprocessing method.
-      No significant difference is seen between the activation functions apart from with the sigmoid
-      which makes training the classifier fail competely.
-      Error values are required because tensorflow does implement fully determinsitic
-      processing with GPU cards (see section \ref{sec:GPU} the values in the errors were
-      calculated by rerunning experiment 13 5 times. The autoencoder losses were caluclated
-      by first appyling the inverse transform of the preprocessing method and then taking the mean squared
-      difference between the reconstructed image and original image. {\bf Experimental Configuration:}
-      The alpha function is $\alpha(t)=\alpha_{\text{step}}(t,0.5,1000)$.
-      meaning the autoencoder training runs for 500 iterations and then the classifier for 500.
-      The network is described in table \ref{compnet} and the training datasets are split in half as in section
-      \ref{sec:splitting}.
-      } \label{tab:psearch} }
+          \caption{Comparison of four activation functions for the autoencoder for each type of preprocessing method.
+          No significant difference is seen between the activation functions apart from with the sigmoid
+          which makes training the classifier fail competely.
+          Error values are required because tensorflow does implement fully determinsitic
+          processing with GPU cards (see section \ref{sec:GPU} the values in the errors were
+          calculated by rerunning experiment 13 5 times. The autoencoder losses were caluclated
+          by first appyling the inverse transform of the preprocessing method and then taking the mean squared
+          difference between the reconstructed image and original image. {\bf Experimental Configuration:}
+          The alpha function is $\alpha(t)=\alpha_{\text{step}}(t,0.5,1000)$.
+          meaning the autoencoder training runs for 500 iterations and then the classifier for 500.
+          The network is described in table \ref{compnet} and the training datasets are split in half as in section
+          \ref{sec:splitting}.}
+      \label{tab:psearch} }
       \end{table}
 
       The highest ROC and F1 score is found in experiment 13 in table \ref{tab:psearch}. Experiment 12
@@ -480,7 +480,7 @@
        6 & 4 & 0  &    0.42 &   0.19 &     0.03 &    0.78 &   0.42 &     1.37 \\
        7 & 4 & 1  &    0.52 &   0.19 &     0.03 &    0.79 &   0.44 &     1.02 \\
        8 & 4 & 2  &    0.52 &   0.19 &     0.03 &    0.8  &   0.44 &     0.88 \\
-       \hline
+      \hline
       \end{tabular}}\caption{Results for applying local contrast normalisation layers
       for the three test networks. {\bf Experimental Configuration:} see caption
       for table \ref{tab:sharedweights}}\label{tab:lrn}  \end{table}
@@ -501,31 +501,31 @@
 
       Is this directly comparable to the above? Talk about the errror.
       \begin{table}[!h] \centering
-      {\small
-      \begin{tabular}{rllrrrrrrrr}
-        &&& &  \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{3}{c|}{Classifier Training}    \\
-      \hline
-         i & network             &   it &   dp &   ROC&F1&AE Loss & ROC & F1 & AE Loss \\
-      \hline
-         1 & 4 & 1500 &  1   &    0.6  &   0.19 &     0.03 &    0.78 &   0.42 &     1.03 \\
-         3 & 4 & 1500 &  0.9 &    0.63 &   0.19 &     0.03 &    0.71 &   0.35 &     0.15 \\
-         2 & 4 & 1500 &  0.8 &    0.5  &   0.19 &     0.03 &    0.73 &   0.36 &     0.08 \\
-      \hline
-         4 & 4 & 2000 &  0.8 &    0.52 &   0.19 &     0.03 &    0.77 &   0.38 &     1.01 \\
-      \hline
-         5 & 3 & 1500 &  1   &    0.51 &   0.19 &     0.02 &    0.81 &   0.46 &     0.21 \\
-         6 & 3 & 1500 &  0.9 &    0.51 &   0.19 &     0.02 &    0.81 &   0.46 &     0.25 \\
-         7 & 3 & 1500 &  0.8 &    0.49 &   0.19 &     0.03 &    0.82 &   0.46 &     0.13 \\
-      \hline
-         8 & 3 & 2000 &  0.8 &    0.57 &   0.19 &     0.02 &    0.81 &   0.44 &     0.33 \\
-      \hline
-         9 & 2  & 1500 &  1   &    0.49 &   0.19 &     0.02 &    0.8  &   0.47 &     0.12 \\
-        10 & 2  & 1500 &  0.9 &    0.49 &   0.19 &     0.03 &    0.8  &   0.47 &     0.11 \\
-        11  & 2 & 1500 &  0.8 &    0.52 &   0.19 &     0.03 &    0.82 &   0.48 &     0.08 \\
-      \hline
-        12  & 2 & 2000 &  0.8 &    0.52 &   0.19 &     0.03 &    0.8  &   0.46 &     0.11 \\
-      \hline
-      \end{tabular}}\caption{} \label{tab:pseaafasfrch} \end{table}
+      	{\small
+      		\begin{tabular}{rllrrrrrrrr}
+      			&&& &  \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{3}{c|}{Classifier Training}    \\
+      			\hline
+      			i  & network & it   & dp  & ROC  & F1   & AE Loss & ROC  & F1   & AE Loss \\
+      			\hline
+      			9  & 2       & 1500 & 1   & 0.49 & 0.19 & 0.02    & 0.8  & 0.47 & 0.12    \\
+      			10 & 2       & 1500 & 0.9 & 0.49 & 0.19 & 0.03    & 0.8  & 0.47 & 0.11    \\
+      			11 & 2       & 1500 & 0.8 & 0.52 & 0.19 & 0.03    & 0.82 & 0.48 & 0.08    \\
+      			\hline
+      			12 & 2       & 2000 & 0.8 & 0.52 & 0.19 & 0.03    & 0.8  & 0.46 & 0.11    \\
+      			\hline
+      			5  & 3       & 1500 & 1   & 0.51 & 0.19 & 0.02    & 0.81 & 0.46 & 0.21    \\
+      			6  & 3       & 1500 & 0.9 & 0.51 & 0.19 & 0.02    & 0.81 & 0.46 & 0.25    \\
+      			7  & 3       & 1500 & 0.8 & 0.49 & 0.19 & 0.03    & 0.82 & 0.46 & 0.13    \\
+      			\hline
+      			8  & 3       & 2000 & 0.8 & 0.57 & 0.19 & 0.02    & 0.81 & 0.44 & 0.33    \\
+      			\hline
+      			1  & 4       & 1500 & 1   & 0.6  & 0.19 & 0.03    & 0.78 & 0.42 & 1.03    \\
+      			3  & 4       & 1500 & 0.9 & 0.63 & 0.19 & 0.03    & 0.71 & 0.35 & 0.15    \\
+      			2  & 4       & 1500 & 0.8 & 0.5  & 0.19 & 0.03    & 0.73 & 0.36 & 0.08    \\
+      			\hline
+      			4  & 4       & 2000 & 0.8 & 0.52 & 0.19 & 0.03    & 0.77 & 0.38 & 1.01    \\
+      			\hline
+      		\end{tabular}}\caption{} \label{tab:pseaafasfrch} \end{table}
 
 
       \newpage
@@ -555,6 +555,14 @@
       \end{figure}
 
     \newpage
+
+    %
+    %
+    %
+    %
+    %
+    %
+    \section{Denoising autoencoders}
   %
   %
   %
@@ -562,29 +570,36 @@
   %
   %
   \section{Autoencoder transfer functions}
-    \todo{Really need to add step function to this section}
     \begin{table}[!h] { \small \centering
-      \begin{tabular}{rrrrrrrrrrrr}
-        &&&&& &  \multicolumn{3}{|c|}{Early Model} &  \multicolumn{3}{c|}{Final Model}    \\
-        \hline
-         i & Network                 & alpha    &   Iterations &   Early Iteration &   dp &   e roc &   e f1 &   e auto &   f roc &   f f1 &   f auto \\
-         \hline
-         1 & 2 & constant & 1500 &   750 &  0.8 &    0.81 &   0.48 &     0.03 &    0.8  &   0.46 &     0.03 \\
-         2 & 2 & sigmoid  & 1500 &  1000 &  0.8 &    0.8  &   0.46 &     0.03 &    0.79 &   0.46 &     0.03 \\
-         3 & 2 & polynomial     & 1500 &   750 &  0.8 &    0.79 &   0.46 &     0.03 &    0.77 &   0.44 &     0.03 \\
-         4 & 2 & alternate     & 1500 &  1000 &  0.8 &    0.81 &   0.46 &     0.1  &    0.82 &   0.47 &     0.12 \\
-         \hline
-         5 & 3 & constant & 1500 &   750 &  0.8 &    0.81 &   0.46 &     0.03 &    0.81 &   0.46 &     0.03 \\
-         6 & 3 & sigmoid  & 1500 &  1000 &  0.8 &    0.8  &   0.46 &     0.03 &    0.8  &   0.44 &     0.04 \\
-         7 & 3 & polynomial     & 1500 &   750 &  0.8 &    0.78 &   0.45 &     0.02 &    0.79 &   0.44 &     0.03 \\
-         8 & 3 & alternate     & 1500 &  1000 &  0.8 &    0.69 &   0.32 &     0.1  &    0.77 &   0.37 &     0.23 \\
-         \hline
-         9 & 4 & constant & 1500 &   750 &  0.8 &    0.73 &   0.33 &     0.03 &    0.75 &   0.36 &     0.03 \\
-        10 & 4 & sigmoid  & 1500 &  1000 &  0.8 &    0.74 &   0.36 &     0.03 &    0.74 &   0.36 &     0.03 \\
-        11 & 4 & polynomial     & 1500 &   750 &  0.8 &    0.52 &   0.21 &     0.09 &    0.67 &   0.3  &     0.04 \\
-        12 & 4 & alternate     & 1500 &  1000 &  0.8 &    0.6  &   0.26 &     0.06 &    0.61 &   0.27 &     0.07 \\
-      \hline
-      \end{tabular}  } \caption{} \label{tab:pseaafasfrch} \end{table}
+    		\begin{tabular}{rrrrrrrrrrrr}
+    			&&&&& &  \multicolumn{3}{|c|}{Early Model} &  \multicolumn{3}{c|}{Final Model}    \\
+    			\hline
+    			i  & Network & alpha      & Iterations & Early Iteration & dp  & e roc & e f1 & e auto & f roc & f f1 & f auto \\
+    			\hline
+           1 & 2 & constant 0.0 & 1500 &  1000 &  0.8 &    0.8  &   0.47 &     0.56 &    0.79 &   0.46 &     0.64 \\
+    			 2  & 2       & constant 0.5   & 1500       & 750             & 0.8 & 0.81  & 0.48 & 0.03   & 0.8   & 0.46 & 0.03   \\
+    			 3  & 2       & sigmoid    & 1500       & 1000            & 0.8 & 0.8   & 0.46 & 0.03   & 0.79  & 0.46 & 0.03   \\
+    			 4  & 2       & polynomial & 1500       & 750             & 0.8 & 0.79  & 0.46 & 0.03   & 0.77  & 0.44 & 0.03   \\
+    			 5  & 2       & alternate  & 1500       & 1000            & 0.8 & 0.81  & 0.46 & 0.1    & 0.82  & 0.47 & 0.12   \\
+           6 & 2 & step     & 1500 &  1000 &  0.8 &    0.59 &   0.19 &     0.03 &    0.82 &   0.47 &     0.08 \\
+    			\hline
+           7 & 3 & constant 0.0 & 1500 &  1000 &  0.8 &    0.81 &   0.43 &     2.38 &    0.79 &   0.42 &     2.61 \\
+    			 8  & 3       & constant 0.5   & 1500       & 750             & 0.8 & 0.81  & 0.46 & 0.03   & 0.81  & 0.46 & 0.03   \\
+    			 9  & 3       & sigmoid    & 1500       & 1000            & 0.8 & 0.8   & 0.46 & 0.03   & 0.8   & 0.44 & 0.04   \\
+    		  10  & 3       & polynomial & 1500       & 750             & 0.8 & 0.78  & 0.45 & 0.02   & 0.79  & 0.44 & 0.03   \\
+    			11  & 3       & alternate  & 1500       & 1000            & 0.8 & 0.69  & 0.32 & 0.1    & 0.77  & 0.37 & 0.23   \\
+          12 & 3 & step     & 1500 &  1000 &  0.8 &    0.38 &   0.19 &     0.03 &    0.81 &   0.45 &     0.18 \\
+    			\hline
+          13  & 4       & constant 0.0   & 1500       &  1000           & 0.8  &    0.78 &   0.38 &    16.31 &    0.78 &   0.39 &    14.5 \\
+    			14 & 4       & constant 0.5   & 1500       & 750             & 0.8 & 0.73  & 0.33 & 0.03   & 0.75  & 0.36 & 0.03   \\
+    			15 & 4       & sigmoid    & 1500       & 1000            & 0.8 & 0.74  & 0.36 & 0.03   & 0.74  & 0.36 & 0.03   \\
+    			16 & 4       & polynomial & 1500       & 750             & 0.8 & 0.52  & 0.21 & 0.09   & 0.67  & 0.3  & 0.04   \\
+    			17 & 4       & alternate  & 1500       & 1000            & 0.8 & 0.6   & 0.26 & 0.06   & 0.61  & 0.27 & 0.07   \\
+          18 & 4       & step       & 1500       &  1000           & 0.8  &    0.42 &   0.19 &     0.03 &    0.77 &   0.4  &     0.7 \\
+
+
+    			\hline
+    		\end{tabular}  } \caption{} \label{tab:pseaafasfrch} \end{table}
 
 
     \newpage
@@ -593,21 +608,21 @@
     %
     %
     %
-    \section{Comparison to classifier only network}
-    \begin{table}[!h] {\small
-      \centering
-      \begin{tabular}{llrrrrrr}
-         & &   \multicolumn{3}{|c|}{Early Model} &  \multicolumn{3}{c|}{Final Model}\\
-         \hline
-         Preprocesing       & Activation Function&  ROC    &      F1&  AE Loss & ROC     &     F1 &   AE Loss \\
-         \hline
-         Per Subject Face   & linear             &    0.79 &   0.45 &     0.61 &    0.79 &   0.46 &     0.75 \\
-         \hline
-      \end{tabular}
-    \caption{A repeat of experiment 13 from \ref{tab:psearch} but $\alpha(t)=0$ through out.
-    It shows a slightly lower ROC score and much higher autoencoder loss, as expected because it is not training
-    the autoencoder.} \label{tab:psearchtest}}
-    \end{table}
+    % \section{Comparison to classifier only network}
+    % \begin{table}[!h] {\small
+    %   \centering
+    %   \begin{tabular}{llrrrrrr}
+    %      & &   \multicolumn{3}{|c|}{Early Model} &  \multicolumn{3}{c|}{Final Model}\\
+    %      \hline
+    %      Preprocesing       & Activation Function&  ROC    &      F1&  AE Loss & ROC     &     F1 &   AE Loss \\
+    %      \hline
+    %      Per Subject Face   & linear             &    0.79 &   0.45 &     0.61 &    0.79 &   0.46 &     0.75 \\
+    %      \hline
+    %   \end{tabular}
+    % \caption{A repeat of experiment 13 from \ref{tab:psearch} but $\alpha(t)=0$ through out.
+    % It shows a slightly lower ROC score and much higher autoencoder loss, as expected because it is not training
+    % the autoencoder.} \label{tab:psearchtest}}
+    % \end{table}
 
     \newpage
     %

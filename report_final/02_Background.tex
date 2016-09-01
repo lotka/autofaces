@@ -1,9 +1,7 @@
 \chapter{Background}
 
 \section{Databases for FAU estimation}
-Relevant for this work is a awareness of datasets which exist and which may be useful
-for experiments. Here is a list of some which should be used in order to allow
-this project to be comparable to work in the literature:
+The following datasets contain AU labels of subjects which are relevant to this work:
 
 \begin{itemize}
     \item The DISFA database \cite{disfa}, which contains 27 subjects whose spontaneous
@@ -18,7 +16,7 @@ This is just a small selection, however is it representative of the types of
 datasets available. Each frame of the videos has a label which describes which AUs are
 present and their intensity. Hence two distinct problems can be tackled here, intensity
 estimation and classification, this work follows the classification route however
-intensity estimation should also be possible with a few minor modifications.
+with neural networks it is potentially not a radically different problem.
 
 A key challenge with these datasets is that they often have very unbalanced and
 sparse labels as shown in figure \ref{disfastats}. This calls for methods
@@ -36,13 +34,13 @@ literature:
 
 \section{The DISFA dataset} \label{disfa_list}
 The Denver Intensity of Spontaneous Facial Action Dataset (DISFA)
-Of central interest to the project is the DISFA dataset \cite{disfa}, it is a set
+of central interest to the project is the DISFA dataset \cite{disfa}, it is a set
 of videos of people watching 9 short clips from youtube which try to span a range
 of emotions such as emotions happiness, surprise, fear, disgust and sadness. Included
 are 27 subjects with 12 AUs.
 
-Each frame in each subject video has a label which says how much of each AU is present on
-a scale of 0-5, the distribution of intensities is shown in table \ref{compau}.
+Each frame in each subject video has a label which quantifies how much of each
+AU is present on a scale of 0-5, the distribution of intensities is shown in table \ref{compau}.
 
 A challenge of the DISFA dataset is that it has many frames which are unlabelled, this is demonstrated
 per subject in figure \ref{disfastats}. Many of the subjects have over 40\% of their frames unlabelled
@@ -67,7 +65,8 @@ AU20      & 121377 & 1591  & 1608  & 1305  & 28   & 0    \\
 AU25      & 84721  & 9805  & 13935 & 15674 & 5580 & 1039 \\
 AU26      & 105778 & 13443 & 7473  & 3529  & 314  & 217  \\ \hline
 \end{tabular}
-\caption{A comparison of the number of occurrences of each intensity for each AU in the DISFA dataset} \label{compau}
+\caption{A comparison of the number of occurrences of each intensity for each AU in the DISFA dataset. Note the total number
+of AUs tabled here is larger than the number of frames, this is because some frames have multiple AUs present.} \label{compau}
 \end{table}
 
 
@@ -75,17 +74,17 @@ AU26      & 105778 & 13443 & 7473  & 3529  & 314  & 217  \\ \hline
   \includegraphics[width=\textwidth]{../graphs/maximum_label_intensity_disfa.pdf}
   \caption{DISFA dataset: This graph shows what the maximum value in each label is in the DISFA dataset per subject. This
   is done to illustrate the number of labels which contain very little information
-  and pose an issue for a typical neural network structure.}\label{disfastats}
+  and pose an issue for a typical neural network structure. It also shows some there
+  is quite a large degree of variation between subjects. In this work, frames are often refered to as unlabelled or neutral,
+  in the figure this is all labels with maximum intensity zero.}\label{disfastats}
 \end{figure}
 \newpage
 
 \section{Deep learning approaches to FAU detection}
 It has been shown that deep neural networks containing convolutional, max pooling,
 dropout and fully connected layers can effectively learn how to classify AUs in
-a selection of datasets \cite{Gudi2015,Ghosh2015,dodeeplearn}. For theoretical information
-about these networks see Chapter \ref{chapter:deep} These
-works only include networks which ignore the temporal structure of the data,
-other architectures do incorporate this \cite{emonet,Jaiswal2016}.
+a selection of datasets even when ignoring the temporal structure of the data \cite{Gudi2015,Ghosh2015,dodeeplearn}. These
+Using the temporal data is also a possibily \cite{emonet,Jaiswal2016}.
 %
 %
 %
@@ -94,7 +93,7 @@ Network \cite{Ghosh2015} (Ghosh et al.) was trained on CK+, DISFA and BP4D datas
 A key result of this paper was that they achieved good generalisation between datasets
 with classifications accuracies between 60\% and 80\% for these generalisation experiments.
 A feature particular to this network was that after the softmax layer, which assigns probabilities
-to each AU it uses QDA (Quadratic Discriminant Analysis) \cite{precogbook} to
+to each AU it uses QDA (Quadratic Discriminant Analysis\cite{precogbook})  to
 make predictions about whether AUs are present. A point of interest is also that
 mean face normalisation is done per subject and then all for all subjects.
 
@@ -121,9 +120,9 @@ each AU and not for all of them at once.
 
 It should be noted that it is difficult to compare the performance between these
 networks as they all use different evaluation scores as shown in table \ref{compscore}.
-
+\begin{landscape}
 \begin{table}[h!]
-\centering
+% \centering
 {\footnotesize
 \begin{tabular}{|lllllllll|}
 \hline
@@ -153,14 +152,14 @@ use RELUs as their activation functions apart from in the final layer where it i
 typical to use a softmax. $x$ denotes the input image, $L_i$ denotes the $i$th layer and $y_i$ denotes the output of the $i$th layer.
 $N_{C}$ is the number of classes.
 The question marks signify the dimensions of input images are variable as it depends on the input stream. fc is for fully connected and
-conv is for convolutional layer. QDA is Quadratic Discriminant Analysis and BLSTM is for Bidirectional Long Short-Term Memory neural
+conv is for a convolutional layer. QDA is Quadratic Discriminant Analysis and BLSTM is for Bidirectional Long Short-Term Memory neural
 networks.
 \newline
 *These layers are per input stream} \label{compnet}
 
 }
 \end{table}
-
+\end{landscape}
 \begin{table}[h!]
 \centering
 
