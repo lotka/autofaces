@@ -10,8 +10,13 @@
     \end{itemize}
     This development has moved the focus of classification tasks away from feature engineering,
     which seeks to find general methods of quantifying and locating features in image data, to
-    architecture design\ref{StephenMerity2016}, where the primary concern is the structure and size of the neural network that has to
+    architecture design \cite{StephenMerity2016}, where the primary concern is the structure and size of the neural network that has to
     learn the desired task.
+
+    The following section explains the key components that a deep learning algorithm requires,
+    derivations of gradients for backpropagation are left out as the focus of the project is to
+    see how these components can interact and be built up and such deriviations would add little,
+    for a detailed analysis see \cite{Bishop1995}.
   \section{Model Components}
     \subsection{Artificial Neural Networks}
       An artificial neuron is a function which takes in a vector of inputs, computes their
@@ -88,11 +93,15 @@
         J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = -\frac{1}{N}\tilde{\mathbf{y}}\cdot\log(\mathbf{y}(\tilde{\mathbf{x}}))
       \end{equation}
 
-      The derivative of these cost functions can then be computed in order to minimise it.
+      The derivative of these cost functions with respect to each weight and bias variable
+      in the network is then calculated.
       The simplest way is to do this is per training example, however stochastic gradient
       descent\cite{Amari1993} has emerged as a superior method. Simply put it computes the gradient with respect
       to many randomly drawn samples, it has the advantage of following a smoother path
       towards the local minimum.
+
+      TODO: EXPAND ON THIS
+      % \url{https://www.quora.com/Can-you-explain-basic-intuition-behind-ADAM-a-method-for-stochastic-optimization}
     \subsection{Convolutional Layers}
       A convolutional layer is a generalisation of simple fully connected layers described
       above. It consists of a set of $K$ filters of size $m\times m$, which are applied to the input to produce
@@ -126,24 +135,6 @@
       down. However a recent trend \cite{Springenberg2015} has emerged where max pooling
       layers are not used, instead a convolutional layer with a large stride accomplishes
       the same amount of down-sampling.
-    \subsection{Cost Functions}
-      pass
-    \subsection{Training algorithms}
-      pass
-    \subsubsection{Gradient Descent}
-      pass
-    \subsubsection{Stochastic Gradient Descent}
-      pass
-    \subsubsection{Adam}
-      pass
-    \subsubsection{Comparison}
-      pass
-    \subsection{Regularisers}
-      pass
-    \subsection{Dropout Layers} \label{sec:dropout}
-      A layer with dropout applied to it randomly turns neurons off, making it more
-      difficult for the network to overfit data. There is a dropout probability
-      which determines how often neurons are disabled, it is typically under 20\%
     \subsection{Autoencoders}
       An autoencoder is at its bare minimum a artificial neural network which tries
       to reproduce its input as accurately as possible. So the cost function for the mean squared error becomes:
@@ -166,7 +157,7 @@
       to create networks which can not only reconstruct their input but also act as a
       distribution which can be sampled from, allowing for the generation of new samples \cite{Kingma2013}.
 
-    \subsection{Stacked Autoencoder}
+    \subsection{Joint vs Stacked Autoencoder training}
       A stacked autoencoder is typically used for pre-training a network for a classification task.
       Instead of training the whole structure at once, each layer is trained as the last hidden
       layer of some temporary autoencoder. It has been shown that this can improve classification performance \cite{stacks}.
@@ -185,7 +176,15 @@
       Other than that all other elements have very straightforward inverses and hence
       a convolutional autoencoder can be constructed.
     \subsection{LRN}
-      pass
+      TODO
+  \section{Overfitting and Regularisation}
+    % http://neuralnetworksanddeeplearning.com/chap3.html#overfitting_and_regularization
+    \subsection{Regularisers}
+      TODO
+    \subsection{Dropout Layers} \label{sec:dropout}
+      A layer with dropout applied to it randomly turns neurons off, making it more
+      difficult for the network to overfit data. There is a dropout probability
+      which determines how often neurons are disabled, it is typically under 20\%
   \section{Model Evaluation} \label{sec:eval}
     With any kind of classification model it is crucial to be able to evaluate its
     performance in a standard and reproducible way. For the problem of classifying
@@ -193,61 +192,61 @@
     where $n_C$ is the number of distinct classes. Now the problem is reduced to
     evaluating the performance of a binary classifier.
 
+    \subsection{Recall, Precision and F1}
+      Naively the first metric one might use for measuring the performance of a classifier
+      might be the accuracy, this is good for datasets which are evenly balanced however
+      the datasets of interest in this report typically have many more negative labels than postive labels.
+      A classifier that simply labels all examples negative might then get a very high accuracy. This motivates
+      defining a matrix called the confusion matrix whose elements express accuracy from various angles.
+      For a binary problem the confusion matrix is defined as:
+      \begin{equation}
+        C =
+        \begin{pmatrix}
+          TP & FN\\
+          FP & TN
+        \end{pmatrix}
+      \end{equation}
+      Where $TP$ is the number of true positives, $FN$ is the number of false negatives
+      , $FP$ is the number of true positives and $TN$ is the number of true negatives.
+      In a perfect classification, this matrix would have $FP=FN=0$, however this is
+      difficult to achieve
+      and we can define quantities to measure how close to this ideal we are. Note we
+      only define the binary case here, the more general confusion matrix for multiple
+      classes can easily be defined but is not relevant here.
+      \begin{equation}
+        \text{Recall} = \frac{TP}{TP+FN}
+      \end{equation}
+      \begin{equation}
+        \text{Precision} = \frac{TP}{TP+FP}
+      \end{equation}
+      \begin{equation}
+        \text{F1} = 2 \cdot \frac{\text{Recall} \cdot \text{Precision}}{\text{Recall} + \text{Precision}}
+      \end{equation}
 
-    Naively the first metric one might use for measuring the performance of a classifier
-    might be the accuracy, this is good for datasets which are evenly balanced however
-    the datasets of interest in this report typically have many more negative labels than postive labels.
-    A classifier that simply labels all examples negative might then get a very high accuracy. This motivates
-    defining a matrix called the confusion matrix whose elements express accuracy from various angles.
-    For a binary problem the confusion matrix is defined as:
-    \begin{equation}
-      C =
-      \begin{pmatrix}
-        TP & FN\\
-        FP & TN
-      \end{pmatrix}
-    \end{equation}
-    Where $TP$ is the number of true positives, $FN$ is the number of false negatives
-    , $FP$ is the number of true positives and $TN$ is the number of true negatives.
-    In a perfect classification, this matrix would have $FP=FN=0$, however this is
-    difficult to achieve
-    and we can define quantities to measure how close to this ideal we are. Note we
-    only define the binary case here, the more general confusion matrix for multiple
-    classes can easily be defined but is not relevant here.
-    \begin{equation}
-      \text{Recall} = \frac{TP}{TP+FN}
-    \end{equation}
-    \begin{equation}
-      \text{Precision} = \frac{TP}{TP+FP}
-    \end{equation}
-    \begin{equation}
-      \text{F1} = 2 \cdot \frac{\text{Recall} \cdot \text{Precision}}{\text{Recall} + \text{Precision}}
-    \end{equation}
+      Hence recall is decreased by false negatives, i.e not being able to recall the class
+      when presented with it. Precision is decreased by false positives i.e stating the class
+      is present when it is not. Both measures describe a different aspect of the accruacy. This
+      motivates defining the F1 score which is the harmonic mean between the precision and recall
+      (the harmonic mean is used to ensure that case where $R=1$ and $P=0$ R,P being Recall and Precision, gives
+      a very low score  as achieving $R=1$ is trivial.) The F1 is the quantity this report will seek to maximise and use to compare
+      results with the literature.
+    \subsection{Reciever Operating Characteristics}
+      Another useful measure is the area under the Receiver operating characteristic (ROC) curve.
+      As neural networks output a number between 0 and 1, a threshold must be chosen to signify
+      when the network declares a class present. By varying this threshold a series of true positive and false positive rate points
+      can be generated, this is the ROC curve. The area under this is ideally 1 and in the worst case 0.5 (TP = FP), hence this is
+      another measure of classification accuracy that is invariant to the chosen threshold.
 
-    Hence recall is decreased by false negatives, i.e not being able to recall the class
-    when presented with it. Precision is decreased by false positives i.e stating the class
-    is present when it is not. Both measures describe a different aspect of the accruacy. This
-    motivates defining the F1 score which is the harmonic mean between the precision and recall
-    (the harmonic mean is used to ensure that case where $R=1$ and $P=0$ R,P being Recall and Precision, gives
-    a very low score  as achieving $R=1$ is trivial.) The F1 is the quantity this report will seek to maximise and use to compare
-    results with the literature.
-
-    Another useful measure is the area under the Receiver operating characteristic (ROC) curve.
-    As neural networks output a number between 0 and 1, a threshold must be chosen to signify
-    when the network declares a class present. By varying this threshold a series of true positive and false positive rate points
-    can be generated, this is the ROC curve. The area under this is ideally 1 and in the worst case 0.5 (TP = FP), hence this is
-    another measure of classification accuracy that is invariant to the chosen threshold.
-
-    \begin{table}[]
-      \centering \caption{A simple qualitative illustration of what a ROC score means for a classifier.
-      Note: It is typically only in strange cases that $ROC< 0.5$ but is possible.} \label{my-label}
-      \begin{tabular}{rl}
-        \hline
-        Range & Classifier quailty \\ \hline
-        $0 \leq ROC \leq 0.6$   & Fail               \\
-        $0.6 \leq ROC    < 0.7$   & Poor               \\
-        $0.7 \leq ROC    < 0.8$   & Fair               \\
-        $0.8 \leq ROC    < 0.9$   & Good               \\
-        $0.9 \leq ROC \leq 1.0$   & Great              \\ \hline
-      \end{tabular}
+      \begin{table}[]
+        \centering \caption{A simple qualitative illustration of what a ROC score means for a classifier.
+        Note: It is typically only in strange cases that $ROC< 0.5$ but is possible.} \label{my-label}
+        \begin{tabular}{rl}
+          \hline
+          Range & Classifier quailty \\ \hline
+          $0 \leq ROC \leq 0.6$   & Fail               \\
+          $0.6 \leq ROC    < 0.7$   & Poor               \\
+          $0.7 \leq ROC    < 0.8$   & Fair               \\
+          $0.8 \leq ROC    < 0.9$   & Good               \\
+          $0.9 \leq ROC \leq 1.0$   & Great              \\ \hline
+        \end{tabular}
     \end{table}

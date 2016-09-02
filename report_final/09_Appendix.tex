@@ -1,9 +1,35 @@
 \appendix
+% ENCODER
+% Convolution_1 Shape:  (5, 5, 1, 64)  with bias  (64,)  padding VALID
+%  output :  (100, 43, 43, 64)
+% Max_Pool_1 with size:  [1, 3, 3, 1]  with stride  [1, 2, 2, 1]
+%  output :  (100, 22, 22, 64)
+% Local Response Normalisation
+% Convolution_2 Shape:  (5, 5, 64, 64)  with bias  (64,)  padding VALID
+%  output :  (100, 18, 18, 64)
+% Convolution_3 Shape:  (4, 4, 64, 128)  with bias  (128,)  padding VALID
+%  output :  (100, 15, 15, 128)
+% Local Response Normalisation
+%  flatten to  (100, 28800)
+% fully_connected_1 Shape:  (28800, 3000)  with bias  (3000,)
+%  output :  (100, 3000)
+%
+% DECODER:
+% dec_fc_2 Shape:  (3000, 28800)  with bias  (28800,)
+%  output :  (100, 28800)
+% Reshape: (100, 28800) --> (100, 15, 15, 128)
+% Deconvolution_3 Shape:  (4, 4, 64, 128)  with bias  (64,)  padding VALID
+%  output :  (100, 18, 18, 64)
+% Deconvolution_2 Shape:  (5, 5, 64, 64)  with bias  (64,)  padding VALID
+%  output :  (100, 22, 22, 64)
+% Resize: (100, 22, 22, 64) --> (100, 43, 43, 64)
+% Deconvolution_1 Shape:  (5, 5, 1, 64)  with bias  (1,)  padding VALID
+%  output :  (100, 47, 47, 1)
 \chapter{Networks} \label{appendix1}
-\section*{Network 1} \label{net:0}
 
 \begin{table}[h!]
 \centering
+\caption*{{\bf \large Network 1}}
 {\footnotesize
 \begin{tabular}{|lllllllll|}
 \hline
@@ -22,10 +48,9 @@
 }
 \end{table}
 
-\section*{Network 2} \label{net:1}
-
 \begin{table}[h!]
 \centering
+\caption*{{\bf \large Network 2}}
 {\footnotesize
 \begin{tabular}{|lllllllll|}
 \hline
@@ -44,12 +69,88 @@
 \multicolumn{1}{|l|}{$L_6$}   & deconv 1   & \multicolumn{1}{l|}{$5\times 5\times1\times 64$}    &          & \multicolumn{1}{l|}{}\\
 \multicolumn{1}{|l|}{$y_6$}   &          & \multicolumn{1}{l|}{$47\times47\times1$}           &          & \multicolumn{1}{l|}{}        \\ \hline
 \end{tabular}
-
-\caption{} \label{compnet}
-
+\caption{} \label{net:2}
 }
 \end{table}
 
-\section*{Network 3} \label{net:2}
-\section*{Network 4} \label{net:2}
-\section*{ResNet 1} \label{net:res1}
+\begin{table}[h!]
+\centering
+\caption*{{\bf \large Network 3}}
+{\footnotesize
+\begin{tabular}{|lllllllll|}
+\hline
+\multicolumn{1}{|l|}{Element} & Type     & \multicolumn{1}{l|}{Dimensions}                     & Type     & \multicolumn{1}{l|}{Dimensions}  \\ \hline
+\multicolumn{1}{|l|}{x}       &          & \multicolumn{1}{l|}{$47\times47\times1$}            &          & \multicolumn{1}{l|}{}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_1$}   & conv 1   & \multicolumn{1}{l|}{$5\times 5\times1\times 64$}    &          & \multicolumn{1}{l|}{}\\
+\multicolumn{1}{|l|}{$y_1$}   &          & \multicolumn{1}{l|}{$43\times43\times64$}           &          & \multicolumn{1}{l|}{}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_2$}   & max pool & \multicolumn{1}{l|}{$2\times 2$}                    &          & \multicolumn{1}{l|}{}        \\
+\multicolumn{1}{|l|}{$y_2$}   &          & \multicolumn{1}{l|}{$22\times22\times 64$}          &          & \multicolumn{1}{l|}{}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_1$}   & conv 2   & \multicolumn{1}{l|}{$5\times 5\times1\times 64$}    &          & \multicolumn{1}{l|}{}\\
+\multicolumn{1}{|l|}{$y_1$}   &          & \multicolumn{1}{l|}{$18\times18\times64$}           &          & \multicolumn{1}{l|}{}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_3$}   & fc       & \multicolumn{1}{l|}{$20736\times3000$}              & Binary Softmax & \multicolumn{1}{l|}{$3000\times2\times12$}        \\
+\multicolumn{1}{|l|}{$y_3$}   & dropout  & \multicolumn{1}{l|}{$3000$}                         &          & \multicolumn{1}{l|}{$24$}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_4$}   & fc       & \multicolumn{1}{l|}{$3000\times20736$}              &          & \multicolumn{1}{l|}{}        \\
+\multicolumn{1}{|l|}{$y_4$}   &          & \multicolumn{1}{l|}{$3000$}                         &          & \multicolumn{1}{l|}{}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_5$}   & resize\& reshape & \multicolumn{1}{l|}{$2$}                    &          & \multicolumn{1}{l|}{}        \\
+\multicolumn{1}{|l|}{$y_5$}   &          & \multicolumn{1}{l|}{$18\times18\times 64$}          &          & \multicolumn{1}{l|}{}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_6$}   & deconv 2   & \multicolumn{1}{l|}{$5\times 5\times1\times 64$}    &          & \multicolumn{1}{l|}{}\\
+\multicolumn{1}{|l|}{$y_6$}   &          & \multicolumn{1}{l|}{$22\times22\times64$}           &          & \multicolumn{1}{l|}{}        \\ \hline
+
+
+\multicolumn{1}{|l|}{$L_7$}   & deconv 1   & \multicolumn{1}{l|}{$5\times 5\times1\times 64$}    &          & \multicolumn{1}{l|}{}\\
+\multicolumn{1}{|l|}{$y_7$}   &          & \multicolumn{1}{l|}{$47\times47\times1$}           &          & \multicolumn{1}{l|}{}        \\ \hline
+\end{tabular}
+\caption{} \label{net:2}
+}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\caption*{{\bf \large Network 4}}
+{\footnotesize
+\begin{tabular}{|lllllllll|}
+\hline
+\multicolumn{1}{|l|}{Element} & Type     & \multicolumn{1}{l|}{Dimensions}                     & Type     & \multicolumn{1}{l|}{Dimensions}  \\ \hline
+\multicolumn{1}{|l|}{x}       &          & \multicolumn{1}{l|}{$47\times47\times1$}            &          & \multicolumn{1}{l|}{}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_1$}   & conv 1   & \multicolumn{1}{l|}{$5\times 5\times1\times 64$}    &          & \multicolumn{1}{l|}{}\\
+\multicolumn{1}{|l|}{$y_1$}   &          & \multicolumn{1}{l|}{$43\times43\times64$}           &          & \multicolumn{1}{l|}{}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_2$}   & max pool & \multicolumn{1}{l|}{$2\times 2$}                    &          & \multicolumn{1}{l|}{}        \\
+\multicolumn{1}{|l|}{$y_2$}   &          & \multicolumn{1}{l|}{$22\times22\times 64$}          &          & \multicolumn{1}{l|}{}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_1$}   & conv 2   & \multicolumn{1}{l|}{$5\times 5\times1\times 64$}    &          & \multicolumn{1}{l|}{}\\
+\multicolumn{1}{|l|}{$y_1$}   &          & \multicolumn{1}{l|}{$18\times18\times64$}           &          & \multicolumn{1}{l|}{}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_1$}   & conv 3   & \multicolumn{1}{l|}{$5\times 5\times1\times 64$}    &          & \multicolumn{1}{l|}{}\\
+\multicolumn{1}{|l|}{$y_1$}   &          & \multicolumn{1}{l|}{$15\times15\times64$}           &          & \multicolumn{1}{l|}{}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_3$}   & fc       & \multicolumn{1}{l|}{$14400\times3000$}              & Binary Softmax & \multicolumn{1}{l|}{$3000\times2\times12$}        \\
+\multicolumn{1}{|l|}{$y_3$}   & dropout  & \multicolumn{1}{l|}{$3000$}                         &          & \multicolumn{1}{l|}{$24$}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_4$}   & fc       & \multicolumn{1}{l|}{$3000\times 14400$}              &          & \multicolumn{1}{l|}{}        \\
+\multicolumn{1}{|l|}{$y_4$}   &          & \multicolumn{1}{l|}{$3000$}                         &          & \multicolumn{1}{l|}{}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_5$}   & resize\& reshape & \multicolumn{1}{l|}{$2$}                    &          & \multicolumn{1}{l|}{}        \\
+\multicolumn{1}{|l|}{$y_5$}   &          & \multicolumn{1}{l|}{$15\times15\times 64$}          &          & \multicolumn{1}{l|}{}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_1$}   & deconv 3   & \multicolumn{1}{l|}{$5\times 5\times1\times 64$}    &          & \multicolumn{1}{l|}{}\\
+\multicolumn{1}{|l|}{$y_1$}   &          & \multicolumn{1}{l|}{$18\times18\times64$}           &          & \multicolumn{1}{l|}{}        \\ \hline
+
+\multicolumn{1}{|l|}{$L_6$}   & deconv 2   & \multicolumn{1}{l|}{$5\times 5\times1\times 64$}    &          & \multicolumn{1}{l|}{}\\
+\multicolumn{1}{|l|}{$y_6$}   &          & \multicolumn{1}{l|}{$22\times22\times64$}           &          & \multicolumn{1}{l|}{}        \\ \hline
+
+
+\multicolumn{1}{|l|}{$L_7$}   & deconv 1   & \multicolumn{1}{l|}{$5\times 5\times1\times 64$}    &          & \multicolumn{1}{l|}{}\\
+\multicolumn{1}{|l|}{$y_7$}   &          & \multicolumn{1}{l|}{$47\times47\times1$}           &          & \multicolumn{1}{l|}{}        \\ \hline
+\end{tabular}
+\caption{} \label{net:2}
+}
+\end{table}

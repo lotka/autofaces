@@ -1,11 +1,17 @@
 \chapter{Modelling DISFA} \label{sec:model}
-  This chapter details the path followed in exploring different network structures
-  and using quantitative results to make design decisions.
-  The most important metric for a network will be the Average ROC score of the classifier
-  when applied to the un-seen validation set, the secondary metric will be the error
+  This chapter describes the path taken in constructing the autoencoding classifier (AEC) network, detailing
+  the experiments which were performed to create the final configuration.
+  The most important metric used to judge a network in the chapter is the Average ROC score of the classifier
+  when applied to the un-seen validation set\footnote{}, the secondary metric will be the error
   in the reconstructed image outputted from the autoencoder. The overall aim is to
-  find a confiuration where improving the secondary metric (the autoencoder) improves
-  the primary metric (the classifier).
+  find a configuration where improving the secondary metric (the autoencoder) improves
+  the primary metric (the classifier) and that the presence of the autoencoder improves
+  the performance of the classifier.
+
+  The results will show, that it is unclear if there is a direct relationship, nonetheless
+  the work is a detailed exploration of how autoencoders and classifiers interact with each other
+  under various initial preprocessing setups and different autoencoder transfer functions \footnote{These describe the degree to which
+  each cost function is trained during training, section \ref{sec:autoalpha} details this in full.}.
 
   \section{Experimental set up}
     In order to develop the network for modelling the DISFA dataset a set of common
@@ -300,9 +306,15 @@
   \section{Convolutional Networks}
 
     Now that some basic structures have been tested we proceed to convolutional networks,
-    inspired by the literature (see table \ref{compnet}), Network 1
+    inspired by the literature (see table \ref{compnet}) 3 networks are defined. Network 2 is shown in table \ref{compnet}, Network 3
+    adds another convolutional layer of size $5\times 5 \times 64 \times 64$ and Network 4 adds a $4\times 4 \times 64 \times 128$ layer
+    on top of Network 3. Regarding the decoder section of the inverse operations are performed, see appendix \label{appendix1} for full details
+    for networks 1,2,3 and 4.
 
-    \begin{table}[h!] \caption*{\textbf{Network 1}}
+    % network.append(cnn_layer(ll(network), [5, 5, 64, 64], 'VALID', 'Convolution_2', config, act=act))
+    % network.append(cnn_layer(ll(network), [4, 4, 64, 128], 'VALID', 'Convolution_3', config, act=act))
+
+    \begin{table}[h!] \caption*{\textbf{Network 2}}
     \centering
     {\footnotesize
     \begin{tabular}{|lllllllll|}
@@ -334,7 +346,7 @@
     %
     %
     %
-    \subsection{Preprocessing methods} \label{sec:psearc}
+    \subsection{Preprocessing methods} \label{sec:psearch}
 
       With the goal of creating the AEC network we performed a search on some hyperparameters
       including the preprocessing method from section \ref{sec:methods} and on the 4 main activation functions
@@ -402,9 +414,6 @@
       has effectively the same score and a lower final autoencoder loss, but it uses the tanh activaition
       function and hence cannot fully reconstruct the input image which has values well outside the
       range $[-1,1]$ hence linear activation function is chosen.
-
-
-      Table \ref{tab:psearchtest} shows
 
       The network is in quite a different state, looking at the auteoncoder loss
       suggesting there is some degree of cooperation in the earlier experiment.
@@ -496,10 +505,7 @@
     %
     %
     \subsection{Dropout}
-      Dropout (see section \ref{sec:dropout}) was applied to the bottleneck layer of the AEC network in order to reduce overfiting and
-      hence increase the likelyhood of learning more general features.
-
-      Is this directly comparable to the above? Talk about the errror.
+      Varying degrees of (see section \ref{sec:dropout}) were applied to each test network.
       \begin{table}[!h] \centering
       	{\small
       		\begin{tabular}{rllrrrrrrrr}
@@ -535,24 +541,76 @@
     %
     %
     %
-    \subsection{L2 Reg}
+    \subsection{L2 Regularisation}
+      L2 Regularisation incurs a penalty to using weights which have high values this was implemented by adding L2
+      loss terms for all weight variables. Experiments shown in table
+      \ref{tab:l2_1} were then performed to get an idea of the sensitivy the system has to
+      the L2 Coefficient $\beta$, it defines how much effort the training algorithm
+      puts into the reducing the L2 loss term. The new cost function becomes:
+
+      \begin{equation}
+          J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = -\frac{1-\alpha(t)}{2FN}\tilde{\mathbf{y}}\cdot\log(\mathbf{y}(\tilde{\mathbf{x}}))
+          + \frac{\alpha(t)}{N}\left |\mathbf{y}(\tilde{\mathbf{x}}) \odot \mathbf{M}-\tilde{\mathbf{x}}\right | ^2
+          + \beta \sum_i^{\text{weights}}||\mathbf{W}_i||^2
+      \end{equation}
+
       \begin{table}[!h] {\small \centering
       \begin{tabular}{lrrrrrrrrrrr}
-        &&& &  \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{3}{c|}{Classifier Training}    \\
+        &&&   \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{5}{c|}{Classifier Training}  \\
       \hline
-       i &   L2 Coefficient &   Iteration &   ROC&F1&AE Loss & ROC & F1 & AE Loss \\
+       i &   L2 Coefficient &   Iterations &   ROC&F1&AE Loss & ROC & F1 & AE Loss &   Validation CEL &   Train CEL \\
+      \hline
+       1 &     0     & 1000 &    0.45 &   0.19 &     0.03 &    0.77 &   0.46 &     0.11 &  0.53 &  0.07 \\
+       2 &     0.001 & 1000 &    0.56 &   0.19 &     0.03 &    0.74 &   0.41 &     0.05 &  0.46 &  0.11 \\
+       3 &     0.01  & 1000 &    0.45 &   0.19 &     0.03 &    0.71 &   0.36 &     0.04 &  0.33 &  0.18 \\
+       4 &     0.1   & 1000 &    0.54 &   0.19 &     0.04 &    0.66 &   0.28 &     0.04 &  0.3  &  0.26 \\
+       5 &     0.5   & 1000 &    0.5  &   0.19 &     0.04 &    0.46 &   0.19 &     0.04 &  0.32 &  0.33 \\
+      \hline
+    \end{tabular}
+    \caption{The experimental set up is the same as in section \ref{sec:psearch} where the preprocessing methods
+    were tested, except a slightly earlier version
+    of the code was used and hence different ROC and F1 numbers.
+    The results should still hold relative to each other.
+    CEL (Cross Entropy Loss) is included here to get an idea of how different
+    the lossess between the validation batches are (of course the
+    train batch is just 100 frames, however inspecting figure \ref{fig:l2_1} shows that
+    these 100 frames are typically representative enough to draw conclusions from), these
+    CEL values are therefore equivalent to the final data points in figure \ref{fig:l2_1}. } \label{tab:l2_1}
+    }
+    \end{table}
+
+
+
+    \begin{table}[!h] {\small \centering
+      \begin{tabular}{lrrrrrrrrrrr}
+        &&&   \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{3}{c|}{Classifier Training}    \\
+      \hline
+       i &   L2 Coefficient &   Iterations &   ROC&F1&AE Loss & ROC & F1 & AE Loss \\
       \hline
        1 &       0.1 & 2000 &    0.56 &   0.19 &     0.03 &    0.74 &   0.35 &     0.04\\
        2 &       0   & 2000 &    0.46 &   0.19 &     0.03 &    0.77 &   0.45 &     0.15\\
       \hline
-      \end{tabular}\caption{} \label{tab:pseaafasfrch}} \end{table}
+    \end{tabular}
+    \caption{Identical to \ref{tab:l2_1} except with more iterations to invetigate what happens with further training. The result is that
+    the L2 Loss }
+    \label{tab:l2_2} }
+    \end{table}
 
-      \begin{figure}[!h]
-      \centering
-      \includegraphics[width =0.8\hsize]{figures/l2.pdf}
-      \caption{L2 reg graph}
-      \label{fig:alpha_functions}
-      \end{figure}
+    \begin{figure}[!h]
+    \centering
+    \includegraphics[width =0.8\hsize]{figures/l2.pdf}
+    \caption{Plot of the classifier losses of the experiments in table \ref{tab:l2_2} }
+    \label{fig:l2_1}
+    \end{figure}
+
+    \begin{figure}[!h]
+    \centering
+    \includegraphics[width =0.8\hsize]{figures/l2_auto.pdf}
+    \caption{Plot of the autoencoder losses of the experiments in table \ref{tab:l2_2} }
+    \label{fig:l2_2}
+    \end{figure}
+
+    Figures \ref{fig:l2_1} and \ref{fig:l2_2} show some stuff but lets ignore it.
 
     \newpage
 
@@ -630,5 +688,5 @@
     %
     %
     %
-  \section{Data balancing}
-    pass
+  % \section{Data balancing}
+  %   pass

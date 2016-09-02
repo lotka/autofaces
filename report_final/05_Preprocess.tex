@@ -13,7 +13,7 @@
     because only a few
     might allow the autoencoder and classifer structures to cooperate with each other.
     This section describes some preprocessing methods which are to be
-    tested in section \ref{sec:psearc}.
+    tested in section \ref{sec:psearch}.
 
 
     The DISFA dataset as described in section \ref{disfa_list} has frames of size $ 1024 \times 764 $
@@ -28,14 +28,55 @@
     the 3 RGB channels displayed seperately. {\bf d)} the resultant image
     $118 \times 128$ after face registration.} \label{fig:sebproc} \end{figure}
 
-    This section defines and visualizes 3 different methods of normalising and scaling
-    this data which can be combined to create further methods. In order to illustrate
+
+    This section first discusses the initial treatment of the labels and splittin of then data.
+    Then three different methods of normalising and scaling
+    the dataset are described, these can be combined to create further methods. In order to illustrate
     the effect of such operations figures such as figure \ref{fig:faces_none} are used which
     show an example face and some statisically generated faces. The ideal method will
     have minimum and maximum faces which express high degrees of facial expression, so that
-    high pixel values can easily be correlated to various AU's in the classifier.
+    high pixel values can easily be correlated to various AU's in the classifier. Another motivation
+    for trying this many methods is to improve the chances of finding an input format which works will with both an
+    autoencoder and classifier.
 
-    Finally some methods for processing the labels are discussed.
+    \section{Methods For Labels}
+
+      Labels are defined mathematically as a matrix:
+      \begin{equation}
+        {\bf y} \in \{0,1,2,3,4,5\}^{N\times F}
+      \end{equation}
+
+      Where $F$ is the number of AU's (or features) and $N$ is the number of labeled images
+      in the dataset.
+
+      Five is the highest intensity for an AU and zero is the abscence of that AU.
+      Typically a neural network outputs values between zero and one so these values are divided by five to make them compatible.
+      For an intensity estimation problem that is all that is required, however for classification
+      the AU labels need to binary and so a threshold is chosen at which an AU is considered present.
+      Finally in some cases such as the one described in section \ref{sec:binsoft} the label vector
+      needs to be expanded to also contain the negative case for presence, hence doubling its size.
+
+      \subsection{Train, Test and Validation set split}
+        For all of the experiments the data was partitioned in a 50/50 split as shown in table \ref{sec:splitting}:
+        \begin{table}[h!]
+          \centering
+          \begin{tabular}{|l|l|}
+          \hline
+          set & subjects   \\
+          \hline
+           Train          & 2,4,6,8,10,12,16,18,23,25,27,29,31      \\
+          \hline
+          Validation      & 1,3,5,7,9,11,13,17,21,24,26,28,30,32 minus test set     \\
+          \hline
+          Test           & 500 chosen randomly taken from validation set      \\
+         \hline
+          \end{tabular}
+          \caption{Typical split of the DISFA dataset for experimentation perposes}
+          \label{sec:splitting}
+        \end{table}
+
+        This fits the purposes of the experimentation as provides a representative performance, of course
+        if the results were to be compared to the literature a cross validation would need to be performed.
 
   \section{Methods For Images} \label{sec:methods}
 
@@ -209,37 +250,3 @@
       Where M is a two dimensional matrix with elements unity where the dataset is nonzero
       and zero when the dataset is zero for that pixel. Here $\odot$ denotes an elementwise
       product between two matrices.
-
-  \section{Methods For Labels}
-
-    As breifly discussed earlier in this section, the labels are defined as a matrix:
-    \begin{equation}
-      {\bf y} \in \{0,1,2,3,4,5\}^{N\times F}
-    \end{equation}
-
-    Where 5 is the highest intensity for an AU and 0 is the abscence of that AU.
-    Typically a neural network outputs values between 0 and 1 so these values are divided by 5 to make them compatible.
-    For an intensity estimation problem that is all that is required, however for classification
-    the AU labels need to binary and so a threshold is chosen at which an AU is considered present.
-    Finally in some cases such as the one described in section \ref{sec:binsoft} the label vector
-    needs to be expanded to also contain the negative case for presence, hence doubling its size.
-
-    \subsection{Train, Test and Validation set split}
-      Splitting the data is important, this is how it was done.
-      \subsubsection{Splitting Method 1} \label{sec:splitting}
-        \begin{table}[h!]
-          \centering
-          \begin{tabular}{|l|l|}
-          \hline
-          set & subjects   \\
-          \hline
-           Train          & 2,4,6,8,10,12,16,18,23,25,27,29,31      \\
-          \hline
-          Validation      & 1,3,5,7,9,11,13,17,21,24,26,28,30,32 minus test set     \\
-          \hline
-          Test           & 500 chosen randomly taken from validation set      \\
-         \hline
-          \end{tabular}
-          \caption{Typical split of the DISFA dataset for experimentation perposes}
-          \label{sec:splitting}
-        \end{table}
