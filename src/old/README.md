@@ -1,1 +1,1 @@
-This fodler contains a lot of unsorted stuff that made up the first version of the project
+This folder contains a lot of unsorted stuff that made up the first version of the project

@@ -674,6 +674,7 @@ def cnn(config,train=True):
         else:
             train_step = tf.train.GradientDescentOptimizer(r).minimize(combined_loss)
     del network
+    exit()
     return {'x' : x,
             'y' : y_,
             'train_step' : train_step,

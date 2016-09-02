@@ -23,7 +23,7 @@ global:
     # ignore_empty_labels: False
     batch_size: 100
     validation_batch_size: 500
-    network: test
+    network: gudi_test_network_4
     use_autoencoder : True
     fc1_neuron_count : 3000 #3136
     fc2_neuron_count : 0
@@ -94,7 +94,7 @@ data:
       crop: [0.1,0.1,0.5,0.2] # left,right,top,bottom
     full:
       crop: [0,0,0,0] #left,right,top,bottom
-      resize_scale: 0.1
+      resize_scale: 0.4
 
 
 

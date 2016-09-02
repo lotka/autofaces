@@ -6,7 +6,7 @@ import sys
 
 import numpy as np
 
-from src.includes import etc
+from includes import etc
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -617,17 +617,17 @@ if __name__ == "__main__":
         if args.config_file == 'config/both.yaml' or args.config_file == 'config/test.yaml':
             # o['experiment_group'] = ['weights']
             # o['weights:weights_start_type'] = ['normal_prop_n', 'std_dev']
-            o['experiment_group'] = ['noise']
+            o['experiment_group'] = ['transfer']
             # o['data:normalisation'] = ['contrast','contrast_face_ps','face','face_ps','none_[-1,1]','none_[0,1]','contrast_face']
-            o['global:network'] = ['gudi_test_network_2'] #'gudi_test_network_4','gudi_test_network_3',
+            o['global:network'] = ['gudi_test_network_2','gudi_test_network_4','gudi_test_network_3']
             o['global:local_response_norm'] = [True]
             o['global:dropout_rate'] = [0.8]
-            o['global:iterations'] = [2000]
-            o['autoencoder:step_percent'] = [0.5]
-            o['global:early_stop_percent'] = [0.5]
-            o['global:noise_stddev'] = [0.0,0.1,0.5,1.0,2.0,3.0]
-            o['autoencoder:function'] = ['constant']
-            o['autoencoder:constant'] = [1.0]
+            o['global:iterations'] = [1500]
+            o['autoencoder:step_percent'] = [2.0/3.0]
+            o['global:early_stop_percent'] = [2.0/3.0]
+            o['global:noise_stddev'] = [0.0]
+            o['autoencoder:function'] = ['step','constant']
+            o['autoencoder:constant'] = [0.0]
             # o['autoencoder:activation'] = ['sigmoid']
     overwrite_dicts = get_all_experiments(o)
     for i,x in enumerate(overwrite_dicts):
