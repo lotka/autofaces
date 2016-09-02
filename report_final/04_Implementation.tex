@@ -1,9 +1,17 @@
 \chapter{Implementation}
   \section{Deep Learning Framework}
     Tensorflow \cite{tensorflow} was chosen as the deep learning framework for this
-    project. Many others exist, some advantages that tensorflow has over its rivals
-    includes platform independence, distributed computing and inbuilt visualisation
-    of network topology and parameters over time. As with most other frameworks it uses python
+    project. Many others such as Caffe, Neon, TensorFlow, Theano, and Torch are popular.
+    The main advantages of tensorflow are flexibility with running code on diverse
+    hardware platforms and good support for visualisations
+    of computation graphs. The other frameworks infact are more efficient computationally due to their maturity
+    but this is not a major requirement in this project \cite{Bahrampour2016}.
+
+% TensorFlow is a very flexible framework, specially in
+% employing homogeneous/heterogeneous devices for the
+% various parts of the computational graph.
+
+    Similar to most other frameworks tensorflow uses python
     to define its computations and also has C++ interfaces for creating new operators.
     A tensorflow application can run on either a GPU or CPU with no modification, this was
     a particuarly nice feature as GPU reasources are often scarce and if time is not an issue a CPU
@@ -23,7 +31,7 @@
     the git repository used for this project is found at \url{https://github.com/lotka/autofaces}}, which was used for version control.
     One use case of git was to identify, with a git commit id each experiment which was run, so that in the future
     anyone can see exactly which bits of python code at which time generated particular experimental results.
-    SSH\footnote{Secure Shell (SSH) is a cryptographic network protocol used for interfaces with remote machines} provided a convinent way to start jobs on machines remotely and tmux \footnote{Tmux is a terminal
+    SSH\footnote{Secure Shell (SSH) is a cryptographic network protocol used for interfacing with remote machines.} provided a convinent way to start jobs on machines remotely and tmux \footnote{Tmux is a terminal
     multiplexer which can keep SSH sessions active} was used to manage multiple jobs on multiple machines.
 
     For visualisation matplotlib was the staple tool used to plot graphs and images. iPython notebooks

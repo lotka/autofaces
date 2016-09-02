@@ -235,7 +235,7 @@
   % Autoencoder classifier branching and balancing
   % Autoencoder classifier branching and balancing
   % Autoencoder classifier branching and balancing
-  \section{Autoencoder classifier branching and balancing} \label{sec:autoalpha}
+  \section{Autoencoder classifier balancing} \label{sec:autoalpha}
     A key structure that is to be investigated in this report is a network with two objective functions:
     autoencoder and classifier. This is achieved by having a bottleneck layer where the branching occurs.
     The autoencoder has symmetry along this bottleneck, while the classifier consists of one further layer
@@ -325,7 +325,7 @@
     \multicolumn{1}{|l|}{$y_1$}   &          & \multicolumn{1}{l|}{$43\times43\times64$}           &          & \multicolumn{1}{l|}{}            \\ \hline
     \multicolumn{1}{|l|}{$L_2$}   & max pool & \multicolumn{1}{l|}{$2\times 2$}                    &          & \multicolumn{1}{l|}{}            \\
     \multicolumn{1}{|l|}{$y_2$}   &          & \multicolumn{1}{l|}{$22\times22\times 64$}          &          & \multicolumn{1}{l|}{}            \\ \hline
-    \multicolumn{1}{|l|}{$L_3$}   & fc       & \multicolumn{1}{l|}{$30976\times3000$}              & Binary
+    \multicolumn{1}{|l|}{$L_3$*}   & fc       & \multicolumn{1}{l|}{$30976\times3000$}              & Binary
                                                                                                       Softmax & \multicolumn{1}{l|}{$3000\times2\times12$}        \\
     \multicolumn{1}{|l|}{$y_3$}   & dropout  & \multicolumn{1}{l|}{$3000$}                         &          & \multicolumn{1}{l|}{$24$}        \\ \hline
     \multicolumn{1}{|l|}{$L_4$}   & fc       & \multicolumn{1}{l|}{$3000\times30976$}              &          & \multicolumn{1}{l|}{}            \\
@@ -336,8 +336,8 @@
     \multicolumn{1}{|l|}{$y_6$}   &            & \multicolumn{1}{l|}{$47\times47\times1$}            &          & \multicolumn{1}{l|}{}             \\ \hline
     \end{tabular}
 
-    \caption{A network used many times in the report, for further details see appendix \ref{appendix1}} \label{compnet}
-
+    \caption{A network used many times in the report, for further details see appendix \ref{appendix1} \label{compnet}
+    \newline *Bottleneck layer}
     }
     \end{table}
 
@@ -466,12 +466,13 @@
     %
     %
     \subsection{Local Contrast Normalisation}
-      Local contrast normalisation is a technique which normalises small sections of
-      images coming out of various layers. This has been shown to improve performance
-      in some cases and in partiuclarly in larger networks.
+
+      The local contrast normalisation scheme as described in section \ref{sec:lrn}
+      was applied to the three test networks.
 
 
-      Table \ref{tab:lrn} shows experiments exploring whether these layers are helpful.
+      Table \ref{tab:lrn} shows experiments exploring whether these layers improve
+      classification performance
       \begin{table}[!h] \centering
       {\small
       \begin{tabular}{rrllrrrrrrrr}
@@ -505,33 +506,36 @@
     %
     %
     \subsection{Dropout}
-      Varying degrees of (see section \ref{sec:dropout}) were applied to each test network.
-      \begin{table}[!h] \centering
-      	{\small
-      		\begin{tabular}{rllrrrrrrrr}
-      			&&& &  \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{3}{c|}{Classifier Training}    \\
-      			\hline
-      			i  & network & it   & dp  & ROC  & F1   & AE Loss & ROC  & F1   & AE Loss \\
-      			\hline
-      			9  & 2       & 1500 & 1   & 0.49 & 0.19 & 0.02    & 0.8  & 0.47 & 0.12    \\
-      			10 & 2       & 1500 & 0.9 & 0.49 & 0.19 & 0.03    & 0.8  & 0.47 & 0.11    \\
-      			11 & 2       & 1500 & 0.8 & 0.52 & 0.19 & 0.03    & 0.82 & 0.48 & 0.08    \\
-      			\hline
-      			12 & 2       & 2000 & 0.8 & 0.52 & 0.19 & 0.03    & 0.8  & 0.46 & 0.11    \\
-      			\hline
-      			5  & 3       & 1500 & 1   & 0.51 & 0.19 & 0.02    & 0.81 & 0.46 & 0.21    \\
-      			6  & 3       & 1500 & 0.9 & 0.51 & 0.19 & 0.02    & 0.81 & 0.46 & 0.25    \\
-      			7  & 3       & 1500 & 0.8 & 0.49 & 0.19 & 0.03    & 0.82 & 0.46 & 0.13    \\
-      			\hline
-      			8  & 3       & 2000 & 0.8 & 0.57 & 0.19 & 0.02    & 0.81 & 0.44 & 0.33    \\
-      			\hline
-      			1  & 4       & 1500 & 1   & 0.6  & 0.19 & 0.03    & 0.78 & 0.42 & 1.03    \\
-      			3  & 4       & 1500 & 0.9 & 0.63 & 0.19 & 0.03    & 0.71 & 0.35 & 0.15    \\
-      			2  & 4       & 1500 & 0.8 & 0.5  & 0.19 & 0.03    & 0.73 & 0.36 & 0.08    \\
-      			\hline
-      			4  & 4       & 2000 & 0.8 & 0.52 & 0.19 & 0.03    & 0.77 & 0.38 & 1.01    \\
-      			\hline
-      		\end{tabular}}\caption{} \label{tab:pseaafasfrch} \end{table}
+      Varying degrees of (see section \ref{sec:dropout}) were applied to each test network at the bottleneck layer. Table
+      \begin{table}[h]
+      \centering
+      \begin{tabular}{rllrrrrrrrr}
+                           &         &                                                                                   &                                                                                  & \multicolumn{1}{r|}{} & \multicolumn{3}{c|}{Autoencoder Training}                          & \multicolumn{3}{c|}{Classifier Training}                           \\ \hline
+      i                    & network & \multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}Autoencoder\\ Iterations\end{tabular}} & \multirow{2}{*}{\begin{tabular}[c]{@{}r@{}}Classifier\\ Iterations\end{tabular}} & Dropout                    & ROC                  & F1                   & AE Loss              & ROC                  & F1                   & AE Loss              \\
+      \multicolumn{1}{l}{} &         &                                                                                   &                                                                                  & \multicolumn{1}{l}{}  & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} \\ \hline
+      1                    & 2       & 1000              & 500     & 1        & 0.49     & 0.19      & 0.02      & 0.8                  & 0.47                 & 0.12                 \\
+      2                    & 2       & 1000             & 500       & 0.9      & 0.49     & 0.19      & 0.03      & 0.8                  & 0.47                 & 0.11                 \\
+      3                    & 2       & 1000             & 500       & 0.8      & 0.52     & 0.19      & 0.03      & 0.82                 & 0.48                 & 0.08                 \\
+      4                    & 2       & 1000             & 1000       & 0.8      & 0.52     & 0.19      & 0.03      & 0.8                  & 0.46                 & 0.11                 \\
+      \hline
+      5                    & 3       & 1000             & 500       & 1        & 0.51     & 0.19      & 0.02      & 0.81                 & 0.46                 & 0.21                 \\
+      6                    & 3       & 1000             & 500       & 0.9      & 0.51     & 0.19      & 0.02      & 0.81                 & 0.46                 & 0.25                 \\
+      7                    & 3       & 1000             & 500       & 0.8      & 0.49     & 0.19      & 0.03      & 0.82                 & 0.46                 & 0.13                 \\
+      6                    & 3       & 1000             & 1000       & 0.8      & 0.57     & 0.19      & 0.02      & 0.81                 & 0.44                 & 0.33                 \\
+      \hline
+      9                    & 4       & 1000             & 500       & 1        & 0.6      & 0.19      & 0.03      & 0.78                 & 0.42                 & 1.03                 \\
+      10                   & 4       & 1000             & 500       & 0.9      & 0.63     & 0.19      & 0.03      & 0.71                 & 0.35                 & 0.15                 \\
+      11                   & 4       & 1000             & 500       & 0.8      & 0.5      & 0.19      & 0.03      & 0.73                 & 0.36                 & 0.08\\
+      12                   & 4       & 1000             & 1000       & 0.8      & 0.52      & 0.19      & 0.03      & 0.77   & 0.38     & 1.01\\
+      \hline
+      \end{tabular}
+      \caption{12 experiments which investigate the affect on appyling dropout to the three test networks, autoencoder iterations describes how leftarrow
+      the autoencoder is trained for and then classifier iterations describes for how long the classifier is then trained. {\bf Experimental Configuration:} see caption for table \ref{tab:sharedweights}}
+      \label{tab:dropout}
+      \end{table}
+
+      In networks two and three dropout seems to improve the overall performance of the network. Network three however
+      actually performce worse, this could be because it has more parameters and hence requires longer training.
 
 
       \newpage
@@ -542,7 +546,7 @@
     %
     %
     \subsection{L2 Regularisation}
-      L2 Regularisation incurs a penalty to using weights which have high values this was implemented by adding L2
+      L2 Regularisation incurs a penalty to using weights which have high values. This was implemented by adding L2
       loss terms for all weight variables. Experiments shown in table
       \ref{tab:l2_1} were then performed to get an idea of the sensitivy the system has to
       the L2 Coefficient $\beta$, it defines how much effort the training algorithm
@@ -658,6 +662,11 @@
 
     			\hline
     		\end{tabular}  } \caption{} \label{tab:pseaafasfrch} \end{table}
+
+        Autoencoer loses are quite different between experiments, does this suggest that
+        most of the logic is in the softmax layer??
+
+        Describe alternative more complicated situations where ony hte softmax bit gets trained.
 
 
     \newpage

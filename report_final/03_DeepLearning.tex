@@ -175,8 +175,8 @@
 
       Other than that all other elements have very straightforward inverses and hence
       a convolutional autoencoder can be constructed.
-    \subsection{LRN}
-      TODO
+    \subsection{LRN} \label{sec:lrn}
+      TODO\cite{Krizhevsky2012}
   \section{Overfitting and Regularisation}
     % http://neuralnetworksanddeeplearning.com/chap3.html#overfitting_and_regularization
     \subsection{Regularisers}
@@ -185,6 +185,7 @@
       A layer with dropout applied to it randomly turns neurons off, making it more
       difficult for the network to overfit data. There is a dropout probability
       which determines how often neurons are disabled, it is typically under 20\%
+    \subsection{Early Stopping}
   \section{Model Evaluation} \label{sec:eval}
     With any kind of classification model it is crucial to be able to evaluate its
     performance in a standard and reproducible way. For the problem of classifying
