@@ -231,10 +231,10 @@
     As the softmax layer is better in the results and has a better potential for good results
     it is chosen as the classifier for the rest of this work.
 
-  % Autoencoder classifier branching and balancing
-  % Autoencoder classifier branching and balancing
-  % Autoencoder classifier branching and balancing
-  % Autoencoder classifier branching and balancing
+  %
+  %
+  %
+  %
   \section{Autoencoder classifier balancing} \label{sec:autoalpha}
     A key structure that is to be investigated in this report is a network with two objective functions:
     autoencoder and classifier. This is achieved by having a bottleneck layer where the branching occurs.
@@ -429,8 +429,9 @@
     \subsection{Shared Weights}
       In order to reduce the number of parameters in an autoencoder, to avoid overfitting
       and the probability of learning the identity function, it is often helpful to share weights
-      between the encoder and decoder sections. Using the experimentation framework already defined
-      checking whether this is worthwhile is easy and insightful to do. Table \ref{tab:sharedweights} shows
+      between the encoder and decoder sections. Using the experimentation framework we built
+      checking whether this is worthwhile is easy and insightful to do in the same manner as in the preivous section.
+      Table \ref{tab:sharedweights} shows
       for three networks the effect of having and not having shared weights.
 
       \begin{table}[!h] \centering
@@ -455,11 +456,11 @@
       The network is described in table \ref{compnet} and the training datasets are split in half as in section
       \ref{sec:splitting}.} \label{tab:sharedweights} \end{table}
 
-      It can be seen that using shared weights actually consistently improves the classification
+      It can be seen that using shared weights consistently improves the classification
       performance by a small amount and in some cases the autoencoder performance. After the classifier has
-      destroyed the autoencoder, as expected, the shared weights cases suffers a much higher loss. This is of course
+      damaged the autoencoder, as expected, the shared weight cases suffers a much higher loss. This is
       because the classifier does not have access to the decoder weights if the weights are not shared and hence
-      changes fewer parameters.
+      changes fewer of the autoencoders parameters.
     %
     %
     %
@@ -506,9 +507,11 @@
     %
     %
     \subsection{Dropout}
-      Varying degrees of (see section \ref{sec:dropout}) were applied to each test network at the bottleneck layer. Table
+      Varying degrees of dropout (see section \ref{sec:dropout}) were applied to each test network at the bottleneck layer.
+      Table \ref{tab:dropout} shows the results.
       \begin{table}[h]
       \centering
+      { \small
       \begin{tabular}{rllrrrrrrrr}
                            &         &                                                                                   &                                                                                  & \multicolumn{1}{r|}{} & \multicolumn{3}{c|}{Autoencoder Training}                          & \multicolumn{3}{c|}{Classifier Training}                           \\ \hline
       i                    & network & \multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}Autoencoder\\ Iterations\end{tabular}} & \multirow{2}{*}{\begin{tabular}[c]{@{}r@{}}Classifier\\ Iterations\end{tabular}} & Dropout                    & ROC                  & F1                   & AE Loss              & ROC                  & F1                   & AE Loss              \\
@@ -529,13 +532,33 @@
       12                   & 4       & 1000             & 1000       & 0.8      & 0.52      & 0.19      & 0.03      & 0.77   & 0.38     & 1.01\\
       \hline
       \end{tabular}
-      \caption{12 experiments which investigate the affect on appyling dropout to the three test networks, autoencoder iterations describes how leftarrow
-      the autoencoder is trained for and then classifier iterations describes for how long the classifier is then trained. {\bf Experimental Configuration:} see caption for table \ref{tab:sharedweights}}
+      }
+      \caption{12 experiments which investigate the affect on appyling dropout to the
+      three test networks, autoencoder iterations is how many iterations
+      the autoencoder is trained for and then classifier iterations is for how many the
+      classifier is then trained. The dropout value represents the
+      fraction of neurons which are kept active in the bottleneck layer of each network.
+      All networks are trained with the same number of iterations but they are of very different sizes,
+      hence this analysis should not be seen as a network comparison but as a comparison between different amounts of dropout, for each network.
+      {\bf Experimental Configuration:} see caption for table \ref{tab:sharedweights}.}
       \label{tab:dropout}
       \end{table}
 
-      In networks two and three dropout seems to improve the overall performance of the network. Network three however
-      actually performce worse, this could be because it has more parameters and hence requires longer training.
+      More dropout had little effect on the ROC for networks 2 and 3, however it does
+      improve the final loss of the autoencoder. For network 4 the dropout actually decreases
+      ROC performance, but again allows the autoencoder to remain more functional. This
+      agrees with the general idea that any form of regularisation will inhibit large changes
+      in weights and encourage simpler complex models, i.e. it should be easier for the classifier to try and learn
+      a representation based on what the autoencoder was doing, instead of replacing it with a completely unrelated
+      representation. Another explanation is the since the dropout is applied throughout the training, the autoencoder
+      actually learns a representation which is more helpful for the classifier. This second hypothesis is
+      however difficult to prove from the results as the autoencoder losses seem to not be affected by the dropout rate.
+
+      Experiments 4,6 and 12 show that networks 2 and 3 are almost fully trained
+      with 500 iterations as adding more iterations does little (even reducing the performance somewhat, but not more than is statistically relevant because
+      these values still in theory a standard error).
+
+      This knowledge indicates that dropout should be included in the overall model.
 
 
       \newpage
