@@ -8,6 +8,13 @@
   the primary metric (the classifier) and that the presence of the autoencoder improves
   the performance of the classifier.
 
+  \begin{figure}[h!]
+   \centering
+   \includegraphics[width=\textwidth]{illustrations/aec_network.pdf}
+   \captionof{figure}{General structure of the proposed network. Each rectangle
+   represents many layers of neurons and the thin lines represent connections between layers.}
+  \end{figure}
+
   The results will show, that it is unclear if there is a direct relationship, nonetheless
   the work is a detailed exploration of how autoencoders and classifiers interact with each other
   under various initial preprocessing setups and different autoencoder transfer functions \footnote{These describe the degree to which
@@ -18,7 +25,7 @@
     parameters for experimentation are useful to define, these are shown in table \ref{tab:common}
 
     \begin{table}[!h]
-      \centering { \footnotesize \label{my-label}
+      \centering { \footnotesize
       \begin{tabular}{ll}
         \hline
         \textbf{Parameter}                       & \textbf{Value}                \\ \hline
@@ -207,7 +214,7 @@
     \end{table}
 
 
-    \begin{table}[!h] {\small
+    \begin{table}[!h] {\footnotesize
       \centering
       \begin{tabular}{lccc}
       \hline
@@ -306,10 +313,13 @@
   \section{Convolutional Networks}
 
     Now that some basic structures have been tested we proceed to convolutional networks,
-    inspired by the literature (see table \ref{compnet}) 3 networks are defined. Network 2 is shown in table \ref{compnet}, Network 3
-    adds another convolutional layer of size $5\times 5 \times 64 \times 64$ and Network 4 adds a $4\times 4 \times 64 \times 128$ layer
-    on top of Network 3. Regarding the decoder section of the inverse operations are performed, see appendix \label{appendix1} for full details
-    for networks 1,2,3 and 4.
+    inspired by the literature (see table \ref{tab:compnet}) 3 networks are defined.
+    Network 2 is shown in table \ref{tab:net2}, Network 3
+    adds another convolutional layer of size $5\times 5 \times 64 \times 64$ and
+    Network 4 adds a $4\times 4 \times 64 \times 128$ layer
+    on top of Network 3. Regarding the decoder section of the inverse operations are
+    performed, see appendix \label{appendix1} for full details
+    for networks 2,3 and 4.
 
     % network.append(cnn_layer(ll(network), [5, 5, 64, 64], 'VALID', 'Convolution_2', config, act=act))
     % network.append(cnn_layer(ll(network), [4, 4, 64, 128], 'VALID', 'Convolution_3', config, act=act))
@@ -336,7 +346,7 @@
     \multicolumn{1}{|l|}{$y_6$}   &            & \multicolumn{1}{l|}{$47\times47\times1$}            &          & \multicolumn{1}{l|}{}             \\ \hline
     \end{tabular}
 
-    \caption{A network used many times in the report, for further details see appendix \ref{appendix1} \label{compnet}
+    \caption{A network used many times in the report, for further details see appendix \ref{appendix1} \label{tab:net2}
     \newline *Bottleneck layer}
     }
     \end{table}
@@ -355,7 +365,7 @@
       is that the encoding at the bottleneck layer should be different for each set of parameters and that
       one of these will offer a good starting set of weights for the classifier to train from.
 
-      \begin{table}[!h] {\small
+      \begin{table}[!h] {\footnotesize
         \centering
       \begin{tabular}{lllrrrrrr}
             && &   \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{3}{c|}{Classifier Training}    \\
@@ -366,14 +376,17 @@
          2&Per Subject Contrast Face & tanh   &    0.49 &   0.19 &     0.12 &    0.82 &   0.46 &     0.13 \\
          3&Per Subject Contrast Face & relu   &    0.63 &   0.19 &     0.12 &    0.81 &   0.44 &     0.14 \\
          4& Per Subject Contrast Face & sigmoid &    0.52 &   0.2  &     0.13 &    0.08 &   0.19 &     0.13 \\
+         \hline
          5&Contrast          & linear &    0.40 &   0.19 &     0.19 &    0.74 &   0.34 &     1.46 \\
          6&Contrast          & tanh   &    0.61 &   0.19 &     0.20 &    0.72 &   0.35 &     0.35 \\
          7&Contrast          & relu   &    0.59 &   0.19 &     0.25 &    0.75 &   0.36 &     0.65 \\
          8& Contrast         & sigmoid &    0.54 &   0.19 &     0.22 &    0    &   0.19 &     0.28 \\
+         \hline
          9&Face              & linear &    0.46 &   0.19 &     0.06 &    0.73 &   0.35 &     0.26 \\
          10&Face              & tanh   &    0.52 &   0.19 &     0.08 &    0.74 &   0.35 &     0.13 \\
          11&Face              & relu   &    0.45 &   0.19 &     0.09 &    0.73 &   0.36 &     0.35 \\
          12& Face             & sigmoid &    0.47 &   0.2  &     0.1  &    0.72 &   0.35 &     0.13 \\
+         \hline
          \hdashline
          13&Per Subject Face  & linear &    $0.64$ &   $0.19$ &     $0.03$ &    $0.83$ &   $0.48$ &     $0.12$ \\
          &{\it error:}  &&$\pm$0.02 &$\pm$0.01 &$\pm$0.02  &$\pm$0.02 &$\pm$0.01 &$\pm$0.02 \\
@@ -381,14 +394,17 @@
          14&Per Subject Face  & tanh   &    0.56 &   0.19 &     0.03 &    0.81 &   0.47 &     0.05 \\
          15&Per Subject Face  & relu   &    0.56 &   0.19 &     0.04 &    0.81 &   0.48 &     0.11 \\
          16& Per Subject Face      & sigmoid &    0.62 &   0.23 &     0.04 &    0.81 &   0.46 &     0.05 \\
+         \hline
          17&Range [-1,1]      & linear &    0.50 &   0.19 &     0.07 &    0.73 &   0.35 &     3.90 \\
          18&Range [-1,1]      & tanh   &    0.54 &   0.19 &     0.07 &    0.75 &   0.35 &     0.30 \\
          19&Range [-1,1]      & relu   &    0.48 &   0.19 &     0.15 &    0.73 &   0.35 &     4.73 \\
          20& Range [-1,1]      & sigmoid &    0.49 &   0.2  &     0.12 &    0.73 &   0.31 &     0.36 \\
+         \hline
          21&None              & linear &    0.51 &   0.19 &     0.08 &    0.74 &   0.34 &     4.02 \\
          22&None              & tanh   &    0.59 &   0.19 &     0.07 &    0.71 &   0.33 &     0.93 \\
          23&None              & relu   &    0.53 &   0.19 &     0.20 &    0.53 &   0.23 &     0.41 \\
          24& None       & sigmoid &    0.47 &   0.19 &     0.09 &    0.65 &   0.29 &     0.46 \\
+         \hline
          25&Contrast Face     & linear &    0.56 &   0.19 &     0.24 &    0.74 &   0.35 &     0.40 \\
          26&Contrast Face     & tanh   &    0.54 &   0.19 &     0.24 &    0.75 &   0.38 &     0.26 \\
          27&Contrast Face     & relu   &    0.54 &   0.19 &     0.25 &    0.74 &   0.35 &     0.35 \\
@@ -429,13 +445,12 @@
     \subsection{Shared Weights}
       In order to reduce the number of parameters in an autoencoder, to avoid overfitting
       and the probability of learning the identity function, it is often helpful to share weights
-      between the encoder and decoder sections. Using the experimentation framework we built
-      checking whether this is worthwhile is easy and insightful to do in the same manner as in the preivous section.
+      between the encoder and decoder sections.
       Table \ref{tab:sharedweights} shows
       for three networks the effect of having and not having shared weights.
 
       \begin{table}[!h] \centering
-      {\small
+      {\footnotesize
       \begin{tabular}{rrllrrrrrrrr}
         &&&&   \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{3}{c|}{Classifier Training}    \\
       \hline
@@ -471,11 +486,8 @@
       The local contrast normalisation scheme as described in section \ref{sec:lrn}
       was applied to the three test networks.
 
-
-      Table \ref{tab:lrn} shows experiments exploring whether these layers improve
-      classification performance
       \begin{table}[!h] \centering
-      {\small
+      {\footnotesize
       \begin{tabular}{rrllrrrrrrrr}
         &&&   \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{3}{c|}{Classifier Training}    \\
       \hline
@@ -493,11 +505,13 @@
        8 & 4 & 2  &    0.52 &   0.19 &     0.03 &    0.8  &   0.44 &     0.88 \\
       \hline
       \end{tabular}}\caption{Results for applying local contrast normalisation layers
-      for the three test networks. {\bf Experimental Configuration:} see caption
+      for the three test networks. LRN Layers 0 means no LRN, 1 means a LRN layer is added after the max pool
+      and 2 means a LRN layer is added at the final convolutional layer in the encoder. There is no
+      inverse for LRN and hence the decoder section remains unchanged. {\bf Experimental Configuration:} see caption
       for table \ref{tab:sharedweights}}\label{tab:lrn}  \end{table}
 
-      Table \ref{tab:lrn} shows that for larger networks LRN allows them to compete with
-      the smaller ones.
+      Table \ref{tab:lrn} provides some improvement in performance for network 4 and is ineffectual or
+      detrmental for the other networks. For this reason, it will not be included in the subsequent sections.
 
       \newpage
     %
@@ -511,7 +525,7 @@
       Table \ref{tab:dropout} shows the results.
       \begin{table}[h]
       \centering
-      { \small
+      { \footnotesize
       \begin{tabular}{rllrrrrrrrr}
                            &         &                                                                                   &                                                                                  & \multicolumn{1}{r|}{} & \multicolumn{3}{c|}{Autoencoder Training}                          & \multicolumn{3}{c|}{Classifier Training}                           \\ \hline
       i                    & network & \multirow{2}{*}{\begin{tabular}[c]{@{}l@{}}Autoencoder\\ Iterations\end{tabular}} & \multirow{2}{*}{\begin{tabular}[c]{@{}r@{}}Classifier\\ Iterations\end{tabular}} & Dropout                    & ROC                  & F1                   & AE Loss              & ROC                  & F1                   & AE Loss              \\
@@ -548,7 +562,7 @@
       improve the final loss of the autoencoder. For network 4 the dropout actually decreases
       ROC performance, but again allows the autoencoder to remain more functional. This
       agrees with the general idea that any form of regularisation will inhibit large changes
-      in weights and encourage simpler complex models, i.e. it should be easier for the classifier to try and learn
+      in weights and encourage less complex models, i.e. it should be easier for the classifier to try and learn
       a representation based on what the autoencoder was doing, instead of replacing it with a completely unrelated
       representation. Another explanation is the since the dropout is applied throughout the training, the autoencoder
       actually learns a representation which is more helpful for the classifier. This second hypothesis is
@@ -581,7 +595,7 @@
           + \beta \sum_i^{\text{weights}}||\mathbf{W}_i||^2
       \end{equation}
 
-      \begin{table}[!h] {\small \centering
+      \begin{table}[!h] {\footnotesize \centering
       \begin{tabular}{lrrrrrrrrrrr}
         &&&   \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{5}{c|}{Classifier Training}  \\
       \hline
@@ -608,7 +622,7 @@
 
 
 
-    \begin{table}[!h] {\small \centering
+    \begin{table}[!h] {\footnotesize \centering
       \begin{tabular}{lrrrrrrrrrrr}
         &&&   \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{3}{c|}{Classifier Training}    \\
       \hline
@@ -637,17 +651,21 @@
     \label{fig:l2_2}
     \end{figure}
 
-    Figures \ref{fig:l2_1} and \ref{fig:l2_2} show some stuff but lets ignore it.
+    Figures \ref{fig:l2_1} and \ref{fig:l2_2} show how the method
+    is effective in reducing overfitting on the training subjects.
+    However it also shows that it reduces the perfomance of the classifier,
+    hence requiring more training iterations while also protecting the autoencoder.
+    \todo{expand}
 
     \newpage
 
-    %
-    %
-    %
-    %
-    %
-    %
-    \section{Denoising autoencoders}
+  %
+  %
+  %
+  %
+  %
+  %
+  \section{Denoising autoencoders}
   %
   %
   %
@@ -655,7 +673,7 @@
   %
   %
   \section{Autoencoder transfer functions}
-    \begin{table}[!h] { \small \centering
+    \begin{table}[!h] { \footnotesize \centering
     		\begin{tabular}{rrrrrrrrrrrr}
     			&&&&& &  \multicolumn{3}{|c|}{Early Model} &  \multicolumn{3}{c|}{Final Model}    \\
     			\hline
@@ -699,7 +717,7 @@
     %
     %
     % \section{Comparison to classifier only network}
-    % \begin{table}[!h] {\small
+    % \begin{table}[!h] {\footnotesize
     %   \centering
     %   \begin{tabular}{llrrrrrr}
     %      & &   \multicolumn{3}{|c|}{Early Model} &  \multicolumn{3}{c|}{Final Model}\\
