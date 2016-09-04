@@ -17,7 +17,7 @@
 
   The results will show, that it is unclear if there is a direct relationship, nonetheless
   the work is a detailed exploration of how autoencoders and classifiers interact with each other
-  under various initial preprocessing setups and different autoencoder transfer functions \footnote{These describe the degree to which
+  under various preprocessing situations and different autoencoder transfer functions \footnote{These describe the degree to which
   each cost function is trained during training, section \ref{sec:autoalpha} details this in full.}.
 
   \section{Experimental set up}
@@ -82,9 +82,9 @@
     neurons required in the hidden layer would be equal to the number of features. Per subject face normalisation
     is chosen from section \ref{sec:meanface} and the images are scaled to be size $118 \times 118$.
     Figure \ref{fig:simple} shows the losses during training, on the train and validation set where table \ref{tab:splitting}
-    describes the way the data is partitioned. Overfitting to the train set is evident very early in the training, there are two
+    describes the way the data is partitioned. Over fitting to the train set is evident very early in the training, there are two
     possible reasons, firstly the validation set might be too small to represent all AU's and secondly the model is still quite basic.
-    Training the classifier reduces the performance of the autoencoder visibily.
+    Training the classifier reduces the performance of the autoencoder visibly.
 
     \begin{table}[h!]
       \centering
@@ -100,7 +100,7 @@
       Validation           & 500 chosen randomly taken from test set      \\
      \hline
       \end{tabular}
-      \caption{Typical split of the DISFA dataset for experimentation perposes}
+      \caption{Typical split of the DISFA dataset for experimentation purposes}
       \label{tab:splitting}  }
     \end{table}
 
@@ -114,7 +114,7 @@
     squared loss is shown only for interest, the network trains by minimising
     the cross entropy. The $\alpha$ coefficient determines the balance between the
     classifier and the autoencoder losses, $\alpha=1$ signifies only autoencoder training
-    while $\alpha=0$ means only classifier training. Overfitting is observed
+    while $\alpha=0$ means only classifier training. Over fitting is observed
     on all loss functions. Training the classifier
     overwrites the weights and hence ends up reducing
     the performance of the autoencoder.}
@@ -126,7 +126,7 @@
     {\small
     \begin{tabular}{llllll}
     \hline
-    \textbf{Class}    & \textbf{ROC} & \textbf{ROC} & \textbf{Max F1} & \textbf{Max Percision} & \textbf{Max Recall} \\ \hline
+    \textbf{Class}    & \textbf{ROC} & \textbf{ROC} & \textbf{Max F1} & \textbf{Max Precision} & \textbf{Max Recall} \\ \hline
     1                 & 0.5          & fail         & 0.09            & 0.06                   & 1.0                 \\
     2                 & 0.6          & poor         & 0.07            & 0.05                   & 1.0                 \\
     4                 & 0.62         & poor         & 0.31            & 0.27                   & 1.0                 \\
@@ -157,7 +157,7 @@
     one image into only one category. The case with the DISFA dataset is different, we
     would like to be able to classify the categories jointly,  putting one frame into more than
     one AU category. Ideally the network would output a confidence score between 0 and 1
-    to signfy if an AU is present and we would calculate some optimum threshold value
+    to signify if an AU is present and we would calculate some optimum threshold value
     (ideally this would be 0.5).
 
     The following list details three possible solutions to the joint classification problem:
@@ -167,8 +167,8 @@
                                   a softmax activation function (see equation \ref{eq:softmax}).
                                   The issue with this is that it provides a probability distribution over AUs
                                   but the required quantity is a probability distribution for each AU. In the implementation
-                                  the negative neuron of each binary layer is only used for training perposes, and it is
-                                  discarded while evaulating the classification performance.
+                                  the negative neuron of each binary layer is only used for training purposes, and it is
+                                  discarded while evaluating the classification performance.
       \item {\bf Sigmoid Layer} - This again is like the previous solution but instead each neuron gives a confidence
                                   score between 0 and 1 for each AU with a sigmoid function (see equation \ref{eq:sigmoid}).
                                   The issue with this however is that sigmoid
@@ -229,7 +229,7 @@
     \end{table}
 
     The results show that the binary softmax layer outperforms the other solutions. The
-    softmax layer is only slightly worse, but in order to accomodate for the potential of higher rates
+    softmax layer is only slightly worse, but in order to accommodate for the potential of higher rates
     it is clear that the binary softmax is the better choice. This is because, in joint classification problems
     the simple softmax layer struggles to report more than 2 AU's as the outputs must add up to one.
     The low performance of the softmax layer is interesting and one reason might be that of vanishing gradients due to
@@ -269,7 +269,7 @@
     Where t indexes iterations, T is the total number of iterations and p is the
     percentage of iterations that should be in the first region of the piecewise function
     where $\alpha=1$.
-    This nicely expresses what is typically meant by pre-training in the literatue, it trains
+    This nicely expresses what is typically meant by pre-training in the literature, it trains
     the autoencoder up until iteration $pT$ (normally $p=\frac{1}{2}$ or $p=\frac{2}{3}$) and then the classifier for the remainder of the time.
     This acts as a good base case to test both sides of the network, later more interesting
     functions will be explored such as the sigmoid step:
@@ -291,8 +291,8 @@
     \includegraphics[width =\hsize]{figures/alpha.pdf}
     \caption{Examples of alpha functions described in section \ref{sec:autoalpha}
     for the polynomial case higher values of $n$ decrease the amount of training
-    the classifier recieves. While in the case of the step p dictates the training
-    that each network recieves, the sigmoid can be seen as a smoothed out step function
+    the classifier receives. While in the case of the step p dictates the training
+    that each network receives, the sigmoid can be seen as a smoothed out step function
     with the two being equivalent as $ \tau \rightarrow \infty$. Similarly as $n \rightarrow \infty$
     the polynomial function turns into a constant function with $c=1$ except at the final
     iteration.}
@@ -370,7 +370,7 @@
       \begin{tabular}{lllrrrrrr}
             && &   \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{3}{c|}{Classifier Training}    \\
         \hline
-         i&Preprocesing    & Activation Function&  ROC&F1&AE Loss & ROC & F1 & AE Loss \\
+         i&Preprocessing    & Activation Function&  ROC&F1&AE Loss & ROC & F1 & AE Loss \\
          \hline
          1&Per Subject Contrast Face & linear &    0.49 &   0.19 &     0.12 &    0.82 &   0.46 &     0.18 \\
          2&Per Subject Contrast Face & tanh   &    0.49 &   0.19 &     0.12 &    0.82 &   0.46 &     0.13 \\
@@ -413,11 +413,11 @@
         \end{tabular}
           \caption{Comparison of four activation functions for the autoencoder for each type of preprocessing method.
           No significant difference is seen between the activation functions apart from with the sigmoid
-          which makes training the classifier fail competely.
-          Error values are required because tensorflow does implement fully determinsitic
+          which makes training the classifier fail completely.
+          Error values are required because tensorflow does implement fully deterministic
           processing with GPU cards (see section \ref{sec:GPU} the values in the errors were
-          calculated by rerunning experiment 13 5 times. The autoencoder losses were caluclated
-          by first appyling the inverse transform of the preprocessing method and then taking the mean squared
+          calculated by rerunning experiment 13 5 times. The autoencoder losses were calculated
+          by first applying the inverse transform of the preprocessing method and then taking the mean squared
           difference between the reconstructed image and original image. {\bf Experimental Configuration:}
           The alpha function is $\alpha(t)=\alpha_{\text{step}}(t,0.5,1000)$.
           meaning the autoencoder training runs for 500 iterations and then the classifier for 500.
@@ -427,14 +427,14 @@
       \end{table}
 
       The highest ROC and F1 score is found in experiment 13 in table \ref{tab:psearch}. Experiment 12
-      has effectively the same score and a lower final autoencoder loss, but it uses the tanh activaition
+      has effectively the same score and a lower final autoencoder loss, but it uses the tanh activation
       function and hence cannot fully reconstruct the input image which has values well outside the
       range $[-1,1]$ hence linear activation function is chosen.
 
       The network is in quite a different state, looking at the auteoncoder loss
       suggesting there is some degree of cooperation in the earlier experiment.
       The classification rate is also slightly better in the classifier and autoencoder
-      training experiment. It may be however that the network is too small to accomodate both
+      training experiment. It may be however that the network is too small to accommodate both
       functions and that this method might allow the training of larger models.
       \newpage
     %
@@ -443,7 +443,7 @@
     %
     %
     \subsection{Shared Weights}
-      In order to reduce the number of parameters in an autoencoder, to avoid overfitting
+      In order to reduce the number of parameters in an autoencoder, to avoid over fitting
       and the probability of learning the identity function, it is often helpful to share weights
       between the encoder and decoder sections.
       Table \ref{tab:sharedweights} shows
@@ -511,7 +511,7 @@
       for table \ref{tab:sharedweights}}\label{tab:lrn}  \end{table}
 
       Table \ref{tab:lrn} provides some improvement in performance for network 4 and is ineffectual or
-      detrmental for the other networks. For this reason, it will not be included in the subsequent sections.
+      detrimental for the other networks. For this reason, it will not be included in the subsequent sections.
 
       \newpage
     %
@@ -547,7 +547,7 @@
       \hline
       \end{tabular}
       }
-      \caption{12 experiments which investigate the affect on appyling dropout to the
+      \caption{12 experiments which investigate the affect on applying dropout to the
       three test networks, autoencoder iterations is how many iterations
       the autoencoder is trained for and then classifier iterations is for how many the
       classifier is then trained. The dropout value represents the
@@ -584,22 +584,26 @@
     %
     \subsection{L2 Regularisation}
       L2 Regularisation incurs a penalty to using weights which have high values. This was implemented by adding L2
-      loss terms for all weight variables. Experiments shown in table
-      \ref{tab:l2_1} were then performed to get an idea of the sensitivy the system has to
-      the L2 Coefficient $\beta$, it defines how much effort the training algorithm
-      puts into the reducing the L2 loss term. The new cost function becomes:
+      loss terms for all weight variables. The new cost function becomes:
 
-      \begin{equation}
+      \begin{equation} \label{eq:l2_cost_model}
           J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = -\frac{1-\alpha(t)}{2FN}\tilde{\mathbf{y}}\cdot\log(\mathbf{y}(\tilde{\mathbf{x}}))
           + \frac{\alpha(t)}{N}\left |\mathbf{y}(\tilde{\mathbf{x}}) \odot \mathbf{M}-\tilde{\mathbf{x}}\right | ^2
           + \beta \sum_i^{\text{weights}}||\mathbf{W}_i||^2
       \end{equation}
 
+      Where $\beta$ is some positive balancing factor and $\mathbf{W}$ signifies
+      a weight tensor from any type of layer in the network.
+
+      Table \ref{tab:l2_1} shows some experiments which vary $\beta$, they reveal an
+      interesting trend, where the ROC and F1 are reduced by L2 losses but the autoencoding
+      ability is protected by the L2 loss term.
+
       \begin{table}[!h] {\footnotesize \centering
       \begin{tabular}{lrrrrrrrrrrr}
         &&&   \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{5}{c|}{Classifier Training}  \\
       \hline
-       i &   L2 Coefficient &   Iterations &   ROC&F1&AE Loss & ROC & F1 & AE Loss &   Validation CEL &   Train CEL \\
+       i & $\beta$ &   Iterations &   ROC&F1&AE Loss & ROC & F1 & AE Loss &   Validation CEL &   Train CEL \\
       \hline
        1 &     0     & 1000 &    0.45 &   0.19 &     0.03 &    0.77 &   0.46 &     0.11 &  0.53 &  0.07 \\
        2 &     0.001 & 1000 &    0.56 &   0.19 &     0.03 &    0.74 &   0.41 &     0.05 &  0.46 &  0.11 \\
@@ -613,26 +617,31 @@
     of the code was used and hence different ROC and F1 numbers.
     The results should still hold relative to each other.
     CEL (Cross Entropy Loss) is included here to get an idea of how different
-    the lossess between the validation batches are (of course the
+    the losses between the validation batches are (of course the
     train batch is just 100 frames, however inspecting figure \ref{fig:l2_1} shows that
     these 100 frames are typically representative enough to draw conclusions from), these
     CEL values are therefore equivalent to the final data points in figure \ref{fig:l2_1}. } \label{tab:l2_1}
     }
     \end{table}
 
-
+    Table \ref{tab:l2_2} then takes experiments 1,4 from table \ref{tab:l2_1} and doubles
+    the amount of iterations for both the autoencoder and classifier trainings. It shows
+    that the extra iterations can undo the performance loss that the L2 regularisation
+    introduces while also still protecting the functionality of the autoencoder.
+    This shows in general that L2 is a helpful thing to include in the setting of the autoencoder
+    and classifier.
 
     \begin{table}[!h] {\footnotesize \centering
       \begin{tabular}{lrrrrrrrrrrr}
         &&&   \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{3}{c|}{Classifier Training}    \\
       \hline
-       i &   L2 Coefficient &   Iterations &   ROC&F1&AE Loss & ROC & F1 & AE Loss \\
+       i &   $\beta$ &   Iterations &   ROC&F1&AE Loss & ROC & F1 & AE Loss \\
       \hline
        1 &       0.1 & 2000 &    0.56 &   0.19 &     0.03 &    0.74 &   0.35 &     0.04\\
        2 &       0   & 2000 &    0.46 &   0.19 &     0.03 &    0.77 &   0.45 &     0.15\\
       \hline
     \end{tabular}
-    \caption{Identical to \ref{tab:l2_1} except with more iterations to invetigate what happens with further training. The result is that
+    \caption{Identical to \ref{tab:l2_1} except with more iterations to investigate what happens with further training. The result is that
     the L2 Loss }
     \label{tab:l2_2} }
     \end{table}
@@ -640,22 +649,19 @@
     \begin{figure}[!h]
     \centering
     \includegraphics[width =0.8\hsize]{figures/l2.pdf}
-    \caption{Plot of the classifier losses of the experiments in table \ref{tab:l2_2} }
+    \caption{Plot of the classifier cross entropy loss losses of the two experiments in table \ref{tab:l2_2} }
     \label{fig:l2_1}
     \end{figure}
 
     \begin{figure}[!h]
     \centering
     \includegraphics[width =0.8\hsize]{figures/l2_auto.pdf}
-    \caption{Plot of the autoencoder losses of the experiments in table \ref{tab:l2_2} }
+    \caption{Plot of the autoencoder mean squared loss of the two experiments in table \ref{tab:l2_2} }
     \label{fig:l2_2}
     \end{figure}
 
-    Figures \ref{fig:l2_1} and \ref{fig:l2_2} show how the method
-    is effective in reducing overfitting on the training subjects.
-    However it also shows that it reduces the perfomance of the classifier,
-    hence requiring more training iterations while also protecting the autoencoder.
-    \todo{expand}
+    With these results then, the conclusion is that including a small degree of L2
+    Regularisation should be useful for exploring the aims of this project.
 
     \newpage
 
@@ -665,51 +671,48 @@
   %
   %
   %
-  \section{Denoising autoencoders}
-  %
-  %
-  %
-  %
-  %
-  %
   \section{Autoencoder transfer functions}
-    \begin{table}[!h] { \footnotesize \centering
-    		\begin{tabular}{rrrrrrrrrrrr}
-    			&&&&& &  \multicolumn{3}{|c|}{Early Model} &  \multicolumn{3}{c|}{Final Model}    \\
-    			\hline
-    			i  & Network & alpha      & Iterations & Early Iteration & dp  & e roc & e f1 & e auto & f roc & f f1 & f auto \\
-    			\hline
-           1 & 2 & constant 0.0 & 1500 &  1000 &  0.8 &    0.8  &   0.47 &     0.56 &    0.79 &   0.46 &     0.64 \\
-    			 2  & 2       & constant 0.5   & 1500       & 750             & 0.8 & 0.81  & 0.48 & 0.03   & 0.8   & 0.46 & 0.03   \\
-    			 3  & 2       & sigmoid    & 1500       & 1000            & 0.8 & 0.8   & 0.46 & 0.03   & 0.79  & 0.46 & 0.03   \\
-    			 4  & 2       & polynomial & 1500       & 750             & 0.8 & 0.79  & 0.46 & 0.03   & 0.77  & 0.44 & 0.03   \\
-    			 5  & 2       & alternate  & 1500       & 1000            & 0.8 & 0.81  & 0.46 & 0.1    & 0.82  & 0.47 & 0.12   \\
-           6 & 2 & step     & 1500 &  1000 &  0.8 &    0.59 &   0.19 &     0.03 &    0.82 &   0.47 &     0.08 \\
-    			\hline
-           7 & 3 & constant 0.0 & 1500 &  1000 &  0.8 &    0.81 &   0.43 &     2.38 &    0.79 &   0.42 &     2.61 \\
-    			 8  & 3       & constant 0.5   & 1500       & 750             & 0.8 & 0.81  & 0.46 & 0.03   & 0.81  & 0.46 & 0.03   \\
-    			 9  & 3       & sigmoid    & 1500       & 1000            & 0.8 & 0.8   & 0.46 & 0.03   & 0.8   & 0.44 & 0.04   \\
-    		  10  & 3       & polynomial & 1500       & 750             & 0.8 & 0.78  & 0.45 & 0.02   & 0.79  & 0.44 & 0.03   \\
-    			11  & 3       & alternate  & 1500       & 1000            & 0.8 & 0.69  & 0.32 & 0.1    & 0.77  & 0.37 & 0.23   \\
-          12 & 3 & step     & 1500 &  1000 &  0.8 &    0.38 &   0.19 &     0.03 &    0.81 &   0.45 &     0.18 \\
-    			\hline
-          13  & 4       & constant 0.0   & 1500       &  1000           & 0.8  &    0.78 &   0.38 &    16.31 &    0.78 &   0.39 &    14.5 \\
-    			14 & 4       & constant 0.5   & 1500       & 750             & 0.8 & 0.73  & 0.33 & 0.03   & 0.75  & 0.36 & 0.03   \\
-    			15 & 4       & sigmoid    & 1500       & 1000            & 0.8 & 0.74  & 0.36 & 0.03   & 0.74  & 0.36 & 0.03   \\
-    			16 & 4       & polynomial & 1500       & 750             & 0.8 & 0.52  & 0.21 & 0.09   & 0.67  & 0.3  & 0.04   \\
-    			17 & 4       & alternate  & 1500       & 1000            & 0.8 & 0.6   & 0.26 & 0.06   & 0.61  & 0.27 & 0.07   \\
-          18 & 4       & step       & 1500       &  1000           & 0.8  &    0.42 &   0.19 &     0.03 &    0.77 &   0.4  &     0.7 \\
+  In the style of the previous sections, the autoencoder transfer functions are investigated.
+  The classifier only situations are included as a baseline from which to compare
+  what the autoencoder actually adds. In these experiments, one possible issue is that
+  the total amount of classifier and autoencoder training is not constant\footnote{The areas under the alpha function curves are not constant.} between transfer functions
+  and this is something that might be critical for a really precise exposition. However, what is shown here
+  instead is if forfitting some classifer training for autoencoder training can give improvements.
 
 
-    			\hline
-    		\end{tabular}  } \caption{} \label{tab:pseaafasfrch} \end{table}
 
-        Autoencoer loses are quite different between experiments, does this suggest that
-        most of the logic is in the softmax layer??
+\begin{table}[!h] { \footnotesize \centering
+		\begin{tabular}{rrrrrrrrrrrr}
+			&&&&& &  \multicolumn{3}{|c|}{Early Model} &  \multicolumn{3}{c|}{Final Model}    \\
+			\hline
+			i  & Network & alpha        & Iterations & Early Iteration & ROC  & F1   & AE Loss & ROC  & F1   & AE Loss \\
+			\hline
+			1  & 2       & constant 0.0 & 1500       & 1000 & 0.8  & 0.47 & 0.56    & 0.79 & 0.46 & 0.64 \\
+			2  & 2       & constant 0.5 & 1500       & 750  & 0.81 & 0.48 & 0.03    & 0.8  & 0.46 & 0.03 \\
+			3  & 2       & sigmoid      & 1500       & 1000 & 0.8  & 0.46 & 0.03    & 0.79 & 0.46 & 0.03 \\
+			4  & 2       & polynomial   & 1500       & 750  & 0.79 & 0.46 & 0.03    & 0.77 & 0.44 & 0.03 \\
+			5  & 2       & alternate    & 1500       & 1000 & 0.81 & 0.46 & 0.1     & 0.82 & 0.47 & 0.12 \\
+			6  & 2       & step         & 1500       & 1000 & 0.59 & 0.19 & 0.03    & 0.82 & 0.47 & 0.08 \\
+			\hline
+			7  & 3       & constant 0.0 & 1500       & 1000 & 0.81 & 0.43 & 2.38    & 0.79 & 0.42 & 2.61 \\
+			8  & 3       & constant 0.5 & 1500       & 750  & 0.81 & 0.46 & 0.03    & 0.81 & 0.46 & 0.03 \\
+			9  & 3       & sigmoid      & 1500       & 1000 & 0.8  & 0.46 & 0.03    & 0.8  & 0.44 & 0.04 \\
+			10 & 3       & polynomial   & 1500       & 750  & 0.78 & 0.45 & 0.02    & 0.79 & 0.44 & 0.03 \\
+			11 & 3       & alternate    & 1500       & 1000 & 0.69 & 0.32 & 0.1     & 0.77 & 0.37 & 0.23 \\
+			12 & 3       & step         & 1500       & 1000 & 0.38 & 0.19 & 0.03    & 0.81 & 0.45 & 0.18 \\
+			\hline
+			13 & 4       & constant 0.0 & 1500       & 1000 & 0.78 & 0.38 & 16.31   & 0.78 & 0.39 & 14.5 \\
+			14 & 4       & constant 0.5 & 1500       & 750  & 0.73 & 0.33 & 0.03    & 0.75 & 0.36 & 0.03 \\
+			15 & 4       & sigmoid      & 1500       & 1000 & 0.74 & 0.36 & 0.03    & 0.74 & 0.36 & 0.03 \\
+			16 & 4       & polynomial   & 1500       & 750  & 0.52 & 0.21 & 0.09    & 0.67 & 0.3  & 0.04 \\
+			17 & 4       & alternate    & 1500       & 1000 & 0.6  & 0.26 & 0.06    & 0.61 & 0.27 & 0.07 \\
+			18 & 4       & step         & 1500       & 1000 & 0.42 & 0.19 & 0.03    & 0.77 & 0.4  & 0.7  \\
 
-        Describe alternative more complicated situations where ony hte softmax bit gets trained.
 
+			\hline
+		\end{tabular}  } \caption{} \label{tab:auto_final_1} \end{table}
 
+    The first thing to note from the results in table \ref{tab:auto_final_1}
     \newpage
     %
     %
@@ -738,5 +741,4 @@
     %
     %
     %
-  % \section{Data balancing}
-  %   pass
+    \section{Results from the best performing network}

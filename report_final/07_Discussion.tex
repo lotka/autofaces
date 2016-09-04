@@ -1,5 +1,19 @@
 \chapter{Discussion}
-  Limitations of a network which has no concept of time.
+  \section{Results}
+    The results have not shown that an autoencoder, in our particular setting,
+    gives significant improvements to classification performance. However it has
+    explored how preprocessing techinqiues and various neural network structures
+    interact, showing that with small datasets such as DISFA other techniques may
+    be more important. An unconventional part of this work, given the exicitement
+    in the field of deep learning is that the smaller networks perform better.
+    This is most probably due to the fact that the input data was too homogenous
+    and that the task of detecting AU's is difficult, in particular in the way the problem was set up
+    with even intensity one AU's (barely visible to humans and related to context)
+    were included as a positive example.
+
+
+  \section{Future Work}
+    A number of constraints
 
   Maybe CNN isn't the right tool for the job here
   Should have just used a slightly deep fully connected network
@@ -21,5 +35,5 @@
 
   Stacked to ensure feature training.
 
-  \section{Conclusion}
+\chapter{Conclusion}
   It's difficult but we showed that you can get them to cooperate at least.

@@ -4,36 +4,36 @@
     a neural network. Although in theory a neural network can learn very complex
     non-linear transformations, it is often the case that learning this at the same
     time as learning other abilities is unrealistic. Preprocessing methods can
-    also embedd information about the dataset into each frame which the network is
+    also embed information about the dataset into each frame which the network is
     unlikely to learn as it works on a per example basis (this is a motivation for
     recurrent networks).
      Therefore it is vital to try
     different pre-processing methods on the data.
     Recalling of the aims of this project it is also vital to try a range of methods
     because only a few
-    might allow the autoencoder and classifer structures to cooperate with each other.
+    might allow the autoencoder and classifier structures to cooperate with each other.
     This section describes some preprocessing methods which are to be
     tested in section \ref{sec:psearch}.
 
 
     The DISFA dataset as described in section \ref{disfa_list} has frames of size $ 1024 \times 764 $
     but using previous work of Sebastian Kaltwang (See acknowledgements) faces are
-    centered and normalised to give an image of size $118 \times 128$
+    centred and normalised to give an image of size $118 \times 128$
     with pixels being integers between
     0 and 255. An illustration is shown in figure \ref{fig:sebproc}
 
     \begin{figure}[!h] \centering
     \includegraphics[width =\hsize]{figures/seb_preproc.pdf}
     \caption{ {\bf a) b) c)} An example of the original $764 \times 1024$ image with
-    the 3 RGB channels displayed seperately. {\bf d)} the resultant image
+    the 3 RGB channels displayed separately. {\bf d)} the resultant image
     $118 \times 128$ after face registration.} \label{fig:sebproc} \end{figure}
 
 
-    This section first discusses the initial treatment of the labels and splittin of then data.
+    This section first discusses the initial treatment of the labels and splitting of then data.
     Then three different methods of normalising and scaling
     the dataset are described, these can be combined to create further methods. In order to illustrate
     the effect of such operations figures such as figure \ref{fig:faces_none} are used which
-    show an example face and some statisically generated faces. The ideal method will
+    show an example face and some statistically generated faces. The ideal method will
     have minimum and maximum faces which express high degrees of facial expression, so that
     high pixel values can easily be correlated to various AU's in the classifier. Another motivation
     for trying this many methods is to improve the chances of finding an input format which works will with both an
@@ -49,7 +49,7 @@
       Where $F$ is the number of AU's (or features) and $N$ is the number of labeled images
       in the dataset.
 
-      Five is the highest intensity for an AU and zero is the abscence of that AU.
+      Five is the highest intensity for an AU and zero is the absence of that AU.
       Typically a neural network outputs values between zero and one so these values are divided by five to make them compatible.
       For an intensity estimation problem that is all that is required, however for classification
       the AU labels need to binary and so a threshold is chosen at which an AU is considered present.
@@ -71,7 +71,7 @@
           Test           & 500 chosen randomly taken from validation set      \\
          \hline
           \end{tabular}
-          \caption{Typical split of the DISFA dataset for experimentation perposes}
+          \caption{Typical split of the DISFA dataset for experimentation purposes}
           \label{sec:splitting}
         \end{table}
 
@@ -95,7 +95,7 @@
     \end{equation}
     Where $\mathbf{x}$ contains the images, $\mathbf{y}$ contains the labels,
     $N$ is the number of images, $X$ is the width of the image, $Y$ is the height of the
-    image and $F$ is the number of AU's labeled. Furthermore in some cases an extra dimension
+    image and $F$ is the number of AU's labelled. Furthermore in some cases an extra dimension
     for the subject may be added:
     \begin{equation}
     {\bf x} \in \mathbb{R}^{S\times N\times X \times Y},\quad {\bf y} \in \mathbb{N}^{S\times N\times F}
@@ -158,8 +158,8 @@
       \end{equation}
       Where ${\boldsymbol \mu}_{i,j..}$ denotes the mean over the axes $i,j..$ and
       similarly for ${\boldsymbol \sigma} $ the standard deviation.
-      The point of this normalisaiton is to enhance the intensity of any pixels which
-      are unusal, these pixels should hold most information about potential facial expressions.
+      The point of this normalisation is to enhance the intensity of any pixels which
+      are unusual, these pixels should hold most information about potential facial expressions.
       \begin{figure}[!h] \centering
       \includegraphics[width =\hsize]{figures/faces_per_subject_face.pdf}
       \caption{The DISFA dataset with {\bf per subject mean face normalisation}.
@@ -176,7 +176,7 @@
     %
     \subsection{Range Scaling}
       This normalisation stretches the data between -1 and 1, this contains no feature engineering
-      intution but is simply another type of normalisation to try.
+      intuition but is simply another type of normalisation to try.
       \begin{equation}
         {\boldsymbol r}({\bf x})_{axis} = {\boldsymbol \min}_{axis}({\bf x}) - {\boldsymbol \min}_{axis}({\bf x})
       \end{equation}
@@ -247,6 +247,6 @@
           = \frac{1}{N}\left |\mathbf{y}(\tilde{\mathbf{x}}) \odot \mathbf{M}-\tilde{\mathbf{x}}\right | ^2
       \end{equation}
 
-      Where M is a two dimensional matrix with elements unity where the dataset is nonzero
-      and zero when the dataset is zero for that pixel. Here $\odot$ denotes an elementwise
+      Where M is a two dimensional matrix with elements unity where the dataset is non-zero
+      and zero when the dataset is zero for that pixel. Here $\odot$ denotes an element-wise
       product between two matrices.
