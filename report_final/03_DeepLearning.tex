@@ -45,12 +45,13 @@
 
 
         \begin{equation}
-          \text{The ReLU:}\quad
-          \sigma(x) =
-          \begin{cases}
-            x & x\geq 0 \\
-            0 & x < 0
-          \end{cases}
+          \text{ReLU:}\quad
+          \sigma(x) = \max(0,x)
+        \end{equation}
+
+        \begin{equation}
+          \text{Leaky ReLU:}\quad
+          \sigma(x) = \max(\alpha x,x)
         \end{equation}
 
 
@@ -67,6 +68,10 @@
 
 
       \end{multicols}
+
+      For the leaky ReLU $\alpha$ is some small constant, the purpose is to allow gradients to carry on
+      propagating if activations fall below zero. This approach has been proven to improve performance in some classification
+      tasks \cite{Xu2015}.
 
       \begin{figure} \label{disfagraph}
         \center
@@ -99,8 +104,6 @@
       descent\cite{Amari1993} has emerged as a superior method. Simply put it computes the gradient with respect
       to many randomly drawn samples, it has the advantage of following a smoother path
       towards the local minimum.
-
-      TODO: EXPAND ON THIS
       % \url{https://www.quora.com/Can-you-explain-basic-intuition-behind-ADAM-a-method-for-stochastic-optimization}
     \subsection{Convolutional Layers}
       A convolutional layer is a generalisation of simple fully connected layers described
@@ -175,8 +178,31 @@
 
       Other than that all other elements have very straightforward inverses and hence
       a convolutional autoencoder can be constructed.
-    \subsection{LRN} \label{sec:lrn}
-      TODO\cite{Krizhevsky2012}
+    \subsection{Local Response Normalisation} \label{sec:lrn}
+      This section reproduces the local response normalisation proceedure described in \cite{Krizhevsky2012}
+      and implemented as the function \texttt{tf.nn.lrn} in tensorflow.
+
+      It was found to aid generalisation with the ImageNet dataset. The following quote from the paper \cite{Krizhevsky2012}
+      describes the motivation for this approach:
+
+      \begin{displayquote}
+        This sort of response normalization implements a form of lateral inhibition
+        inspired by the type found in real neurons, creating competition for big activities amongst neuron
+        outputs computed using different kernels.
+      \end{displayquote}
+
+      This is done by normalising over the feature maps which are computed by the different kerenels.
+      The following equation shows the proceedure applied to the output of a convolutional layer:
+
+      \begin{equation} \label{eq:lrn}
+        \mathbf{a}(\mathbf{x})_{ijk}
+        = \mathbf{a}(\mathbf{x})_{ijk}/\left (\rho + \sum^{\min(N-1,i+n/2)}_{m=\max(0,i-n/2)}\mathbf{b}(\mathbf{x})_{ijm} \right )^\beta
+      \end{equation}
+
+      the parameter $n$ signifies how many adjacent feature maps to sum over, $N$ is the total number of feature maps.
+      Parameters $\rho,n,\alpha$ and $\beta$ are hyperparameters, the values used in \cite{Krizhevsky2012} are
+      $k=2,n=5,\alpha=10^{-4}$ and $\beta=0.75$.
+
   \section{Overfitting and Regularisation}
     % http://neuralnetworksanddeeplearning.com/chap3.html#overfitting_and_regularization
     \subsection{Denoising}
