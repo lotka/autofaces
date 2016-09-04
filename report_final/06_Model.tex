@@ -284,7 +284,18 @@
       \alpha_{\text{poly}}(t,T,n) = 1 - \left ( \frac{t}{T} \right )^n
     \end{equation}
 
-    Examples of such functions are plotted in the following figure:
+    Or a periodic step function:
+
+    \begin{equation}
+    \alpha_{\text{alternate}}(t,p,T) =
+    \begin{cases}
+      1           & \text{if } t < |T/p| \text{ and } p > 0\\
+      0           & \text{if } t < |T/p| \text{ and } p \leq 0\\
+      \alpha_{\text{alternate}}(t-|T/p|,-p,T)           & \text{otherwise} \\
+    \end{cases}
+    \end{equation}
+
+    Examples of such functions are plotted in figure \ref{fig:alpha_functions}.
 
     \begin{figure}[!h]
     \centering
@@ -310,6 +321,7 @@
   %
   %
   %
+  \newpage
   \section{Convolutional Networks}
 
     Now that some basic structures have been tested we proceed to convolutional networks,
@@ -356,6 +368,7 @@
     %
     %
     %
+    \newpage
     \subsection{Preprocessing methods} \label{sec:psearch}
 
       With the goal of creating the AEC network we performed a search on some hyperparameters
@@ -421,7 +434,7 @@
           difference between the reconstructed image and original image. {\bf Experimental Configuration:}
           The alpha function is $\alpha(t)=\alpha_{\text{step}}(t,0.5,1000)$.
           meaning the autoencoder training runs for 500 iterations and then the classifier for 500.
-          The network is described in table \ref{compnet} and the training datasets are split in half as in section
+          The network is described in table \ref{tab:net2} and the training datasets are split in half as in section
           \ref{sec:splitting}.}
       \label{tab:psearch} }
       \end{table}
@@ -436,12 +449,13 @@
       The classification rate is also slightly better in the classifier and autoencoder
       training experiment. It may be however that the network is too small to accommodate both
       functions and that this method might allow the training of larger models.
-      \newpage
+
     %
     %
     %
     %
     %
+    \newpage
     \subsection{Shared Weights}
       In order to reduce the number of parameters in an autoencoder, to avoid over fitting
       and the probability of learning the identity function, it is often helpful to share weights
@@ -465,7 +479,8 @@
       8 & 4     & False     &    0.54 &   0.19 &     0.03 &    0.77 &   0.38 &     0.05 \\
       9 & 4     & True      &    0.42 &   0.19 &     0.03 &    0.78 &   0.42 &     1.37 \\
        \hline
-      \end{tabular}}\caption{{\bf Experimental Configuration:}
+     \end{tabular}}\caption{A simple experiment showing that using shared weights is beneficial
+     to both autoencoder loss and classification performance. {\bf Experimental Configuration:}
       The alpha function is $\alpha(t)=\alpha_{\text{step}}(t,0.5,1000)$.
       meaning the autoencoder training runs for 500 iterations and then the classifier for 500.
       The network is described in table \ref{compnet} and the training datasets are split in half as in section
@@ -481,34 +496,40 @@
     %
     %
     %
+    \newpage
     \subsection{Local Contrast Normalisation}
 
       The local contrast normalisation scheme as described in section \ref{sec:lrn}
       was applied to the three test networks.
 
       \begin{table}[!h] \centering
-      {\footnotesize
-      \begin{tabular}{rrllrrrrrrrr}
-        &&&   \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{3}{c|}{Classifier Training}    \\
-      \hline
-        i & Network             & LRN Layers   &    ROC&F1&AE Loss & ROC & F1 & AE Loss \\
-      \hline
-       1 & 2 & 0  &    0.48 &   0.19 &     0.02 &    0.81 &   0.48 &     0.12 \\
-       2 & 2 & 1  &    0.49 &   0.19 &     0.02 &    0.81 &   0.47 &     0.13 \\
-      \hline
-       3 & 3 & 0  &    0.56 &   0.19 &     0.02 &    0.8  &   0.46 &     0.18 \\
-       4 & 3 & 1  &    0.57 &   0.19 &     0.02 &    0.8  &   0.46 &     0.19 \\
-       5 & 3 & 2  &    0.52 &   0.19 &     0.02 &    0.8  &   0.45 &     0.22 \\
-      \hline
-       6 & 4 & 0  &    0.42 &   0.19 &     0.03 &    0.78 &   0.42 &     1.37 \\
-       7 & 4 & 1  &    0.52 &   0.19 &     0.03 &    0.79 &   0.44 &     1.02 \\
-       8 & 4 & 2  &    0.52 &   0.19 &     0.03 &    0.8  &   0.44 &     0.88 \\
-      \hline
-      \end{tabular}}\caption{Results for applying local contrast normalisation layers
-      for the three test networks. LRN Layers 0 means no LRN, 1 means a LRN layer is added after the max pool
-      and 2 means a LRN layer is added at the final convolutional layer in the encoder. There is no
-      inverse for LRN and hence the decoder section remains unchanged. {\bf Experimental Configuration:} see caption
-      for table \ref{tab:sharedweights}}\label{tab:lrn}  \end{table}
+        \footnotesize{
+        \begin{tabular}{rrllrrrrrrrr}
+          &&&   \multicolumn{3}{|c|}{Autoencoder Training} &  \multicolumn{3}{c|}{Classifier Training}    \\
+        \hline
+          i & Network             & LRN Layers   &    ROC&F1&AE Loss & ROC & F1 & AE Loss \\
+        \hline
+         1 & 2 & 0  &    0.48 &   0.19 &     0.02 &    0.81 &   0.48 &     0.12 \\
+         2 & 2 & 1  &    0.49 &   0.19 &     0.02 &    0.81 &   0.47 &     0.13 \\
+        \hline
+         3 & 3 & 0  &    0.56 &   0.19 &     0.02 &    0.8  &   0.46 &     0.18 \\
+         4 & 3 & 1  &    0.57 &   0.19 &     0.02 &    0.8  &   0.46 &     0.19 \\
+         5 & 3 & 2  &    0.52 &   0.19 &     0.02 &    0.8  &   0.45 &     0.22 \\
+        \hline
+         6 & 4 & 0  &    0.42 &   0.19 &     0.03 &    0.78 &   0.42 &     1.37 \\
+         7 & 4 & 1  &    0.52 &   0.19 &     0.03 &    0.79 &   0.44 &     1.02 \\
+         8 & 4 & 2  &    0.52 &   0.19 &     0.03 &    0.8  &   0.44 &     0.88 \\
+        \hline
+        \end{tabular}}
+
+        \caption{Results for applying local contrast normalisation layers
+        for the three test networks. LRN Layers 0 means no LRN, 1 means a LRN layer is added after the max pool
+        and 2 means a LRN layer is added at the final convolutional layer in the encoder. There is no
+        inverse for LRN and hence the decoder section remains unchanged. {\bf Experimental Configuration:} see caption
+        for table \ref{tab:sharedweights}
+        }
+        \label{tab:lrn}
+      \end{table}
 
       Table \ref{tab:lrn} provides some improvement in performance for network 4 and is ineffectual or
       detrimental for the other networks. For this reason, it will not be included in the subsequent sections.
@@ -520,6 +541,7 @@
     %
     %
     %
+    \newpage
     \subsection{Dropout}
       Varying degrees of dropout (see section \ref{sec:dropout}) were applied to each test network at the bottleneck layer.
       Table \ref{tab:dropout} shows the results.
@@ -570,9 +592,7 @@
 
       Experiments 4,6 and 12 show that networks 2 and 3 are almost fully trained
       with 500 iterations as adding more iterations does little (even reducing the performance somewhat, but not more than is statistically relevant because
-      these values still in theory a standard error).
-
-      This knowledge indicates that dropout should be included in the overall model.
+      these values still in theory a standard error). This indicates that dropout should be included in the final model.
 
 
       \newpage
@@ -671,69 +691,75 @@
   %
   %
   %
+  \newpage
   \section{Autoencoder transfer functions}
   In the style of the previous sections, the autoencoder transfer functions are investigated.
   The classifier only situations are included as a baseline from which to compare
-  what the autoencoder actually adds. In these experiments, one possible issue is that
-  the total amount of classifier and autoencoder training is not constant\footnote{The areas under the alpha function curves are not constant.} between transfer functions
+  what the autoencoder actually changes. In these experiments, one possible issue is that
+  the total amount of classifier and autoencoder training is not constant
+  \footnote{In other words the area under the $\alpha(t)$ and $1-\alpha(t)$ curves are not constant between runs.}
+  between transfer functions
   and this is something that might be critical for a really precise exposition. However, what is shown here
-  instead is if forfitting some classifer training for autoencoder training can give improvements.
+  instead is if forfeiting some classier training for autoencoder training can give improvements.
+
+  To
 
 
 
-\begin{table}[!h] { \footnotesize \centering
-		\begin{tabular}{rrrrrrrrrrrr}
-			&&&&& &  \multicolumn{3}{|c|}{Early Model} &  \multicolumn{3}{c|}{Final Model}    \\
-			\hline
-			i  & Network & alpha        & Iterations & Early Iteration & ROC  & F1   & AE Loss & ROC  & F1   & AE Loss \\
-			\hline
-			1  & 2       & constant 0.0 & 1500       & 1000 & 0.8  & 0.47 & 0.56    & 0.79 & 0.46 & 0.64 \\
-			2  & 2       & constant 0.5 & 1500       & 750  & 0.81 & 0.48 & 0.03    & 0.8  & 0.46 & 0.03 \\
-			3  & 2       & sigmoid      & 1500       & 1000 & 0.8  & 0.46 & 0.03    & 0.79 & 0.46 & 0.03 \\
-			4  & 2       & polynomial   & 1500       & 750  & 0.79 & 0.46 & 0.03    & 0.77 & 0.44 & 0.03 \\
-			5  & 2       & alternate    & 1500       & 1000 & 0.81 & 0.46 & 0.1     & 0.82 & 0.47 & 0.12 \\
-			6  & 2       & step         & 1500       & 1000 & 0.59 & 0.19 & 0.03    & 0.82 & 0.47 & 0.08 \\
-			\hline
-			7  & 3       & constant 0.0 & 1500       & 1000 & 0.81 & 0.43 & 2.38    & 0.79 & 0.42 & 2.61 \\
-			8  & 3       & constant 0.5 & 1500       & 750  & 0.81 & 0.46 & 0.03    & 0.81 & 0.46 & 0.03 \\
-			9  & 3       & sigmoid      & 1500       & 1000 & 0.8  & 0.46 & 0.03    & 0.8  & 0.44 & 0.04 \\
-			10 & 3       & polynomial   & 1500       & 750  & 0.78 & 0.45 & 0.02    & 0.79 & 0.44 & 0.03 \\
-			11 & 3       & alternate    & 1500       & 1000 & 0.69 & 0.32 & 0.1     & 0.77 & 0.37 & 0.23 \\
-			12 & 3       & step         & 1500       & 1000 & 0.38 & 0.19 & 0.03    & 0.81 & 0.45 & 0.18 \\
-			\hline
-			13 & 4       & constant 0.0 & 1500       & 1000 & 0.78 & 0.38 & 16.31   & 0.78 & 0.39 & 14.5 \\
-			14 & 4       & constant 0.5 & 1500       & 750  & 0.73 & 0.33 & 0.03    & 0.75 & 0.36 & 0.03 \\
-			15 & 4       & sigmoid      & 1500       & 1000 & 0.74 & 0.36 & 0.03    & 0.74 & 0.36 & 0.03 \\
-			16 & 4       & polynomial   & 1500       & 750  & 0.52 & 0.21 & 0.09    & 0.67 & 0.3  & 0.04 \\
-			17 & 4       & alternate    & 1500       & 1000 & 0.6  & 0.26 & 0.06    & 0.61 & 0.27 & 0.07 \\
-			18 & 4       & step         & 1500       & 1000 & 0.42 & 0.19 & 0.03    & 0.77 & 0.4  & 0.7  \\
+  \begin{table}[]
+    \footnotesize{
+    \centering
+    \begin{tabular}{rrrrrrrrrrr}
+                         &                      &                      &                                                                              & \multicolumn{1}{r|}{}                                                       & \multicolumn{3}{c|}{Early Model}                                   & \multicolumn{3}{c|}{Final Model}                                   \\ \hline
+    i                    & Network              & alpha                & \multirow{2}{*}{\begin{tabular}[c]{@{}r@{}}Total \\ Iterations\end{tabular}} & \multirow{2}{*}{\begin{tabular}[c]{@{}r@{}}Early \\ Iteration\end{tabular}} & ROC                  & F1                   & AE Loss              & ROC                  & F1                   & AE Loss              \\
+    \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} &                                                                              &                                                                             & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} \\ \hline
+    2.1                 & 2                    & step                 & 1500           & 1000    & 0.59  & 0.19 & 0.03  & 0.82 & 0.47 & 0.08  \\
+    2.2                  & 2                    & alternate            & 1500           & 1000    & 0.81  & 0.46 & 0.1   & 0.82 & 0.47 & 0.12  \\
+    2.3                  & 2                    & constant 0.5         & 1500           & 750     & 0.81  & 0.48 & 0.03  & 0.8  & 0.46 & 0.03  \\
+    2.4                  & 2                    & sigmoid              & 1500           & 1000    & 0.8   & 0.46 & 0.03  & 0.79 & 0.46 & 0.03  \\
+    2.5                  & 2                    & constant 0.0         & 1500           & 1000    & 0.8   & 0.47 & 0.56  & 0.79 & 0.46 & 0.64  \\
+    2.6                  & 2                    & polynomial           & 1500           & 750     & 0.79  & 0.46 & 0.03  & 0.77 & 0.44 & 0.03  \\
+    \hline
+    3.1                  & 3                    & step                 & 1500           & 1000    & 0.38  & 0.19 & 0.03  & 0.81 & 0.45 & 0.18  \\
+    3.2                  & 3                    & constant 0.5         & 1500           & 750     & 0.81  & 0.46 & 0.03  & 0.81 & 0.46 & 0.03  \\
+    3.3                  & 3                    & sigmoid              & 1500           & 1000    & 0.8   & 0.46 & 0.03  & 0.8  & 0.44 & 0.04  \\
+    3.4                  & 3                    & polynomial           & 1500           & 750     & 0.78  & 0.45 & 0.02  & 0.79 & 0.44 & 0.03  \\
+    3.5                  & 3                    & constant 0.0         & 1500           & 1000    & 0.81  & 0.43 & 2.38  & 0.79 & 0.42 & 2.61  \\
+    3.6                  & 3                    & alternate            & 1500           & 1000    & 0.69  & 0.32 & 0.1   & 0.77 & 0.37 & 0.23  \\
+    \hline
+    4.1                  & 4                    & constant 0.0         & 1500           & 1000    & 0.78  & 0.38 & 16.31 & 0.78 & 0.39 & 14.5  \\
+    4.2                  & 4                    & step                 & 1500           & 1000    & 0.42  & 0.19 & 0.03  & 0.77 & 0.4  & 0.7   \\
+    4.3                  & 4                    & constant 0.5         & 1500           & 750     & 0.73  & 0.33 & 0.03  & 0.75 & 0.36 & 0.03  \\
+    4.4                  & 4                    & sigmoid              & 1500           & 1000    & 0.74  & 0.36 & 0.03  & 0.74 & 0.36 & 0.03  \\
+    4.5                  & 4                    & polynomial           & 1500           & 750     & 0.52  & 0.21 & 0.09  & 0.67 & 0.3  & 0.04  \\
+    4.6                  & 4                    & alternate            & 1500           & 1000    & 0.6   & 0.26 & 0.06  & 0.61 & 0.27 & 0.07  \\
+    \hline
+    \end{tabular}
+    }
+    \caption{A comparison of the the autoencoder transfer functions with 0.8 dropout and local contrast normalisation layers (one for network 2 and two for networks 3 \& 4).
+    {\bf Experimental Configuration:} see caption for table \ref{tab:sharedweights}.} \label{tab:auto_final_1}
+  \end{table}
+
+    The first thing to note from the results in table \ref{tab:auto_final_1} is that
+    the constant 0.0 experiments leave the autoencoder in a particularly bad state,
+    getting worse with the size of the network. Then there is the observation that
+    the ROC scores are fairly close, with the F1 scores being almost the same.
+
+    There is no particular evidence that the smoother alpha functions contribute different
+    dynamics, as mentioned earlier this would require fixing the total amount of classifier and autoencoder
+    training.
 
 
-			\hline
-		\end{tabular}  } \caption{} \label{tab:auto_final_1} \end{table}
 
-    The first thing to note from the results in table \ref{tab:auto_final_1}
+    \begin{figure}[!h]
+    \centering
+    \includegraphics[width =\hsize]{../graphs/losses_2016_08_24_006.pdf}
+    \caption{Losses in experiment 5 in table \ref{}}
+    \label{fig:auto}
+    \end{figure}
+
     \newpage
-    %
-    %
-    %
-    %
-    %
-    % \section{Comparison to classifier only network}
-    % \begin{table}[!h] {\footnotesize
-    %   \centering
-    %   \begin{tabular}{llrrrrrr}
-    %      & &   \multicolumn{3}{|c|}{Early Model} &  \multicolumn{3}{c|}{Final Model}\\
-    %      \hline
-    %      Preprocesing       & Activation Function&  ROC    &      F1&  AE Loss & ROC     &     F1 &   AE Loss \\
-    %      \hline
-    %      Per Subject Face   & linear             &    0.79 &   0.45 &     0.61 &    0.79 &   0.46 &     0.75 \\
-    %      \hline
-    %   \end{tabular}
-    % \caption{A repeat of experiment 13 from \ref{tab:psearch} but $\alpha(t)=0$ through out.
-    % It shows a slightly lower ROC score and much higher autoencoder loss, as expected because it is not training
-    % the autoencoder.} \label{tab:psearchtest}}
-    % \end{table}
+
 
     \newpage
     %

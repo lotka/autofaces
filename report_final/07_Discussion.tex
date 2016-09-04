@@ -11,29 +11,50 @@
     with even intensity one AU's (barely visible to humans and related to context)
     were included as a positive example.
 
+  \section{Evaluation}
+    These models present a very large hyperparameter space that can be explored, therefore
+    it is no suprise that this project was able to explore a very small part of this, using
+    existing work and experiments for guidance.
+
+    The path taken in this project was one where a classifier network was built
+    with some inspiration from the literature and then the decoder section was added on.
+    The inverse approach may have given better results, that being to design a fully functional
+    autoencoder and then add a classifier.
+
+    Further it may have been instructive to fully explore what features the autoencoder is learning
+    by visualising the convolutional filters and outputs. This is fairly time consuming and
+    so was not included, it could be that the features are not directly correlated to AU's and
+    are much more related to reconstructing subject related features.
+
+    Certain things could have been improved with the preprocessing methods,
+    potentially doing them before resizing the images would have improved their
+    ability to expose FAU features.
+
+    A key issue with the DISFA dataset is that many frames do not contain much information
+    because of neutral faces. Increasing the frequency of the high information labels
+    might have lead to better generalisation for the test data set.
+
+    The training of the autoenocoder was not stacked, instead it was joint which has
+    proven to be preferable in certain situations \cite{Zhou2014}. However, in this case
+    it might have been more reliable to perform stacked training of the autoencoder.
 
   \section{Future Work}
-    A number of constraints
+    The project effectively built the neural network structures from scartch.
+    An alternative approach would be to find a network in the literature which is pretrained
+    and already is very good at extracting certain features and use that as a base.
+    This might have allowed for the easier comparison of the results to the literature.
 
-  Maybe CNN isn't the right tool for the job here
-  Should have just used a slightly deep fully connected network
-  with loads of dropout, noise and shit.
+    Artificially increasing the sie of the training set seems like a big priority,
+    this would allow both the classifier and autoencoder learn more general features.
+    Some methods for doing this are as follows:
 
-  Maybe doing the preprocessing before the reszie is better than what I'm doing,
-  and should max pool instead of resize.
+    \begin{itemize}
+      \item Courrupting the input image or hidden layer representations
+      \item Appyling random transformations to the input image (crops, displacements, etc.)
+      \item Training the autoencoder with other datasets
+    \end{itemize}
 
-  Databalancing and cropping techniques would have helped.
-
-  Joint versus stacked training of the autoencoder.
-
-  I really wish I had taken exisiting good networks and adapted them instead of doing
-  everything from scartch.
-
-  Is there enough variance in the data?
-
-  Could including other datasets help? Fusing datasources etc.
-
-  Stacked to ensure feature training.
+    % Talk about the fully connected possibility?
 
 \chapter{Conclusion}
   It's difficult but we showed that you can get them to cooperate at least.
