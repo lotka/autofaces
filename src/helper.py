@@ -79,10 +79,10 @@ def plot_lines(lines,names=None,labels=None,title=None,ylim=None,save=None):
 
     fig_size = matplotlib.rcParams['figure.figsize']
     matplotlib.rcParams['figure.figsize'] = (20.0, 6.0)
-    matplotlib.rcParams['savefig.dpi'] = 400
-    matplotlib.rcParams['font.size'] = 20
+    matplotlib.rcParams['savefig.dpi'] = 600
+    matplotlib.rcParams['font.size'] = 15
+    matplotlib.rcParams['font.family'] = 'serif'
     matplotlib.rcParams['figure.dpi'] = 400
-    matplotlib.rcParams['text.usetex'] = False
     # matplotlib.rcParams['font.family'] ='serif'
 
     fig = plt.figure()
