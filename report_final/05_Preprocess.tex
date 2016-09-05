@@ -17,7 +17,7 @@
 
 
     The DISFA dataset as described in section \ref{disfa_list} has frames of size $ 1024 \times 764 $
-    but using previous work of Sebastian Kaltwang (See acknowledgements) faces are
+    but using previous work of Sebastian Kaltwang\cite{Kaltwang2015} faces are
     centred and normalised to give an image of size $118 \times 128$
     with pixels being integers between
     0 and 255. An illustration is shown in figure \ref{fig:sebproc}
@@ -52,9 +52,9 @@
       Five is the highest intensity for an AU and zero is the absence of that AU.
       Typically a neural network outputs values between zero and one so these values are divided by five to make them compatible.
       For an intensity estimation problem that is all that is required, however for classification
-      the AU labels need to binary and so a threshold is chosen at which an AU is considered present.
+      the AU labels need to be binary so a threshold is chosen at which an AU is considered present.
       Finally in some cases such as the one described in section \ref{sec:binsoft} the label vector
-      needs to be expanded to also contain the negative case for presence, hence doubling its size.
+      needs to be expanded to also contain the negative case, hence doubling its size.
 
   \section{Methods For Images} \label{sec:methods}
 
@@ -91,8 +91,7 @@
     \end{equation}
 
     This notation aims to express the fact that each image in the resultant dataset
-    may use information from all other frames. In order to compactly express the operations
-    we define some statistical operations which clearly show which
+    may use information from all other frames.
 
     %
     %
@@ -132,7 +131,7 @@
         P({\bf x},i) =  ({\bf x}_{i} - {\boldsymbol \mu}_0( {\bf x}))/{\boldsymbol \sigma}_0({\bf x}_{i})  = {\bf x}_{i}'
       \end{equation}
       \begin{equation}
-        P_s({\bf x},s,i) = ({\bf x}_{si} - {\boldsymbol \mu}_{0,1}( {\bf x}_s))/{\boldsymbol \sigma}_{0,1}( {\bf x}_s))  = {\bf x}_{si}'
+        P_s({\bf x},s,i) = ({\bf x}_{si} - {\boldsymbol \mu}_{0}( {\bf x}_s))/{\boldsymbol \sigma}_{0}( {\bf x}_s))  = {\bf x}_{si}'
       \end{equation}
       Where ${\boldsymbol \mu}_{i,j..}$ denotes the mean over the axes $i,j..$ and
       similarly for ${\boldsymbol \sigma} $ the standard deviation.
@@ -210,7 +209,7 @@
     \subsection{Masking} \label{sec:mask}
       From figure \ref{fig:faces_none} it is evident some pixels have a maximum and minimum value
       of zero and no deviation. This means there is no information in these areas and hence
-      the would ideally not even know about them. If the network was a set of fully connected layers
+      the classifier algorithm would ideally not even know about them. If the network was a set of fully connected layers
       these pixels could just be removed from the system, however convolutional layers require
       rectangular inputs and so a solution is to apply a mask at the level of the cost function.
 

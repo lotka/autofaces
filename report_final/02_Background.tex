@@ -83,7 +83,7 @@ of AUs tabled here is larger than the number of frames, this is because some fra
 \section{Deep learning approaches to FAU detection}
 It has been shown that deep neural networks containing convolutional, max pooling,
 dropout and fully connected layers can effectively learn how to classify AUs in
-a selection of datasets even when ignoring the temporal structure of the data \cite{Gudi2015,Ghosh2015,dodeeplearn}. These
+a selection of datasets even when ignoring the temporal structure of the data \cite{Gudi2015,Ghosh2015,dodeeplearn}.
 Using the temporal data is also a possibily \cite{emonet,Jaiswal2016}.
 %
 %
@@ -118,8 +118,23 @@ filters to become more specialised. This is the only paper where they say they u
 two outputs for each AU so that the softmax creates a probability distribution for
 each AU and not for all of them at once.
 
+\begin{table}[h!]
+\centering
+\begin{tabular}{lcccc}
+\hline
+Dataset    & \multicolumn{1}{l}{Ghosh et. al\cite{Ghosh2015}} & \multicolumn{1}{l}{Gudi et. al.\cite{Gudi2015}} & \multicolumn{1}{l}{Khorrami et. al.\cite{dodeeplearn}} & \multicolumn{1}{l}{Jaiswal et. al.\cite{Jaiswal2016}} \\ \hline
+CK+      & \checkmark                            &                                      &                                         & \checkmark                              \\
+DISFA    & \checkmark                            &                                      &                                         &                                         \\
+SEMAINE* &                                       & \checkmark                           & \checkmark                              &                                         \\
+BP4D*    & \checkmark                            & \checkmark                           & \checkmark                              &                                         \\
+TFD      &                                       &                                      &                                         & \checkmark                              \\ \hline
+\end{tabular}
+\caption{A comparison of which datasets were used in the relevant papers.} \label{compdat}
+\end{table}
+
 It should be noted that it is difficult to compare the performance between these
-networks as they all use different evaluation scores as shown in table \ref{compscore}.
+networks as they all use different evaluation scores as shown in table \ref{compscore}. Table \ref{compdat} also shows
+which datasets eached of the discussed papers used.
 \begin{landscape}
 \begin{table}[h!]
 % \centering
@@ -159,10 +174,8 @@ networks.
 
 }
 \end{table}
-\end{landscape}
 \begin{table}[h!]
 \centering
-
 \begin{tabular}{lcccc}
 \hline
 Score    & \multicolumn{1}{l}{Ghosh et. al\cite{Ghosh2015}} & \multicolumn{1}{l}{Gudi et. al.\cite{Gudi2015}} & \multicolumn{1}{l}{Khorrami et. al.\cite{dodeeplearn}} & \multicolumn{1}{l}{Jaiswal et. al.\cite{Jaiswal2016}} \\ \hline
@@ -173,21 +186,7 @@ AUC      &                                                  &                   
 \end{tabular}
 \caption{A comparison of which evaluation methods were used in the relevant papers.} \label{compscore}
 \end{table}
-
-\begin{table}[h!]
-\centering
-
-\begin{tabular}{lcccc}
-\hline
-Dataset    & \multicolumn{1}{l}{Ghosh et. al\cite{Ghosh2015}} & \multicolumn{1}{l}{Gudi et. al.\cite{Gudi2015}} & \multicolumn{1}{l}{Khorrami et. al.\cite{dodeeplearn}} & \multicolumn{1}{l}{Jaiswal et. al.\cite{Jaiswal2016}} \\ \hline
-CK+      & \checkmark                            &                                      &                                         & \checkmark                              \\
-DISFA    & \checkmark                            &                                      &                                         &                                         \\
-SEMAINE* &                                       & \checkmark                           & \checkmark                              &                                         \\
-BP4D*    & \checkmark                            & \checkmark                           & \checkmark                              &                                         \\
-TFD      &                                       &                                      &                                         & \checkmark                              \\ \hline
-\end{tabular}
-\caption{A comparison of which datasets were used in the relevant papers.} \label{compdat}
-\end{table}
+\end{landscape}
 
 
 %

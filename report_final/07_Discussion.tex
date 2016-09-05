@@ -1,8 +1,8 @@
 \chapter{Discussion \& Conclusion}
 
   \section{Evaluation of the Method}
-    These models present a very large hyperparameter space that can be explored, therefore
-    it is no suprise that this project was able to explore a very small part of this, using
+    These models present a very large hyper parameter space that can be explored, therefore
+    it is no surprise that this project was able to explore a very small part of this, using
     existing work and experiments for guidance.
 
     The path taken in this project was one where a classifier network was built
@@ -17,8 +17,8 @@
 
     Certain things could have been improved with the preprocessing methods,
     potentially doing them before resizing the images may have improved their
-    ability to expose FAU features. Lots of time was also spend on these, which could have
-    possibly been spend on improving the balance of that data.
+    ability to expose FAU features. Lots of time was also spent on these, which could have
+    possibly been spent on improving the balance of that data.
 
     A key issue with the DISFA dataset is that many frames do not contain much information
     because of neutral faces. Increasing the frequency of the high information labels
@@ -31,12 +31,12 @@
 
   \section{Future Work}
     This project effectively built the neural network structures from scratch.
-    An alternative approach would be to find a network in the literature which is pretrained
+    An alternative approach would be to find a network in the literature which is pre-trained
     and already is very good at extracting certain features and use that as a base.
     This also might have allowed for the easier comparison of the results to the literature.
 
-    Artificially increasing the sie of the training set seems like a big priority,
-    this would allow both the classifier and autoencoder learn more general features.
+    Artificially increasing the size of the training set seems like a big priority,
+    this would allow both the classifier and autoencoder to learn more general features.
     Some methods for doing this are as follows:
 
     \begin{itemize}
@@ -45,16 +45,19 @@
       \item Training the autoencoder with other datasets
     \end{itemize}
 
-    Using a resnet
+    % Using a ResNet \cite{} might have allowed larger networks with the penalty of an increased
+    % nubmber of parameters.
 
   \section{Conclusion}
     The results have not shown that an autoencoder, in our particular setting,
     gives significant improvements to classification performance. However it has
-    explored how preprocessing techinqiues and various neural network structures
+    explored how preprocessing techniques and various neural network structures
     interact, showing that with small datasets such as DISFA other techniques may
-    be more important. An unconventional part of this work, given the exicitement
+    be more important. An unconventional part of this work, given the excitement
     in the field of deep learning is that the smaller networks perform better.
-    This is most probably due to the fact that the input data was too homogenous
+    This is most probably due to the fact that the input data was too homogeneous
     and that the task of detecting AUs is difficult, in particular in the way the problem was set up
     with even intensity one AUs (barely visible to humans and related to context)
-    were included as a positive example.
+    were included as a positive example. The method of per subject mean face normalisation was
+    found to out perform other preprocessing methods conclsuively and the classifier
+    achieved competative results on the DISFA dataset.

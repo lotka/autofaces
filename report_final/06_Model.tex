@@ -17,7 +17,7 @@
   The results will show, that it is unclear if there is a direct relationship between optimising the two objective functions, nonetheless
   the work is a detailed exploration of how autoencoders and classifiers can interact with each other
   under various preprocessing situations and different autoencoder transfer functions \footnote{These describe the degree to which
-  each cost function is trained during training, section \ref{sec:autoalpha} details this in full.}.
+  each cost function is trained during training, see section \ref{sec:autoalpha}.}.
 
   \section{Experimental set up}
     In order to develop the network for modelling the DISFA dataset a set of common
@@ -40,11 +40,17 @@
         Bias tensor initial value                & 0.01                          \\
         Validation batch size                    & 500                           \\
         Penultimate fully connected layer size   & 3000                          \\
+        Autoencoder cost function                & Mean Squared Error            \\
+        Classifier cost function                 & Cross Entropy                 \\
         \hline
       \end{tabular}
       \caption{Common parameters for most experiments in the section. These parameters should be
       assumed in proceeding sections unless otherwise stated.} \label{tab:common} }
     \end{table}
+
+    The cost function were chosen as they are typical of their use cases, the cross entropy is more suited
+    for classification problems as it penalises heavily incorrect answers.
+
     For all of the experiments the data was partitioned in a 50/50 split as shown in table \ref{sec:splitting}:
     \begin{table}[h!]
       \centering { \footnotesize
@@ -248,7 +254,7 @@
       Sigmoid Layer          &   0.50 &  0.19 &  126.2 \\
       \hline
       \end{tabular}
-    \caption{Comparison of the three ways the final layer could be implemented using network 1 (see table \ref{compnet}). The
+    \caption{Comparison of the three ways the final layer could be implemented using network 2 (see table \ref{net:classcompnet}). The
     preprocessing method used was face normalisation (not per subject). 500 iterations were used. } \label{tab:binsoftcomp} }
     \end{table}
 
@@ -290,7 +296,7 @@
     \end{cases}
     \end{equation}
 
-    Where t indexes iterations, T is the total number of iterations and p is the
+    Where $t$ indexes iterations, $T$ is the total number of iterations and p is the
     percentage of iterations that should be in the first region of the piecewise function
     where $\alpha=1$.
     This nicely expresses what is typically meant by pre-training in the literature, it trains
@@ -353,7 +359,7 @@
     Network 2 is shown in table \ref{tab:net2}, Network 3
     adds another convolutional layer of size $5\times 5 \times 64 \times 64$ to this and
     Network 4 adds a $4\times 4 \times 64 \times 128$ layer
-    on top of Network 3. Regarding the decoder section of the inverse operations are
+    on top of Network 3. Regarding the decoder section the inverse operations are
     performed, see appendix \label{appendix1} for full details
     for networks 2,3 and 4.
 
@@ -504,7 +510,7 @@
      to both autoencoder loss and classification performance. {\bf Experimental Configuration:}
       The alpha function is $\alpha(t)=\alpha_{\text{step}}(t,0.5,1000)$.
       meaning the autoencoder training runs for 500 iterations and then the classifier for 500.
-      The network is described in table \ref{compnet} and the training datasets are split in half as in section
+      The network is described in table \ref{net:classcompnet} and the training datasets are split in half as in section
       \ref{sec:splitting}.} \label{tab:sharedweights} \end{table}
 
       It can be seen that using shared weights consistently improves the classification
@@ -763,12 +769,12 @@
     \end{table}
 
       The first thing to note from the results in table \ref{tab:auto_final_1} is that
-      the constant 0.0 experiments leave the autoencoder in a particularly disfunctional state (with losses between 0.64 to 14.5),
+      the constant 0.0 experiments leave the autoencoder in a particularly dysfunctional state (with losses between 0.64 to 14.5),
       getting worse with the size of the network. Then there is the observation that
       the ROC scores are fairly close, with the F1 scores being almost the same. These two
       observations show that the two networks are achieving a very similar performance but
       with very different configurations. One explanation may be that the binary softmax layer weights
-      contain a lot of information about classfiying the AU's, if so then this suggests an
+      contain a lot of information about classifying the AU's, if so then this suggests an
       instructive experiment for future work would be to only train these softmax weights to see
       what their maximum performance is. If they can achieve similar results then it may be possible
       the underlying convolution and max pooling layers are not fully helping to model the data.
@@ -785,6 +791,6 @@
       Ranking the functions by their position in table \ref{tab:auto_final_1} scoring 6 for top place and 1 for worst place gives in order:
       step(17), constant 0.5 (13), constant 0.0 (10), sigmoid (10) and lastly alternate (7). Initially this indicates that the
       experiments including the autoencoder perform better but looking at the early models of the constant 0.0 experiments
-      they often have very similar performance scores. So no substaintial improvement is found.
+      they often have very similar performance scores. So no substantial improvement is found.
 
       The losses for network 2 are plotted in appendix \ref{appendix2}.

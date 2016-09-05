@@ -82,7 +82,7 @@
 
 
       An $N$ layer network can
-      then be thought of as a function with a recursive structure (these are also known as fully connected layers):
+      then be thought of as a function with a nested structure (these are also known as fully connected layers):
       \begin{equation}
         \mathbf{y} = \mathbf{a}_{N}(\mathbf{a}_{l-1}(...\mathbf{a}_1(\mathbf{x})...))
       \end{equation}
@@ -92,7 +92,7 @@
       \begin{equation}
         J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = \frac{1}{N}\left |\mathbf{y}(\tilde{\mathbf{x}})-\tilde{\mathbf{y}}\right | ^2
       \end{equation}
-      this is called the least mean squared error, another popular cost function is
+      this is called the mean squared error, another popular cost function is
       the cross entropy:
       \begin{equation}
         J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = -\frac{1}{N}\tilde{\mathbf{y}}\cdot\log(\mathbf{y}(\tilde{\mathbf{x}}))
@@ -101,9 +101,10 @@
       The derivative of these cost functions with respect to each weight and bias variable
       in the network is then calculated.
       The simplest way is to do this is per training example, however stochastic gradient
-      descent\cite{Amari1993} has emerged as a superior method. Simply put it computes the gradient with respect
+      descent\cite{Amari1993} has emerged as a superior method. Simply put it computes the average gradient with respect
       to many randomly drawn samples, it has the advantage of following a smoother path
-      towards the local minimum.
+      towards the local minimum. Another training algorithm which builds on this is called is Adam \cite{adam}. {\color{red} TODO: Expand this section}
+      % http://sebastianruder.com/optimizing-gradient-descent/index.html#adam
       % \url{https://www.quora.com/Can-you-explain-basic-intuition-behind-ADAM-a-method-for-stochastic-optimization}
     \subsection{Convolutional Layers}
       A convolutional layer is a generalisation of simple fully connected layers described
@@ -191,7 +192,7 @@
         outputs computed using different kernels.
       \end{displayquote}
 
-      This is done by normalising over the feature maps which are computed by the different kerenels.
+      This is done by normalising over the feature maps which are computed by the different convolutional kernels (or filters).
       The following equation shows the proceedure applied to the output of a convolutional layer:
 
       \begin{equation} \label{eq:lrn}
@@ -206,13 +207,16 @@
   \section{Overfitting and Regularisation}
     % http://neuralnetworksanddeeplearning.com/chap3.html#overfitting_and_regularization
     \subsection{Denoising}
+      {\color{red} TODO}
     \subsection{Regularisers}
-      TODO
+      {\color{red} TODO}
     \subsection{Dropout Layers} \label{sec:dropout}
       A layer with dropout applied to it randomly turns neurons off, making it more
       difficult for the network to overfit data. There is a dropout probability
       which determines how often neurons are disabled, it is typically under 20\%
+      {\color{red} TODO: Add some references}
     \subsection{Early Stopping}
+      {\color{red} TODO}
   \section{Model Evaluation} \label{sec:eval}
     With any kind of classification model it is crucial to be able to evaluate its
     performance in a standard and reproducible way. For the problem of classifying

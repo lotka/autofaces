@@ -18,7 +18,7 @@
   provides a systematic way to study any kind of facial expression,
   by representing them as a combination of individual facial muscle actions
   known as Action Units (AU). Automating the process of detecting AUs is difficult
-  because they have non-linear interactions and often occur in very low intensities.
+  because they have non-linear interactions and often occur in very low intensities. % TODO: Reference?
 
   There exist many datasets containing images and videos of faces and it is a general
   observation that unlabelled images are far more abundant than labelled ones.
@@ -39,33 +39,52 @@
 
   Deep learning is emerging as a powerful tool in modelling a wide range of patterns
   in data, it has been applied to the problem of FAU a number of times and achieved
-  good classification rates. One complication which arises when using Deep Neural
-  Networks (DNNs) to classify AUs is that many frames are unlabelled (have neutral expressions)
-  and hence the standard supervised DNN do not make good use of this information.
+  good classification rates. The unlabelled (neutral expressions) frames typical
+  in such datasets make it more difficult for the supervised
+  Deep Neural Network (DNN) techniques to make full use of the available information.
 
-  This project takes the DISFA dataset, which is an example of a sparsely labelled dataset, at least
-  relative to datasets typically used for Deep Learning tasks, for example MNIST\cite{mnist} which has
-  70,000 labelled examples, which all fall into one strictly defined category.
+  This project uses the DISFA dataset, which is an example of a sparsely labelled dataset
+  \footnote{Relative to datasets typically used for
+            Deep Learning tasks, for example MNIST\cite{mnist}
+            which has 70,000 labelled examples, which all fall
+            into one strictly defined category.} and constructs neural network structure which
+  can perform joint classificatio of AUs while also acting as an autoencoder.
+  The use of the autoencoder is designed to exploit the information in the neutral faces
+  and also focus in on features which might not be learnt via classifier only training.
 
   Further it examines whether
   smoothly transferring between autoencoder training and classifier training can improve
-  the ability of the autoencoder to improve classification performance. The constraints mentioned
-  include making even low intensity AU occurrences a positive occurrence and not expanding the
-  training dataset.
+  the ability of the autoencoder to improve classification performance. The project works in a constrainted setting as
+  even low intensity AU occurrences are counted as positive occurrences and the training set
+  is not artificially expanded.
 
   \section{Potential Applications}
     The ability for a computer vision system to accurately classify actions in a
     human face could have a multitude of application. Human computer interfaces (HCI)
     could benefit from a higher bandwidth interactions between a computer and human, adding
-    an extra channel to the typical keyboard and mouse.
+    an extra channel to the typical keyboard and mouse. The medical profession would benefit
+    as the ability to quantify psycological symptoms using facial expressions might lead to
+    quicker diagnoses of illness and more personalised care.
 
   \section{Contributions}
     This work contributes a detailed exploration of how autoencoders and classifiers
     interact in a variety of settings. No substantial performance improvement is noted
     but interesting dynamics are observed. The method of per subject mean and standard
-    deviation face normalisaion is put forward as the best way to preprocess images
+    deviation face normalisaion is put forward as the best way to preprocess images in DISFA
     for FAU detection.
 
   \section{Thesis Outline}
-    The background relating to FAU detection and relevant deep learning approaches are
-    reviewed in chapter
+    The background relating to FAU detection and existing deep learning approaches
+    are detailed in Chapter 2.
+
+    The theoretical ideas needed to construct a deep learning algorithm are in
+    Chapter 3, including methods for evalutation.
+
+    Chapter 4 talks about the software implementation that was produced in this project.
+
+    Chapter 5 shows how the DISFA dataset was processed and prepared.
+
+    Chapter 6 details the design process based on experimentation and contains
+    the results of the project.
+
+    Chapter 7 finally has has a discussion and conclusion.
