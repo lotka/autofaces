@@ -399,7 +399,7 @@
     %
     %
     \newpage
-    \subsection{Preprocessing methods} \label{sec:psearch}
+    \section{Preprocessing methods} \label{sec:psearch}
 
       With the goal of creating the AEC network a search on some hyperparameters was performed
       including the preprocessing method from section \ref{sec:methods} and on the four main activation functions
@@ -483,7 +483,7 @@
     %
     %
     \newpage
-    \subsection{Shared Weights}
+    \section{Shared Weights}
       In order to reduce the number of parameters in an autoencoder, to avoid over fitting
       and the probability of learning the identity function, it is often helpful to share weights
       between the encoder and decoder sections.
@@ -524,7 +524,7 @@
     %
     %
     \newpage
-    \subsection{Local Contrast Normalisation}
+    \section{Local Contrast Normalisation}
 
       The local contrast normalisation scheme as described in section \ref{sec:lrn}
       was applied to the three test networks.
@@ -570,7 +570,7 @@
     %
     %
     \newpage
-    \subsection{Dropout}
+    \section{Dropout}
       Varying degrees of dropout (see section \ref{sec:dropout}) were applied to each test network at the bottleneck layer.
       Table \ref{tab:dropout} shows the results.
       \begin{table}[h]
@@ -631,7 +631,7 @@
     %
     %
     %
-    \subsection{L2 Regularisation}
+    \section{L2 Regularisation}
       L2 Regularisation incurs a penalty to using weights which have high values. This was implemented by adding L2
       loss terms for all weight variables. The new cost function becomes:
 
