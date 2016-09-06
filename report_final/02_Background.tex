@@ -1,11 +1,11 @@
 \chapter{Background}
 
-\section{Databases for FAU estimation}
+\section{Databases for AU estimation}
 The following datasets contain AU labels of subjects which are relevant to this work:
 
 \begin{itemize}
     \item The DISFA database \cite{disfa}, which contains 27 subjects whose spontaneous
-          facial expressions were captured in controlled recording conditions.
+          facial expressions were captured in controlled recording conditions, for more information see the section \ref{disfa_list}
     \item CK+ \cite{Lucey2010} containing 123 subjects recorded with faces in strictly front positions.
     \item FERA 2015 BP4D-Spontaneous Dataset \cite{Valstar}:
           containing 41 subjects and 34 AUs, the subjects were young adults who
@@ -18,19 +18,25 @@ present and their intensity. Hence two distinct problems can be tackled here, in
 estimation and classification, this work follows the classification route however
 with neural networks it is potentially not a radically different problem.
 
-A key challenge with these datasets is that they often have very unbalanced and
-sparse labels as shown in figure \ref{disfastats}. This calls for methods
-to balance training samples with respect to this imbalance and is the
-motivation for using some unsupervised learning techniques, in order to extract information
-from the unlabelled data.
+% A key challenge with these datasets is that they often have very unbalanced and
+% sparse labels as shown in figure \ref{disfastats}. This calls for methods
+% to balance training samples with respect to this imbalance and is the
+% motivation for using some unsupervised learning techniques, in order to extract information
+% from the unlabelled data.
 
-A further two datasets are the TFD and SEMAINE, these do not contain AUs but often crop up in the
-literature:
-\begin{itemize}
-     \item TFD \cite{tfd} Toronto Face Dataset
-     \item The SEMAINE \cite{semaine} corpus which contains recordings
-           of people interacting with a Sensitive Artificial Listener (SAL) in controlled conditions.
-\end{itemize}
+
+% However, in our case, all data is labelled.
+% you could explain that successful autoencoder training might show a direction to make use of large datatsets without AU annotations (like TFD)
+
+
+
+% A further two datasets are the TFD and SEMAINE, these do not contain AUs but often crop up in the
+% literature:
+% \begin{itemize}
+%      \item TFD \cite{tfd} Toronto Face Dataset
+%      \item The SEMAINE \cite{semaine} corpus which contains recordings
+%            of people interacting with a Sensitive Artificial Listener (SAL) in controlled conditions.
+% \end{itemize}
 
 \section{The DISFA dataset} \label{disfa_list}
 The Denver Intensity of Spontaneous Facial Action Dataset (DISFA)
@@ -42,7 +48,7 @@ are 27 subjects with 12 AUs.
 Each frame in each subject video has a label which quantifies how much of each
 AU is present on a scale of 0-5, the distribution of intensities is shown in table \ref{compau}.
 
-A challenge of the DISFA dataset is that it has many frames which are unlabelled, this is demonstrated
+A challenge of the DISFA dataset is that it has many frames which are neutral, this is demonstrated
 per subject in figure \ref{disfastats}. Many of the subjects have over 40\% of their frames unlabelled
 , one outlier has over 75\% unlabelled.
 
@@ -75,12 +81,12 @@ of AUs tabled here is larger than the number of frames, this is because some fra
   \caption{DISFA dataset: This graph shows what the maximum value in each label is in the DISFA dataset per subject. This
   is done to illustrate the number of labels which contain very little information
   and pose an issue for a typical neural network structure. It also shows some there
-  is quite a large degree of variation between subjects. In this work, frames are often refered to as unlabelled or neutral,
+  is quite a large degree of variation between subjects. In this work, frames are often referred to as unlabelled or neutral,
   in the figure this is all labels with maximum intensity zero.}\label{disfastats}
 \end{figure}
 \newpage
 
-\section{Deep learning approaches to FAU detection}
+\section{Deep learning approaches to AU detection}
 It has been shown that deep neural networks containing convolutional, max pooling,
 dropout and fully connected layers can effectively learn how to classify AUs in
 a selection of datasets even when ignoring the temporal structure of the data \cite{Gudi2015,Ghosh2015,dodeeplearn}.
@@ -111,8 +117,7 @@ power of these networks.
 
 Network \cite{Jaiswal2016} (Shashank Jaiswal et al.) was trained on SEMAINE and
 BP4D achieving an overall weighted F1 score of 0.54. Which is on average higher
-than network \cite{Gudi2015} as claimed in the paper. This paper includes a lot more
-prior knowledge than the others, firstly it uses a BLSTM to incorporate temporal structure
+than network \cite{Gudi2015}. A BLSTM is used to incorporate temporal structure
 and it defines multiple input streams from each facial region, allowing the convolutional
 filters to become more specialised. This is the only paper where they say they use
 two outputs for each AU so that the softmax creates a probability distribution for
@@ -134,7 +139,7 @@ TFD      &                                       &                              
 
 It should be noted that it is difficult to compare the performance between these
 networks as they all use different evaluation scores as shown in table \ref{compscore}. Table \ref{compdat} also shows
-which datasets eached of the discussed papers used.
+which datasets each of the discussed papers used.
 \begin{landscape}
 \begin{table}[h!]
 % \centering
@@ -181,8 +186,7 @@ networks.
 Score    & \multicolumn{1}{l}{Ghosh et. al\cite{Ghosh2015}} & \multicolumn{1}{l}{Gudi et. al.\cite{Gudi2015}} & \multicolumn{1}{l}{Khorrami et. al.\cite{dodeeplearn}} & \multicolumn{1}{l}{Jaiswal et. al.\cite{Jaiswal2016}} \\ \hline
 Accuracy & \checkmark                                       &                                                 & \checkmark                                             &                                             \\
 F1       &                                                  & \checkmark                                      &                                                        & \checkmark                                  \\
-AUC      &                                                  &                                                 &                                                        &                                             \\
-2AFC     & \checkmark                                       & \checkmark                                      &                                                        &                                             \\ \hline
+AUC     & \checkmark                                       & \checkmark                                      &                                                        &                                             \\ \hline
 \end{tabular}
 \caption{A comparison of which evaluation methods were used in the relevant papers.} \label{compscore}
 \end{table}

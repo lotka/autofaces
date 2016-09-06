@@ -38,6 +38,7 @@
         Early model save percent                 & 50\%                          \\
         Weight tensor initial standard deviation & 0.001                         \\
         Bias tensor initial value                & 0.01                          \\
+        Train batch size                         & 100                           \\
         Validation batch size                    & 500                           \\
         Penultimate fully connected layer size   & 3000                          \\
         Autoencoder cost function                & Mean Squared Error            \\
@@ -48,8 +49,8 @@
       assumed in proceeding sections unless otherwise stated.} \label{tab:common} }
     \end{table}
 
-    The cost function were chosen as they are typical of their use cases, the cross entropy is more suited
-    for classification problems as it penalises heavily incorrect answers.
+    The cost functions were chosen as they are typical of their use cases, the cross entropy is more suited
+    for classification problems as it penalises heavily incorrect answers and the meaned squared
 
     For all of the experiments the data was partitioned in a 50/50 split as shown in table \ref{sec:splitting}:
     \begin{table}[h!]

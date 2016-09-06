@@ -5,26 +5,51 @@
 %   take about the fact that you are doing one frame and a time and
 %   other methods might be better because they can do sequences.
 
-  The human face is most likely one of the most researched objects in image analysis
+  The human face is one of the most researched objects in image analysis
   and computer vision \cite{S.ZafeiriouA.PapaioannouI.KotsiaM.A.Nicolaou}.
   It has wide ranging applications from Human
   Computer Interaction (expression recognition) to law enforcement (face recognition).
   Its study necessitates the development of a wide range of machine
   learning and computer vision research.
 
-  Facial Action Unit detection FAU \cite{Corneanu2016} is chosen in this work due
+  Facial Action Unit detection \cite{Corneanu2016} is chosen in this work due
   to it's popularity and available benchmarks.
   The Facial Action Coding System (FACS) developed by Ekman and Friesen,
   provides a systematic way to study any kind of facial expression,
   by representing them as a combination of individual facial muscle actions
   known as Action Units (AU). Automating the process of detecting AUs is difficult
-  because they have non-linear interactions and often occur in very low intensities. % TODO: Reference?
+  because they have non-linear interactions \cite{S.EleftheriadisO.Rudovic}
+  and often occur in very low intensities.
+
+  Deep learning is emerging as a powerful tool in modelling a wide range of patterns
+  in data, it has been applied to the problem of detecting AUs a number of times and achieved
+  good classification scores \cite{Khorrami2015,Jaiswal2016,Kim2016,Gudi2015,Ghosh2015}.
 
   There exist many datasets containing images and videos of faces and it is a general
-  observation that unlabelled images are far more abundant than labelled ones.
-  In particular in the areas of expression recognition where painstaking work
-  must be carried out to obtain the ground truth expressions for an image or set of
-  frames in a video. This situation is one of the motivations for this project.
+  observation that unlabelled datasets are far more abundant than labelled ones.
+  In particular for AUs because manual AU
+  annotation is laborious and requires trained expert coders.
+  Datasets containing AUs have a few key differences to datasets typically used with
+  deep networks, these are:
+  \begin{enumerate}
+    \item Non-uniform AU occurrence frequencies as many frames in a video may
+    contain no AU occurrences (neutral faces) and some AUs may occur a lot less or a lot more than others.
+    \item The variation between images is lower than the datasets typically used
+    to train deep neural networks because AUs can be signified by subtle changes.
+    \item They contain fewer images, for example compared to ImageNet\cite{Deng2009} which has 3.2 million labelled images.
+    \item The possibility for AUs to occur simultaneously
+  \end{enumerate}
+
+  This project aims to tackle these issues by employing the use of autoencoders,
+  which are neural networks whose objective is to reproduce their input.
+  These are often used to pretrain the weights of classifying networks \cite{googlepretrain}.
+  This process of pretraining is generalised so that it can be performed simultaneously with
+  the classification training step. This results in a single cost function, which changes during training.
+  The idea being that this joint training
+  encourages the autoencoder to learn useful features. Furthermore a variety of preprocessing methods such as mean face subtraction and contrast normalisation
+  are tested to see which give the best classification results and work best with the joint
+  autoencoder and classifier training. These experiments are carried out in a constrained setting
+  where even very low intensity AUs are treated as positive examples and the training set is not artificially expanded.
 
   \begin{figure}
    \centering
@@ -37,54 +62,45 @@
    and so on.}
   \end{figure}
 
-  Deep learning is emerging as a powerful tool in modelling a wide range of patterns
-  in data, it has been applied to the problem of FAU a number of times and achieved
-  good classification rates. The unlabelled (neutral expressions) frames typical
-  in such datasets make it more difficult for the supervised
-  Deep Neural Network (DNN) techniques to make full use of the available information.
-
-  This project uses the DISFA dataset, which is an example of a sparsely labelled dataset
-  \footnote{Relative to datasets typically used for
-            Deep Learning tasks, for example MNIST\cite{mnist}
-            which has 70,000 labelled examples, which all fall
-            into one strictly defined category.} and constructs neural network structure which
-  can perform joint classificatio of AUs while also acting as an autoencoder.
-  The use of the autoencoder is designed to exploit the information in the neutral faces
-  and also focus in on features which might not be learnt via classifier only training.
-
-  Further it examines whether
-  smoothly transferring between autoencoder training and classifier training can improve
-  the ability of the autoencoder to improve classification performance. The project works in a constrainted setting as
-  even low intensity AU occurrences are counted as positive occurrences and the training set
-  is not artificially expanded.
-
-  \section{Potential Applications}
-    The ability for a computer vision system to accurately classify actions in a
-    human face could have a multitude of application. Human computer interfaces (HCI)
-    could benefit from a higher bandwidth interactions between a computer and human, adding
-    an extra channel to the typical keyboard and mouse. The medical profession would benefit
-    as the ability to quantify psycological symptoms using facial expressions might lead to
-    quicker diagnoses of illness and more personalised care.
-
   \section{Contributions}
-    This work contributes a detailed exploration of how autoencoders and classifiers
-    interact in a variety of settings. No substantial performance improvement is noted
-    but interesting dynamics are observed. The method of per subject mean and standard
-    deviation face normalisaion is put forward as the best way to preprocess images in DISFA
-    for FAU detection.
+    This work proposes a novel network structure for joint autoencoder and classifier training and tests it with
+    the following methods:
+    \begin{itemize}
+      \item A set of pre-processing methods, such as mean face subtraction and contrast normalisation.
+
+      \item A variety of convolutional architectures and a fully connected networks.
+
+      \item A balancing function, referred to as the alpha function, is introduced which evolves during
+            training to balance the autoencoder and classifier losses.
+
+      \item Regularisation techinques including Dropout\cite{Srivastava2014} and L2 Regularisation\cite{Ng2004} which aim to improve the chances
+            of creating a simpler but more general model and hence reducing over fitting.
+
+      \item Local Contrast Normalisation\cite{Krizhevsky2012} which is a technique that has been shown to improve classification performance in convolutional networks.
+
+      \item The use of Binary Softmax Layers to jointly classify AU occurrences.
+
+    \end{itemize}
+    % This paragraph could be a bit more detailed. You contribute:
+    % - proposition of a of a novel network structure for joint autoencoder and classifier training
+    % - evaluation of different pre-processing methods, transfer functions, network structures, etc. (provide a detailed list)
+    % To the end!
+    % No substantial performance improvement is noted but interesting dynamics are observed.
+
+    \section{Potential Applications}
+      The ability for a computer vision system to accurately classify actions in a
+      human face could have a multitude of application. Human computer interfaces (HCI)
+      could benefit from a higher bandwidth interactions between computers and humans, adding
+      an extra channel to the typical keyboard and mouse. The medical profession would benefit
+      as the ability to quantify psychological symptoms using facial expressions might lead to
+      quicker diagnoses of illness and more personalised care.
 
   \section{Thesis Outline}
-    The background relating to FAU detection and existing deep learning approaches
-    are detailed in Chapter 2.
-
-    The theoretical ideas needed to construct a deep learning algorithm are in
-    Chapter 3, including methods for evalutation.
-
-    Chapter 4 talks about the software implementation that was produced in this project.
-
-    Chapter 5 shows how the DISFA dataset was processed and prepared.
-
-    Chapter 6 details the design process based on experimentation and contains
-    the results of the project.
-
-    Chapter 7 finally has has a discussion and conclusion.
+    % The background relating to FAU detection and existing deep learning approaches
+    % are detailed in Chapter 2.
+    % The theoretical ideas needed to construct a deep learning algorithm are in
+    % Chapter 3, including methods for evaluation.
+    % Chapter 4 talks about the software implementation that was produced in this project.
+    % Chapter 5 shows how the DISFA dataset was processed and prepared.
+    % Chapter 6 details the design process based on experimentation and contains
+    % the results of the project. Chapter 7 finally has has a discussion and conclusion.

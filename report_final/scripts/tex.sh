@@ -1,4 +1,7 @@
 #!/bin/bash
+rm bib/autofaces-*
+rm bib/reading*
+python scripts/bibclean.py bib/*.bib
 pdflatex -halt-on-error main.tex
 bibtex main
 pdflatex -halt-on-error main.tex

@@ -18,7 +18,7 @@
     see how these components can interact and be built up and such derivations would add little,
     for a detailed analysis see \cite{Bishop1995}.
   \section{Model Components}
-    \subsection{Artificial Neural Networks}
+    \subsection{Artificial Neural Networks} \label{sec:anns}
       An artificial neuron is a function which takes in a vector of inputs, computes their
       weighted sum and applies a non-linearity as follows:
       \begin{equation}
@@ -27,7 +27,7 @@
       Here $\sigma$ is a scalar function, $w_i$ is a scalar weight and $b$ is its bias. $N$ is the size of the input and weight vector.
       These neurons can be combined into layered networks to construct artificial neural networks.
       The weights $w$ can then be rewritten as matrices $\mathbf{W}$ which define how
-      activations from one layer are transferred to the next\footnote{Note: when a vector
+      activations from one layer are transferred to the next\footnote{Note: in this report when a vector
       is put into a scalar function it is assumed that it acts on each element of
       the vector. The only exception is with the softmax.}.
       \begin{equation}
@@ -81,31 +81,69 @@
 
 
 
-      An $N$ layer network can
-      then be thought of as a function with a nested structure (these are also known as fully connected layers):
-      \begin{equation}
+      An $N$ layer network can then be thought of as a function with a nested
+      structure (these are also known as fully connected layers):
+      \begin{equation} \label{eq:ynn}
         \mathbf{y} = \mathbf{a}_{N}(\mathbf{a}_{l-1}(...\mathbf{a}_1(\mathbf{x})...))
       \end{equation}
       Now assuming there exists a set of $\tilde{\mathbf{x}}$ and $\tilde{\mathbf{y}}$ which make
       up a training data set, these could be sets of images and labels, then a cost function
       to optimise can be defined:
       \begin{equation}
-        J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = \frac{1}{N}\left |\mathbf{y}(\tilde{\mathbf{x}})-\tilde{\mathbf{y}}\right | ^2
+        J(\tilde{\mathbf{x}},\tilde{\mathbf{y}},\mathbf{y}) = \frac{1}{N}\left |\mathbf{y}(\tilde{\mathbf{x}})-\tilde{\mathbf{y}}\right | ^2
       \end{equation}
-      this is called the mean squared error, another popular cost function is
+      this is called the mean squared error, here $\tilde{\mathbf{x}}$ and $\tilde{\mathbf{y}}$ could
+      be the images and labels of a dataset respecitvely and $\mathbf{y}$ represents the network we are evaluating (equation \ref{eq:ynn}). Another popular cost function is
       the cross entropy:
       \begin{equation}
-        J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = -\frac{1}{N}\tilde{\mathbf{y}}\cdot\log(\mathbf{y}(\tilde{\mathbf{x}}))
+        J(\tilde{\mathbf{x}},\tilde{\mathbf{y}},\mathbf{y}) = -\frac{1}{N}\tilde{\mathbf{y}}\cdot\log(\mathbf{y}(\tilde{\mathbf{x}}))
       \end{equation}
 
-      The derivative of these cost functions with respect to each weight and bias variable
-      in the network is then calculated.
-      The simplest way is to do this is per training example, however stochastic gradient
-      descent\cite{Amari1993} has emerged as a superior method. Simply put it computes the average gradient with respect
-      to many randomly drawn samples, it has the advantage of following a smoother path
-      towards the local minimum. Another training algorithm which builds on this is called is Adam \cite{adam}. {\color{red} TODO: Expand this section}
-      % http://sebastianruder.com/optimizing-gradient-descent/index.html#adam
-      % \url{https://www.quora.com/Can-you-explain-basic-intuition-behind-ADAM-a-method-for-stochastic-optimization}
+      This has the property of giving high costs when a postive exampe is incorrectly classified as negative: $\lim _{y\rightarrow0}\frac{1}{N}1\cdot \log(y) = \infty$
+      and not adjusting the weights otherwise.
+
+    \subsection{Training}
+        This report will often refer to the process of training, the objective of training is to find
+        a $\tilde{\mathbf{y}}^* \in \mathbb{R}^{N\times M...}$ that satisifies the following definition:
+
+        \begin{equation}
+          J(\tilde{\mathbf{x}},\tilde{\mathbf{y}},\mathbf{y}^*) \leq J(\tilde{\mathbf{x}},\tilde{\mathbf{y}},\mathbf{y}) \quad \forall \mathbf{y} \in \mathbf{Y}
+        \end{equation}
+
+        Where $\mathbf{Y}$ is defined as the set of all possible $\mathbf{y}$ functions which are constructed with a series $\mathbf{W}$ and $\mathbf{b}$ matrixes as defined used in the previous section.
+        As $J$ cannot be known fully and is unlikely to be convex \footnote{Which would garuentee a global minimum, for example a parabola $y(x)=x^2$ is convex and has a minimum at $y(0)$}
+        , this is impracticle to achieve in practice.
+        Training is therefore the process of finding a local minimum by taking a path through $J$ by varying
+        the function $ \mathbf{y} $, the different stratergies by which $J$ is explored are called
+        training algorithms or optimizers.
+
+        This is actualisied by taking the derivative, with respect to each weight variable
+        in the network, $i$ and updating those variables in order to reduce $J$:
+
+        \begin{equation}
+          w_i \leftarrow w_i - \eta \frac{\partial J }{\partial w_{i}}(\tilde{\mathbf{x}},\tilde{\mathbf{y}},\mathbf{y})
+        \end{equation}
+
+        This occurs for every $i$ where $w_i$ is some trainable variable in $\mathbf{y}$.
+        This is the simplest way to achieve training or gradient descent, this is refered to as backpropagation
+        because computing the derivative requires the repeated use of the chain rule.
+
+        If $\tilde{x}$ is a set of examples then this is batch gradient descent, if the examples
+        are randomly selected from the dataset then it is stocastic gradient descent.
+
+        \todo{AAAAAADAMMMMMmmmm}
+
+
+
+        %
+        % The derivative of these cost functions with respect to each weight and bias variable
+        % in the network is then calculated.
+        % The simplest way is to do this is per training example, however stochastic gradient
+        % descent\cite{Amari1993} has emerged as a superior method. Simply put it computes the average gradient with respect
+        % to many randomly drawn samples, it has the advantage of following a smoother path
+        % towards the local minimum. Another training algorithm which builds on this is called is Adam \cite{adam}.
+        % http://sebastianruder.com/optimizing-gradient-descent/index.html#adam
+        % \url{https://www.quora.com/Can-you-explain-basic-intuition-behind-ADAM-a-method-for-stochastic-optimization}
     \subsection{Convolutional Layers}
       A convolutional layer is a generalisation of simple fully connected layers described
       above. It consists of a set of $K$ filters of size $m\times m$, which are applied to the input to produce
@@ -205,6 +243,8 @@
       $k=2,n=5,\alpha=10^{-4}$ and $\beta=0.75$.
 
   \section{Overfitting and Regularisation}
+    A machine learning model will always perform better on the set used
+    to train it, 
     % http://neuralnetworksanddeeplearning.com/chap3.html#overfitting_and_regularization
     \subsection{Denoising}
       {\color{red} TODO}
