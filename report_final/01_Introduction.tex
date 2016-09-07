@@ -32,12 +32,12 @@
   Datasets containing AUs have a few key differences to datasets typically used with
   deep networks, these are:
   \begin{enumerate}
-    \item Non-uniform AU occurrence frequencies as many frames in a video may
-    contain no AU occurrences (neutral faces) and some AUs may occur a lot less or a lot more than others.
     \item The variation between images is lower than the datasets typically used
     to train deep neural networks because AUs can be signified by subtle changes.
     \item They contain fewer images, for example compared to ImageNet\cite{Deng2009} which has 3.2 million labelled images.
     \item The possibility for AUs to occur simultaneously
+    \item Non-uniform AU occurrence frequencies as many frames in a video may
+    contain no AU occurrences (neutral faces) and some AUs may occur a lot less or a lot more than others.
   \end{enumerate}
 
   This project aims to tackle these issues by employing the use of autoencoders,
@@ -96,11 +96,17 @@
       quicker diagnoses of illness and more personalised care.
 
   \section{Thesis Outline}
-    % The background relating to FAU detection and existing deep learning approaches
-    % are detailed in Chapter 2.
-    % The theoretical ideas needed to construct a deep learning algorithm are in
-    % Chapter 3, including methods for evaluation.
-    % Chapter 4 talks about the software implementation that was produced in this project.
-    % Chapter 5 shows how the DISFA dataset was processed and prepared.
-    % Chapter 6 details the design process based on experimentation and contains
-    % the results of the project. Chapter 7 finally has has a discussion and conclusion.
+    \begin{itemize}
+      \item {\bf Chapter 2} first reviews the literature regarding AU databases. It then introduces the
+            required theory to constructing and evaluating a deep learning model. Lastly it
+            reviews literature which uses deep learning to classify AUs.
+      \item {\bf Chapter 3} describes the code that was produced to facilitate experimenting with
+            the concepts in Chapter 2 and to enact the goals of Chapter 1
+      \item {\bf Chapter 4} describes some proposed preprocessing techinques, such as mean face
+            and contrast normalisation.
+      \item {\bf Chapter 5} detials the models that were evaluated in this project.
+      \item {\bf Chapter 6} evaluates the models from Chapter 5 quantitatively and qualitiatively.
+      \item {\bf Chapter 7} discusses the whole project,evaluating the stratergies persued and
+            proposing future directions.
+      \item {\bf Chapter 8} states the conclusions of the project.
+  \end{itemize}

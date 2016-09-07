@@ -1,0 +1,54 @@
+  % The Four Pillars of Autofaces
+  %%%%%%%%%%%%% The variation between images %%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%% They contain fewer images %%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%% The possibility for AUs to occur simultaneously %%%%%
+  %%%%%%%%%%%%% Non-uniform AU occurrence %%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Discussion}
+  Hyperparameter cop out
+  \section{Methodology}
+    - organisation of code and data was good, maybe a bit too late in the day
+      - good to automate comparison
+    - iterations posed an issue throughout
+    - experimentation structure
+    - suffered from overhead of reproducing existing technique, ideal situation would be to start from something state of the art
+    - suffered from undeterminsitic computations, should have used a more mature framework. This might have allowed
+      above issue to be solved
+    - Limited time so couldn't test more structures
+    - Talk about the fact that the direct inversion of functioning classifiers was the wrong approach,
+      it should have been to apply state of the art autoencoders and turn them into classifiers
+  \section{Results}
+    - A way to nicely increase the variation was found
+    - Focus on convolutional nets possible unfounded, due to the results of the preprocessing methdology
+    - Per subject normalisation comes out as superior
+    - The format of the autoencoder means it doesn't learn that many weights, discuss this as an issues, say more data would help
+      Wonder what it would be like
+    - Results together show that there are cases where the auteoncoder and classifier can both function at their optimum
+    - Overfitting to common categories
+
+
+  \section{Future Work}
+    Big parameter space
+    Inpsired by the literature
+    Should have built a really good autoencoder first, then bolted on a classifier
+      - Stacked architectures
+      - Variational autoencoders
+      - More datasets so more training examples
+        - But couldn't do this because the DISFA was all we had time for
+
+    Better exploration of the autoencoder features
+      - Reference that technique
+    Preprocessing
+      - Preprocess differently, resize afterwards
+
+    Artificial expansion of the training set
+      - Translations
+      - Denoising autoencoder
+
+    Do cross validaiton to compare to the literature
+
+    Fancy classifiers onto the softmax
+
+    Use temporal structures
+
+\chapter{Conclusion}
+  it was bad

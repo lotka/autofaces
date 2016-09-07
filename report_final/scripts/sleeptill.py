@@ -1,6 +1,4 @@
-import os
-import sys
-import time
+import os, sys, time
 
 
 def get_times(file_list):

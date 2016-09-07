@@ -1,4 +1,4 @@
-\chapter{Prepraring the Data}
+\chapter{Data Preprocessing}
   \section{Introduction}
     It is typical to apply some sort of preprocessing operations to any data fed into
     a neural network. Although in theory a neural network can learn very complex
@@ -15,12 +15,20 @@
     This section describes some preprocessing methods which are to be
     tested in section \ref{sec:psearch}.
 
+    % You should mention how: by a piece-wise
+    % affine warp of the triangulated landmarks to a canonical shape.
+    % And why: so that the facial regions within different
+    % frames are aligned with each other, so that the network
+    % does not need to account for spatial variations.
 
     The DISFA dataset as described in section \ref{disfa_list} has frames of size $ 1024 \times 764 $
     but using previous work of Sebastian Kaltwang\cite{Kaltwang2015} faces are
-    centred and normalised to give an image of size $118 \times 128$
+    centred and normalised by a piece-wise affine warp of the triangulated
+    landmarks to a canonical shape to give an image of size $118 \times 128$
     with pixels being integers between
-    0 and 255. An illustration is shown in figure \ref{fig:sebproc}
+    0 and 255. An illustration is shown in figure \ref{fig:sebproc}.
+    This is done in order to align face images with each other so that
+    there is no need for the model to account for spatial variations.
 
     \begin{figure}[!h] \centering
     \includegraphics[width =\hsize]{figures/seb_preproc.pdf}
@@ -29,13 +37,13 @@
     $118 \times 128$ after face registration.} \label{fig:sebproc} \end{figure}
 
 
-    This section first discusses the initial treatment of the labels and splitting of then data.
+    This section first discusses the initial treatment of the labels.
     Then three different methods of normalising and scaling
     the dataset are described, these can be combined to create further methods. In order to illustrate
     the effect of such operations figures such as figure \ref{fig:faces_none} are used which
     show an example face and some statistically generated faces. The ideal method will
     have minimum and maximum faces which express high degrees of facial expression, so that
-    high pixel values can easily be correlated to various AU's in the classifier. Another motivation
+    high pixel values can easily be correlated to various AUs in the classifier. Another motivation
     for trying this many methods is to improve the chances of finding an input format which works will with both an
     autoencoder and classifier.
 
@@ -46,14 +54,14 @@
         {\bf y} \in \{0,1,2,3,4,5\}^{N\times F}
       \end{equation}
 
-      Where $F$ is the number of AU's (or features) and $N$ is the number of labeled images
+      Where $F$ is the number of AUs and $N$ is the number of labeled images
       in the dataset.
 
       Five is the highest intensity for an AU and zero is the absence of that AU.
       Typically a neural network outputs values between zero and one so these values are divided by five to make them compatible.
       For an intensity estimation problem that is all that is required, however for classification
       the AU labels need to be binary so a threshold is chosen at which an AU is considered present.
-      Finally in some cases such as the one described in section \ref{sec:binsoft} the label vector
+      Finally in the case of the Binary Softmax described in section \ref{sec:binsoft} the label vector
       needs to be expanded to also contain the negative case, hence doubling its size.
 
   \section{Methods For Images} \label{sec:methods}
@@ -61,10 +69,12 @@
     \begin{figure}[!h] \centering
     \includegraphics[width =\hsize]{figures/faces.pdf}
     \caption{The DISFA dataset with no preprocessing, it shows
-    the images at the last stage of figure \ref{fig:sebproc}. Plots {\bf b)}, {\bf c)}, {\bf d)}
-    and {\bf e)}
-    correspond to the minimum, maximum, mean and standard deviation values of each pixel across
-    the whole dataset respectively.} \label{fig:faces_none} \end{figure}
+    the images at the last stage of figure \ref{fig:sebproc}.
+    Plots {\bf a)}, {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)}
+    correspond to a sample face, the minimum, the maximum,
+    the mean and the standard deviation values of each pixel across
+    the whole dataset respectively.}
+    \label{fig:faces_none} \end{figure}
 
     The preprocessing methods assume that a dataset of a number of subjects
     is described as a matrix of the form:
@@ -73,7 +83,7 @@
     \end{equation}
     Where $\mathbf{x}$ contains the images, $\mathbf{y}$ contains the labels,
     $N$ is the number of images, $X$ is the width of the image, $Y$ is the height of the
-    image and $F$ is the number of AU's labelled. Furthermore in some cases an extra dimension
+    image and $F$ is the number of AUs labelled. Furthermore in some cases an extra dimension
     for the subject may be added:
     \begin{equation}
     {\bf x} \in \mathbb{R}^{S\times N\times X \times Y},\quad {\bf y} \in \mathbb{N}^{S\times N\times F}
@@ -89,9 +99,12 @@
     \begin{equation}
       {\bf P}({\bf x},i,s) = {\bf x'}_{si}
     \end{equation}
+    Where $i$ indexes frames so has $0 \leq i < N$, where $N$ might be the number of frames
+    in the whole dataset or just for a subject.
 
     This notation aims to express the fact that each image in the resultant dataset
-    may use information from all other frames.
+    may use information from all other frames, as it is generated by a function of the dataset
+    and it's own index $i$.
 
     %
     %
@@ -103,16 +116,17 @@
       \centering
       \includegraphics[width =\hsize]{figures/faces_contrast.pdf}
       \caption{The DISFA dataset with {\bf contrast normalisation}.
-      Plots {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)} correspond to the minimum,
-      maximum, mean and standard deviation values of each pixel across the whole
-      dataset respectively.}
+      Plots {\bf a)}, {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)}
+      correspond to a sample face, the minimum, the maximum,
+      the mean and the standard deviation values of each pixel across
+      the whole dataset respectively.}
       \label{fig:simple}
       \end{figure}
 
       For each image find the mean pixel value and standard deviation and then subtract the mean
       and divide by the standard deviation. This standardises the amount of contrast in each image.
       \begin{equation}
-         P({\bf x},i)= ({\bf x}_{ijk} - \mu({\bf x}_{i}))/\sigma ({\bf x}_{i}) = {\bf x}_{ijk}'
+         P({\bf x},i)= ({\bf x}_{i} - \mu({\bf x}_{i}))/\sigma ({\bf x}_{i}) = {\bf x}_{i}'
          \label{eq:con}
       \end{equation}
       Where $\mu$ and $\sigma$ gives the mean and standard deviation value of a matrix respectively.
@@ -140,9 +154,10 @@
       \begin{figure}[!h] \centering
       \includegraphics[width =\hsize]{figures/faces_per_subject_face.pdf}
       \caption{The DISFA dataset with {\bf per subject mean face normalisation}.
-      Plots {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)} correspond to the minimum,
-      maximum, mean and standard deviation values of each pixel across the whole
-      dataset respectively.}
+      Plots {\bf a)}, {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)}
+      correspond to a sample face, the minimum, the maximum,
+      the mean and the standard deviation values of each pixel across
+      the whole dataset respectively.}
       \label{fig:}
       \end{figure}
 
@@ -152,8 +167,7 @@
     %
     %
     \subsection{Range Scaling}
-      This normalisation stretches the data between -1 and 1, this contains no feature engineering
-      intuition but is simply another type of normalisation to try.
+      This normalisation gets the data between the range of -1 and 1.
       \begin{equation}
         {\boldsymbol r}({\bf x})_{axis} = {\boldsymbol \min}_{axis}({\bf x}) - {\boldsymbol \min}_{axis}({\bf x})
       \end{equation}
@@ -171,9 +185,11 @@
       \begin{figure}[!h] \centering
       \includegraphics[width =\hsize]{figures/faces_range.pdf}
       \caption{The DISFA dataset with {\bf range scaling between -1 and 1}.
-      Plots {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)} correspond to the minimum,
-      maximum, mean and standard deviation values of each pixel across the whole
-      dataset respectively.} \label{fig:simple} \end{figure}
+      Plots {\bf a)}, {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)}
+      correspond to a sample face, the minimum, the maximum,
+      the mean and the standard deviation values of each pixel across
+      the whole dataset respectively.}
+      \label{fig:simple} \end{figure}
 
     %
     %
@@ -190,16 +206,20 @@
       \begin{figure}[!h] \centering
       \includegraphics[width =\hsize]{figures/faces_contrast_face.pdf}
       \caption{The DISFA dataset with {\bf mean face normalisation and then contrast normalisation} applied.
-      Plots {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)} correspond to the minimum,
-      maximum, mean and standard deviation values of each pixel across the whole
-      dataset respectively.} \label{fig:faces_contrast_face} \end{figure}
+      Plots {\bf a)}, {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)}
+      correspond to a sample face, the minimum, the maximum,
+      the mean and the standard deviation values of each pixel across
+      the whole dataset respectively.}
+      \label{fig:faces_contrast_face} \end{figure}
 
       \begin{figure}[!h] \centering
       \includegraphics[width =\hsize]{figures/faces_per_subject_contrast_face.pdf}
       \caption{The DISFA dataset with {\bf per subject mean face normalisation and then contrast normalisation} applied.
-      Plots {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)} correspond to the minimum,
-      maximum, mean and standard deviation values of each pixel across the whole
-      dataset respectively.} \label{fig:faces_per_subject_contrast_face} \end{figure}
+      Plots {\bf a)}, {\bf b)}, {\bf c)}, {\bf d)} and {\bf e)}
+      correspond to a sample face, the minimum, the maximum,
+      the mean and the standard deviation values of each pixel across
+      the whole dataset respectively.}
+      \label{fig:faces_per_subject_contrast_face} \end{figure}
 
     %
     %
