@@ -15,6 +15,13 @@
   Then process of adding a set of regularisation techniques is shown and finally the
   various branch balancing functions are described.
 
+  \begin{figure}[h!]
+   \centering
+   \includegraphics[width=\textwidth]{illustrations/aec_network.pdf}
+   \captionof{figure}{A diagram of network \networkII\ described in table \ref{tab:netII}.}
+   \label{fig:netII}
+  \end{figure}
+
   \section{Common Parameters}
     In order to develop the network for modelling the DISFA dataset a set of common
     parameters for experimentation are useful to define, these are shown in table \ref{tab:common}
@@ -49,13 +56,13 @@
     so the learning rate is initially set to $10^{-3}$ which is standard. The Leaky ReLu
     has shown small improvements in classification rates so is used as opposed
     to the standard ReLU. Images are downscaled by 0.4 to the resolution $47\times47$
-    as in done in some of the networks shown in \ref{tab:compnet}
+    as in done in some of the networks shown in \ref{tab:compnet}.
     The early model save percent states when the whole model should be saved early,
     this means for each experiment run there are two models to be evaluated. This
     is useful for the evaluation of both autoencoder and classifier training in one go.
 
-    The mean squared error is chosen to train the autoencoder as there are no alternatives
-    and the cross entropy for the classifer it heavily penalises incorrect classifications,
+    The mean squared error is chosen to train the autoencoder as there are few other alternatives
+    and the cross entropy for the classifer as it heavily penalises incorrect classifications,
     unlike the mean squared error.
 
   \section{Joint classification}
@@ -88,42 +95,81 @@
     \end{itemize}
 
 
-
-
   \section{Network Structures}
 
-    \begin{figure}[h!]
-     \centering
-     \includegraphics[width=\textwidth]{illustrations/aec_network.pdf}
-     \captionof{figure}{A diagram of network 2 used in this section.}
-    \end{figure}
+    % Inspired by the literature (see table \ref{tab:compnet}) four networks are
+    % defined. Network \networkII\ is shown in table \ref{tab:net2}, Network
+    % \networkII\  adds another convolutional layer of size $5\times 5 \times 64
+    % \times 64$ to this and Network \networkIV\ adds a $4\times 4 \times 64 \times
+    % 128$ layer on top of Network \networkII. Regarding the decoder section the
+    % inverse operations are performed, see appendix \label{appendix1} for full
+    % details for networks \networkII, \networkIII\ and \networkIV.
 
-    Now that some basic structures have been tested we proceed to convolutional networks,
-    inspired by the literature (see table \ref{tab:compnet}) three networks are defined.
-    Network \networkII is shown in table \ref{tab:net2}, Network \networkII
-    adds another convolutional layer of size $5\times 5 \times 64 \times 64$ to this and
-    Network \networkIV adds a $4\times 4 \times 64 \times 128$ layer
-    on top of Network \networkII. Regarding the decoder section the inverse operations are
-    performed, see appendix \label{appendix1} for full details
-    for networks \networkII,\networkII and \networkIV.
+    Network \networkI\, acts as a baseline as it is the simplest
+    possible network to incorporate the proposed structure. It is defined in Table~\ref{tab:netI},
+    it contains one hidden layer of 12 neurons which is connected to the input image of 2209 pixels,
+    the output reconstruction of 2209 pixels and to the classifer, which is shown as the Binary Softmax
+    (preempting the results from chapter \ref{chap:Evaluation}). In order to
+    use the DISFA images with this network, they are flattened into an array 2209 sized array.
+    12 neurons
+    are chosen heuristically as there are 12 AU's and one might naively hope that the number of
+    neurons required in the hidden layer would be roughly equal to the number of features.
+
+    Network \networkII\ (Table~\ref{tab:netI} and figure \ref{fig:netII}) contains all of the indredients of a deep learning
+    algorithm a convolutional layer and secondly a $3\times 3$ max pooling layer.
+
+    Networks \networkIII\ (Table~\ref{tab:netIII}) and \networkIV\ (Table~\ref{tab:netIV})
+    build on this by each adding an extra convolutional layer.
+
+    Networks \networkII, \networkIII\ are \networkIV\ based off of networks in
+    the literature, but with the aditional decoder section which is achieved by
+    using deconvolutional layers. These deconvolutions are actually transposed
+    convolutions, so on the final layer in order to reconstruct an image, all of
+    the feature maps are averaged together to create
+    the final image.
+
+    The cost function of these networks is:
+
+    \begin{equation} \label{eq:l2_cost_model}
+        J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = -\frac{1-\alpha(t)}{2FN}\tilde{\mathbf{y}}\cdot\log(\mathbf{y}(\tilde{\mathbf{x}}))
+        + \frac{\alpha(t)}{N}\left |\mathbf{y}(\tilde{\mathbf{x}}) \odot \mathbf{M}-\tilde{\mathbf{x}}\right | ^2
+    \end{equation}
+
+    Where $\mathbf{M}$ is a mask described in section \ref{sec:mask}. Here F is the number of AU's, N is the size of the batch and $\alpha(t)$ is a
+    function which balances the two costs and is described in section \ref{sec:autoalpha}.
 
     \input{05_Networks}
 
+  \clearpage
+
+
   \section{Sharing Weights}
-    ONLY SHARE THE WEIGHTS BUT SHARE THEM ALL, THE BIASES NAH
-    In order to reduce the number of parameters in an autoencoder, to avoid over fitting
-    and the probability of learning the identity function, it is often helpful to share weights
-    between the encoder and decoder sections.
+    In order to reduce the number of parameters in an autoencoder, to avoid over
+    fitting and the probability of learning the identity function, it is often
+    helpful to share weights between the encoder and decoder sections (see section
+    \ref{sec:autoencoders}).
+
+    In this implementation this is done only for the weights and not the biases,
+    the weights for the paired layers are related by their transposes.
   \section{Local Contrast Normalisation}
-    Local Contrast Normalisation applied differently for each network, as follows:
+    Local Contrast Normalisation was implemented as described in section \ref{sec:lrn} with
+    constants $k=2,n=5,\alpha=10^{-4}$ and $\beta=0.75$.
+    It was applied differently for each network, as follows:
     \begin{itemize}
-      \item
+      \item Network \networkI   : not possible as no convolutional layers
+      \item Network \networkII  : applied onto $y_2$ and fed into $L_3$
+      \item Network \networkIII : applied onto $y_2$ and fed into $L_3$ and applied onto $y_3$ and fed into $L_4$
+      \item Network \networkIV  : applied onto $y_2$ and fed into $L_3$ and applied onto $y_5$ and fed into $L_5$
     \end{itemize}
   \section{Dropout}
-    A dropout layer was included in all networks at the bottle neck layer.
+    All of the networks contain dropout, although in different experiments it's
+    value is between 0.8 and 1 (this is the probability of a neuron staying
+    active). Dropout is always at the bottleneck layer, the layer which
+    connnects to the encoder, decoder and classifiers.
   \section{L2 Regularisation}
-    L2 Regularisation incurs a penalty to using weights which have high values. This was implemented by adding L2
-    loss terms for all weight variables. The new cost function becomes:
+    L2 Regularisation incurs a penalty to using weights which have high values.
+    This was implemented by adding L2 loss terms for all weight variables. The
+    new cost function becomes:
 
     \begin{equation} \label{eq:l2_cost_model}
         J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = -\frac{1-\alpha(t)}{2FN}\tilde{\mathbf{y}}\cdot\log(\mathbf{y}(\tilde{\mathbf{x}}))
@@ -138,18 +184,14 @@
 
   \section{Autoencoder classifier balancing}
     \label{sec:autoalpha}
-    A key structure that is to be investigated in this report is a network with two objective functions:
-    autoencoder and classifier. This is achieved by having a bottleneck layer where the branching occurs.
-    The autoencoder has symmetry along this bottleneck, while the classifier consists of one further layer
-    (the binary softmax classifier from the previous section). The cost function for the whole network is as follows:
+    In order to generalise the concept of pre-training the following function is used:
 
     \begin{equation}
       J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = -\frac{1-\alpha(t)}{2FN_B}\tilde{\mathbf{y}}\cdot\log(\mathbf{y}(\tilde{\mathbf{x}}))
       + \frac{\alpha(t)}{N_BN_P}\left |\mathbf{y}(\tilde{\mathbf{x}}) \odot \mathbf{M}-\tilde{\mathbf{x}}\right | ^2
     \end{equation}
 
-    Where $\mathbf{M}$ is a mask described in section \ref{sec:mask}. Here F is the number of AU's, N is the size of the batch and $\alpha(t)$ is a
-    function which balances the two costs. $\alpha(t)$ might be constant $\left ( \alpha_{\text{constant}}(t)=\frac{1}{2} \right )$ or
+    The function $\alpha(t)$ might be constant $\left ( \alpha_{\text{constant}}(t)=\frac{1}{2} \right )$ or
     some sort of polynomial which stays in the range $[0,1]$. $N_B$ and $N_P$ are the batch size and number of pixels respectively.
 
     For much of the initial investigations we employ:
@@ -204,5 +246,3 @@
       iteration.}
       \label{fig:alpha_functions}
     \end{figure}
-
-  \section{Qualitative Results}

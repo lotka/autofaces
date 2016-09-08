@@ -1,4 +1,5 @@
-\newpage
+This section shows the network structures used, branching in a network is described
+with an extra column.
 \begin{table}[h!]
   \caption*{\textbf{Network \networkI}}
 	\centering
@@ -7,19 +8,22 @@
 			\hline
 			\multicolumn{1}{|l|}{Element} & Type    & \multicolumn{1}{l|}{Dimensions}           & Type           & \multicolumn{1}{l|}{Dimensions}            \\ \hline
 			\multicolumn{1}{|l|}{x}       &         & \multicolumn{1}{l|}{$47\times47\times1$}  &                & \multicolumn{1}{l|}{}                      \\ \hline
-			\multicolumn{1}{|l|}{$L_1$}   & fc      & \multicolumn{1}{l|}{$2209\times14$}       & Binary Softmax & \multicolumn{1}{l|}{$3000\times2\times12$} \\
-			\multicolumn{1}{|l|}{$y_1$}   & dropout & \multicolumn{1}{l|}{$14$}                 &                & \multicolumn{1}{l|}{$24$}                  \\ \hline
-			\multicolumn{1}{|l|}{$L_2$}   & fc      & \multicolumn{1}{l|}{$14\times2209$}       &                & \multicolumn{1}{l|}{}                      \\
+			\multicolumn{1}{|l|}{$L_1$}   & flatten + fc      & \multicolumn{1}{l|}{$2209\times12$}       & Binary Softmax & \multicolumn{1}{l|}{$3000\times2\times12$} \\
+			\multicolumn{1}{|l|}{$y_1$}   & dropout & \multicolumn{1}{l|}{$12$}                 &                & \multicolumn{1}{l|}{$24$}                  \\ \hline
+			\multicolumn{1}{|l|}{$L_2$}   & fc      & \multicolumn{1}{l|}{$12\times2209$}       &                & \multicolumn{1}{l|}{}                      \\
 			\multicolumn{1}{|l|}{$y_2$}   &         & \multicolumn{1}{l|}{$3000$}               &                & \multicolumn{1}{l|}{}                      \\ \hline
 			\multicolumn{1}{|l|}{$L_3$}   & reshape & \multicolumn{1}{l|}{}                     &                & \multicolumn{1}{l|}{}                      \\
 			\multicolumn{1}{|l|}{$y_3$}   &         & \multicolumn{1}{l|}{$47\times47\times 1$} &                & \multicolumn{1}{l|}{}                      \\ \hline
 		\end{tabular}
 
-		\caption{} \label{net:simple1}
+		\caption{This network is the simplest possible which implements the autoencoder classifier structure.
+    It first flattens the input image, runs it through the first layer to get 12 neuron activations.
+    Then it branches, for the decoder into a layer of size $2209$ which is reshaped into a $47\times47$ reconstruction and for the classifier into 12 pairs of binary softmax layers.
+    *Bottleneck layer} \label{tab:netI}
 
 	}
 \end{table}
-huh?
+
 \begin{table}[h!]
   \caption*{\textbf{Network \networkII}}
 	\centering
@@ -43,8 +47,7 @@ huh?
 			\multicolumn{1}{|l|}{$y_6$}   &                  & \multicolumn{1}{l|}{$47\times47\times1$}         &         & \multicolumn{1}{l|}{}                      \\ \hline
 		\end{tabular}
 
-		\caption{A network used many times in the report, for further details see appendix \ref{appendix1} \label{tab:net2}
-			\newline *Bottleneck layer}
+		\caption{ \newline *Bottleneck layer} \label{tab:netII}
 	}
 \end{table}
 
@@ -63,26 +66,26 @@ huh?
 			\multicolumn{1}{|l|}{$L_2$}   & max pool         & \multicolumn{1}{l|}{$2\times 2$}                 &                & \multicolumn{1}{l|}{}                      \\
 			\multicolumn{1}{|l|}{$y_2$}   &                  & \multicolumn{1}{l|}{$22\times22\times 64$}       &                & \multicolumn{1}{l|}{}                      \\ \hline
 
-			\multicolumn{1}{|l|}{$L_1$}   & conv 2           & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
-			\multicolumn{1}{|l|}{$y_1$}   &                  & \multicolumn{1}{l|}{$18\times18\times64$}        &                & \multicolumn{1}{l|}{}                      \\ \hline
+			\multicolumn{1}{|l|}{$L_3$}   & conv 2           & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
+			\multicolumn{1}{|l|}{$y_3$}   &                  & \multicolumn{1}{l|}{$18\times18\times64$}        &                & \multicolumn{1}{l|}{}                      \\ \hline
 
-			\multicolumn{1}{|l|}{$L_3$}   & fc               & \multicolumn{1}{l|}{$20736\times3000$}           & Binary Softmax & \multicolumn{1}{l|}{$3000\times2\times12$} \\
-			\multicolumn{1}{|l|}{$y_3$}   & dropout          & \multicolumn{1}{l|}{$3000$}                      &                & \multicolumn{1}{l|}{$24$}                  \\ \hline
+			\multicolumn{1}{|l|}{$L_4$}   & fc               & \multicolumn{1}{l|}{$20736\times3000$}           & Binary Softmax & \multicolumn{1}{l|}{$3000\times2\times12$} \\
+			\multicolumn{1}{|l|}{$y_4$}   & dropout          & \multicolumn{1}{l|}{$3000$}                      &                & \multicolumn{1}{l|}{$24$}                  \\ \hline
 
-			\multicolumn{1}{|l|}{$L_4$}   & fc               & \multicolumn{1}{l|}{$3000\times20736$}           &                & \multicolumn{1}{l|}{}                      \\
-			\multicolumn{1}{|l|}{$y_4$}   &                  & \multicolumn{1}{l|}{$3000$}                      &                & \multicolumn{1}{l|}{}                      \\ \hline
+			\multicolumn{1}{|l|}{$L_5$}   & fc               & \multicolumn{1}{l|}{$3000\times20736$}           &                & \multicolumn{1}{l|}{}                      \\
+			\multicolumn{1}{|l|}{$y_5$}   &                  & \multicolumn{1}{l|}{$3000$}                      &                & \multicolumn{1}{l|}{}                      \\ \hline
 
-			\multicolumn{1}{|l|}{$L_5$}   & resize\& reshape & \multicolumn{1}{l|}{$2$}                         &                & \multicolumn{1}{l|}{}                      \\
-			\multicolumn{1}{|l|}{$y_5$}   &                  & \multicolumn{1}{l|}{$18\times18\times 64$}       &                & \multicolumn{1}{l|}{}                      \\ \hline
+			\multicolumn{1}{|l|}{$L_6$}   & resize\& reshape & \multicolumn{1}{l|}{$2$}                         &                & \multicolumn{1}{l|}{}                      \\
+			\multicolumn{1}{|l|}{$y_6$}   &                  & \multicolumn{1}{l|}{$18\times18\times 64$}       &                & \multicolumn{1}{l|}{}                      \\ \hline
 
-			\multicolumn{1}{|l|}{$L_6$}   & deconv 2         & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
-			\multicolumn{1}{|l|}{$y_6$}   &                  & \multicolumn{1}{l|}{$22\times22\times64$}        &                & \multicolumn{1}{l|}{}                      \\ \hline
+			\multicolumn{1}{|l|}{$L_7$}   & deconv 2         & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
+			\multicolumn{1}{|l|}{$y_7$}   &                  & \multicolumn{1}{l|}{$22\times22\times64$}        &                & \multicolumn{1}{l|}{}                      \\ \hline
 
 
-			\multicolumn{1}{|l|}{$L_7$}   & deconv 1         & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
-			\multicolumn{1}{|l|}{$y_7$}   &                  & \multicolumn{1}{l|}{$47\times47\times1$}         &                & \multicolumn{1}{l|}{}                      \\ \hline
+			\multicolumn{1}{|l|}{$L_8$}   & deconv 1         & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
+			\multicolumn{1}{|l|}{$y_8$}   &                  & \multicolumn{1}{l|}{$47\times47\times1$}         &                & \multicolumn{1}{l|}{}                      \\ \hline
 		\end{tabular}
-		\caption{} \label{net:2}
+		\caption{ \newline *Bottleneck layer} \label{tab:netIII}
 	}
 \end{table}
 
@@ -101,32 +104,31 @@ huh?
 			\multicolumn{1}{|l|}{$L_2$}   & max pool         & \multicolumn{1}{l|}{$2\times 2$}                 &                & \multicolumn{1}{l|}{}                      \\
 			\multicolumn{1}{|l|}{$y_2$}   &                  & \multicolumn{1}{l|}{$22\times22\times 64$}       &                & \multicolumn{1}{l|}{}                      \\ \hline
 
-			\multicolumn{1}{|l|}{$L_1$}   & conv 2           & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
-			\multicolumn{1}{|l|}{$y_1$}   &                  & \multicolumn{1}{l|}{$18\times18\times64$}        &                & \multicolumn{1}{l|}{}                      \\ \hline
+			\multicolumn{1}{|l|}{$L_3$}   & conv 2           & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
+			\multicolumn{1}{|l|}{$y_3$}   &                  & \multicolumn{1}{l|}{$18\times18\times64$}        &                & \multicolumn{1}{l|}{}                      \\ \hline
 
-			\multicolumn{1}{|l|}{$L_1$}   & conv 3           & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
-			\multicolumn{1}{|l|}{$y_1$}   &                  & \multicolumn{1}{l|}{$15\times15\times64$}        &                & \multicolumn{1}{l|}{}                      \\ \hline
+			\multicolumn{1}{|l|}{$L_4$}   & conv 3           & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
+			\multicolumn{1}{|l|}{$y_4$}   &                  & \multicolumn{1}{l|}{$15\times15\times64$}        &                & \multicolumn{1}{l|}{}                      \\ \hline
 
-			\multicolumn{1}{|l|}{$L_3$}   & fc               & \multicolumn{1}{l|}{$14400\times3000$}           & Binary Softmax & \multicolumn{1}{l|}{$3000\times2\times12$} \\
-			\multicolumn{1}{|l|}{$y_3$}   & dropout          & \multicolumn{1}{l|}{$3000$}                      &                & \multicolumn{1}{l|}{$24$}                  \\ \hline
+			\multicolumn{1}{|l|}{$L_5$}   & fc               & \multicolumn{1}{l|}{$14400\times3000$}           & Binary Softmax & \multicolumn{1}{l|}{$3000\times2\times12$} \\
+			\multicolumn{1}{|l|}{$y_5$}   & dropout          & \multicolumn{1}{l|}{$3000$}                      &                & \multicolumn{1}{l|}{$24$}                  \\ \hline
 
-			\multicolumn{1}{|l|}{$L_4$}   & fc               & \multicolumn{1}{l|}{$3000\times 14400$}          &                & \multicolumn{1}{l|}{}                      \\
-			\multicolumn{1}{|l|}{$y_4$}   &                  & \multicolumn{1}{l|}{$3000$}                      &                & \multicolumn{1}{l|}{}                      \\ \hline
+			\multicolumn{1}{|l|}{$L_6$}   & fc               & \multicolumn{1}{l|}{$3000\times 14400$}          &                & \multicolumn{1}{l|}{}                      \\
+			\multicolumn{1}{|l|}{$y_6$}   &                  & \multicolumn{1}{l|}{$3000$}                      &                & \multicolumn{1}{l|}{}                      \\ \hline
 
-			\multicolumn{1}{|l|}{$L_5$}   & resize\& reshape & \multicolumn{1}{l|}{$2$}                         &                & \multicolumn{1}{l|}{}                      \\
-			\multicolumn{1}{|l|}{$y_5$}   &                  & \multicolumn{1}{l|}{$15\times15\times 64$}       &                & \multicolumn{1}{l|}{}                      \\ \hline
+			\multicolumn{1}{|l|}{$L_7$}   & resize\& reshape & \multicolumn{1}{l|}{$2$}                         &                & \multicolumn{1}{l|}{}                      \\
+			\multicolumn{1}{|l|}{$y_7$}   &                  & \multicolumn{1}{l|}{$15\times15\times 64$}       &                & \multicolumn{1}{l|}{}                      \\ \hline
 
-			\multicolumn{1}{|l|}{$L_1$}   & deconv 3         & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
-			\multicolumn{1}{|l|}{$y_1$}   &                  & \multicolumn{1}{l|}{$18\times18\times64$}        &                & \multicolumn{1}{l|}{}                      \\ \hline
+			\multicolumn{1}{|l|}{$L_8$}   & deconv 3         & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
+			\multicolumn{1}{|l|}{$y_8$}   &                  & \multicolumn{1}{l|}{$18\times18\times64$}        &                & \multicolumn{1}{l|}{}                      \\ \hline
 
-			\multicolumn{1}{|l|}{$L_6$}   & deconv 2         & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
-			\multicolumn{1}{|l|}{$y_6$}   &                  & \multicolumn{1}{l|}{$22\times22\times64$}        &                & \multicolumn{1}{l|}{}                      \\ \hline
+			\multicolumn{1}{|l|}{$L_9$}   & deconv 2         & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
+			\multicolumn{1}{|l|}{$y_9$}   &                  & \multicolumn{1}{l|}{$22\times22\times64$}        &                & \multicolumn{1}{l|}{}                      \\ \hline
 
 
-			\multicolumn{1}{|l|}{$L_7$}   & deconv 1         & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
-			\multicolumn{1}{|l|}{$y_7$}   &                  & \multicolumn{1}{l|}{$47\times47\times1$}         &                & \multicolumn{1}{l|}{}                      \\ \hline
+			\multicolumn{1}{|l|}{$L_{10}$}   & deconv 1         & \multicolumn{1}{l|}{$5\times 5\times1\times 64$} &                & \multicolumn{1}{l|}{}                      \\
+			\multicolumn{1}{|l|}{$y_{10}$}   &                  & \multicolumn{1}{l|}{$47\times47\times1$}         &                & \multicolumn{1}{l|}{}                      \\ \hline
 		\end{tabular}
-		\caption{} \label{net:2}
+		\caption{ \newline *Bottleneck layer} \label{tab:netIV}
 	}
 \end{table}
-\newpage

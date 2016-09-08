@@ -4,46 +4,107 @@
   %%%%%%%%%%%%% The possibility for AUs to occur simultaneously %%%%%
   %%%%%%%%%%%%% Non-uniform AU occurrence %%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Discussion}
-  Hyperparameter cop out
+  The structures in this report allow for the exploration of a hyperparameter
+  space which is very large. Each parameter has complex non-linear iteractions with
+  others, hence it is difficult to explore all options and configurations.
+  This work has explored a small seciton of this space with the guide of experimentation
+  and exisiting literature.
+
+
   \section{Methodology}
-    - organisation of code and data was good, maybe a bit too late in the day
-      - good to automate comparison
-    - iterations posed an issue throughout
-    - experimentation structure
-    - suffered from overhead of reproducing existing technique, ideal situation would be to start from something state of the art
-    - suffered from non-deterministic computations, should have used a more mature framework. This might have allowed
-      above issue to be solved
-    - Limited time so couldn't test more structures
-    - Talk about the fact that the direct inversion of functioning classifiers was the wrong approach,
-      it should have been to apply state of the art autoencoders and turn them into classifiers
-    - Maybe these classifiers are too big for the purpose.
+    % - organisation of code and data was good, maybe a bit too late in the day
+    %   - good to automate comparison
+    % - experimentation structure
+    % - iterations posed an issue throughout
+    % - suffered from overhead of reproducing existing technique, ideal situation would be to start from something state of the art
+    % - suffered from non-deterministic computations, should have used a more mature framework. This might have allowed
+    %   above issue to be solved
+    % - Limited time so couldn't test more structures
+    % - Talk about the fact that the direct inversion of functioning classifiers was the wrong approach,
+    %   it should have been to apply state of the art autoencoders and turn them into classifiers
+    % - Maybe these classifiers are too big for the purpose.
+
+    This section discusses some of the problems encountered and solutions found
+    to issues relating to methodology.
+
+    Good organisation of code and data allowed for the easy running
+    and comparison of experiments which could take up to a day. These were easily transferred
+    into the graphs in this report. Automating many of these tasks therefore seems worthwhile,
+    as once the initial overhead of implentation and testing is passed, they encourage experimentation.
+
+    The number of iterations used to train a model posed a challenge. Different networks
+    and different configurations all need a different number of iterations to produce their
+    best possible model. The approach of this work was to fix the number of iterations
+    and use the fact that larger models need more iterations to their disadvantage.
+    Of course, this is unlikely to account for big effects, but incurrs a small
+    error in how comparable resultsa are between networks.
+
+    There was an overhead in trying to reproduce exisiting work in the literature
+    and only then to implement something new. It would have potentially been easier
+    to start from an exisiting state of the art model, however none were openly available
+    for the exact application many existed for other image classification tasks.
+    This would have posed some issues however, as inverting a very deep network
+    to create an autoencoder might have been feasible.
+
+    The ability to compare networks was reduced by the fact that tensorflow could
+    not perform determinsitic computations even when random number generators were
+    seeded.
+
+    The approach of taking classification networks from the literature and then
+    inverting them to create autoencoders was potentially not ideal, as they
+    were not designed with this purpose in mind. Advanced techniques to create robust
+    autoencoders might have been a better starting point, this is further discussed in future work.
+
+
+
   \section{Results}
-    - A way to nicely increase the variation was found
-    - Focus on convolutional nets possible unfounded, due to the results of the preprocessing methdology
-    - Per subject normalisation comes out as superior
-    - The format of the autoencoder means it doesn't learn that many weights, discuss this as an issues, say more data would help
-      Wonder what it would be like
-    - Results together show that there are cases where the auteoncoder and classifier can both function at their optimum
-    - Overfitting to common categories
+    One of the goals of the project was to find a way to increase the variation
+    between images in the DISFA dataset in order to allow improved training of the network.
+    As is shown in the results, this is possibly the most important variable and per subject mean subtraction
+    comes out on top.
+
+
+    Potentially deeper fully connected structures might have also been an option.
+    With the type of preprocessing chosen
+
+
+    The results show that there are cases where both the autoencoder and classifier can retain their functionality,
+    this is shown in the L2 Regularisation section
 
 
   \section{Future Work}
-    Big parameter space
-    Inspired by the literature
-    Should have built a really good autoencoder first, then bolted on a classifier
-      - Stacked architectures
-      - Variational autoencoders
-      - More datasets so more training examples
-        - But couldn't do this because the DISFA was all we had time for
 
+    Instead of starting from classification structures, state of the art autoencoders
+    should be the starting point. These could be achieved with the following techinques
+    \begin{itemize}
+      \item Stacked architectures
+      \item Denoising architectures
+      \item Variational autoencoders
+      \item More datasets so more training examples
+    \end{itemize}
+
+    Autoencoder features should be more throughly
     Better exploration of the autoencoder features
       - Reference that technique
     Preprocessing
       - Preprocess differently, resize afterwards
 
-    Artificial expansion of the training set
-      - Translations
-      - Denoising autoencoder
+
+      The training of the autoencoder was not stacked, instead it was joint which
+      has proven to be preferable in certain situations \cite{Zhou2014}. However,
+      in this case it might have been more reliable to perform stacked training of
+      the autoencoder to ensure useful features were picked out.
+
+      Artificially increasing the size of the training set seems like a big
+      priority, this would allow both the classifier and autoencoder to learn more
+      general features. Some methods for doing this are as follows:
+
+      \begin{itemize}
+        \item Courrupting the input image or hidden layer representations
+        \item Appyling random transformations to the input image (crops, displacements, etc.)
+        \item Training the autoencoder with other datasets
+        \item Including high intensity AUs examples more often
+      \end{itemize}
 
     Do cross validaiton to compare to the literature
 
@@ -52,4 +113,16 @@
     Use temporal structures
 
 \chapter{Conclusion}
-  it was bad
+  The results have not shown that an autoencoder, in our particular setting,
+  gives significant improvements to classification performance. However it has
+  explored how preprocessing techniques and various neural network structures
+  interact, showing that with small datasets such as DISFA other techniques
+  may be more important. An unconventional part of this work, given the
+  excitement in the field of deep learning is that the smaller networks
+  perform better. This is most probably due to the fact that the input data
+  was too homogeneous and that the task of detecting AUs is difficult, in
+  particular in the way the problem was set up with even intensity one AUs
+  (barely visible to humans and related to context) were included as a
+  positive example. The method of per subject mean face normalisation was
+  found to out perform other preprocessing methods conclusively and the
+  classifier achieved competitive results on the DISFA dataset.

@@ -1,6 +1,5 @@
+\chapter{Evaluation} \label{chap:Evaluation}
 
-\chapter{Evaluation}
-  \section{Evaluation Methodology}
   For all of the experiments the data was partitioned in a 50/50 split as shown in table \ref{sec:splitting}:
   \begin{table}[h!]
     \centering { \footnotesize
@@ -19,38 +18,29 @@
     \label{sec:splitting} }
   \end{table}
 
-  For the labels AU intensities 1-5 counted as a positive example and AU intensity 0 counted as a negative one.
-  \section{Joint Classification}
-    Table \ref{tab:binsoftcomp} compares how each of these solutions perform using the network 2, this network was chosen because it contains all of the main
-    components of larger networks typically used for classification tasks, such as a convolutional
-    layer, max pool layer and fully connected layer. It contains the autoencoder section which will be
-    explored later on in the section mainly out of interest.
-    % ID = 4 date = '2016_08_14' group = 'alpha'
-    As an introduction to the types of results that will be used to evaluate various
-    models, this section shows the performance of a neural network with one
-    hidden layer. This also should provide a worst case for classification and autoencoding performance.
+  AU intensities 1-5 counted as a positive examples and AU intensity 0 counted as a negative one.
+  To calculate autoencoder loss, ROC, F1 values for a trained model, the whole test
+  set was run through the network and an average taken.
 
-    The structure of this network is shown in table \ref{net:simple1}, 14 neurons
-    are chosen heuristically as there are 14 AU's and one might naively hope that the number of
-    neurons required in the hidden layer would be equal to the number of features. Per subject face normalisation
-    is chosen from section \ref{sec:meanface} and the images are scaled to be size $118 \times 118$.
+  To calculate the ROC the \textit{sklearn} library was used, for the F1 20 thresholds
+  between 0 and 1 were tried and the best F1 score taken. For the autoencoder
+  the losses were normalised by applying the inverse transforms of the preprocessing
+  methods described in \ref{sec:methods}.
+
+  \section{A Single Hidden Layer}
+
+    For network \networkI,
+    Per subject face normalisation
+    is chosen from section \ref{sec:meanface} and the images are scaled with a factor of 1.0 giving a size $118 \times 118$.
+
+
     Figure \ref{fig:simple} shows the losses during training, on the train and validation set where table \ref{tab:splitting}
-    describes the way the data is partitioned. Over fitting to the train set is evident very early in the training, there are two
-    possible reasons, firstly the validation set might be too small to represent all AUs that are being learnt and secondly the train
-    set contains different subjects so this will cause a potentially unavoidable amount of overfitting.
-    Training the classifier reduces the performance of the autoencoder on the
-    training set visibly but interestingly not for the validation set.
-
-
-
+    describes the way the data is partitioned.
 
     \begin{figure}[!h]
     \centering
     \includegraphics[width =\hsize]{../graphs/losses_2016_08_14_004.pdf}
-    \caption{The losses of a neural network consisting of a $118^2$ neuron input layer, a 14
-    neuron hidden layer, a branch of the same size as the input layer for autoencoding
-    and branches for binary softmax classifiers for each AU. The network trains by minimising
-    the cross entropy. The $\alpha$ coefficient determines the balance between the
+    \caption{The losses of a network \networkI\ during training. The $\alpha$ coefficient determines the balance between the
     classifier and the autoencoder losses, $\alpha=1$ signifies only autoencoder training
     while $\alpha=0$ means only classifier training. Over fitting is observed
     on all loss functions. Training the classifier
@@ -59,6 +49,19 @@
     model is so simple that the validation set remains almost constant.}
     \label{fig:simple}
     \end{figure}
+
+    Overfitting to the train set is evident very early in the training, this
+    occurs for a number of reasons:
+    \begin{itemize}
+      \item The model is very simple
+      \item The validation set does not fully represent the much larger test set on which the final score will be decided
+      \item the train and valdiation sets have no subjects in common with the train set.
+            So unless a subject independant model is learnt, a large degree of overfitting will always occur.
+    \end{itemize}
+
+    Training the classifier reduces the performance of the autoencoder on the
+    training set visibly but interestingly not for the validation set, meaning
+    that the autoencoder possibly failed to learn a general hypotheses.
 
     \begin{table}[!h]
     \centering
@@ -82,10 +85,17 @@
     \end{tabular} }
     \caption{The final evaluation for the training session shown in \ref{fig:simple}.
     AU 12 and 6 are the only AUs learnt well. These values were
-    calculated on the test set. The maximum F1, Precision and Recalls
+    calculated on the test set. The maximum F1s, precisions and recalls
     were found by trying 20 threshold values between 0 and 1.}
     \label{my-label}
     \end{table}
+  \clearpage
+  \section{Joint Classification}
+    Table \ref{tab:binsoftcomp} compares how each of these solutions perform using the network 2, this network was chosen because it contains all of the main
+    components of larger networks typically used for classification tasks, such as a convolutional
+    layer, max pool layer and fully connected layer. It contains the autoencoder section which will be
+    explored later on in the section mainly out of interest as it is not trained here.
+    % ID = 4 date = '2016_08_14' group = 'alpha'
 
     \begin{table}[!h] {\footnotesize
         \centering
@@ -114,12 +124,17 @@
 
       \section{Preprocessing methods} \label{sec:psearch}
 
-          With the goal of creating the AEC network a search on some hyperparameters was performed
-          including the preprocessing method from section \ref{sec:methods} and on the four main activation functions
-          that are typically used on the last layer of an autoencoder (linear, ReLU, sigmoid and tanh), table \ref{tab:psearch} shows the results.
-          These parameters cover a lot of possible configurations and should have markedly different results, the idea
-          is that the encoding at the bottleneck layer should be different for each set of parameters and that
-          one of these might offer a good starting set of weights for the classifier to train from.
+          A comparison of the preprocessing methods from section
+          \ref{sec:methods} and on the four main activation functions
+          that are typically used on the last layer of an autoencoder
+          (linear, ReLU, sigmoid and tanh),
+          table \ref{tab:psearch} shows the results.
+          These parameters cover a lot of possible
+          configurations and should have markedly different results, the idea
+          is that the encoding at the bottleneck layer should be different for
+          each set of parameters and that
+          one of these might offer a good starting set of weights for the
+          classifier to train from.
 
           \begin{table}[!h] {\footnotesize
             \centering
@@ -217,19 +232,30 @@
           8 & 4     & False     &    0.54 &   0.19 &     0.03 &    0.77 &   0.38 &     0.05 \\
           9 & 4     & True      &    0.42 &   0.19 &     0.03 &    0.78 &   0.42 &     1.37 \\
            \hline
-         \end{tabular}}\caption{A simple experiment showing that using shared weights is beneficial
-         to both autoencoder loss and classification performance. {\bf Experimental Configuration:}
-          The alpha function is $\alpha(t)=\alpha_{\text{step}}(t,0.5,1000)$.
-          meaning the autoencoder training runs for 500 iterations and then the classifier for 500.
-          The network is described in table \ref{net:classcompnet} and the training datasets are split in half as in section
-          \ref{sec:splitting}.} \label{tab:sharedweights} \end{table}
+         \end{tabular}}
+             \caption{A simple experiment showing that using shared weights is beneficial
+             to both autoencoder loss and classification performance. {\bf Experimental Configuration:}
+             The alpha function is $\alpha(t)=\alpha_{\text{step}}(t,0.5,1000)$.
+             meaning the autoencoder training runs for 500 iterations and then the classifier for 500.
+             The network is described in table \ref{net:classcompnet} and the training datasets are split in half as in section
+             \ref{sec:splitting}.} \label{tab:sharedweights}
+         \end{table}
 
           It can be seen that using shared weights consistently improves the classification
-          performance by a small amount and in some cases the autoencoder performance. After the classifier has
+          performance by a small amount and in some cases the autoencoder performance.
+          This could for a number of reasons:
+          \begin{itemize}
+            \item The more constrained model learnt with fewer parameters acts as a good base for classification
+            \item The model learnt without shared weights resembles the identity function and hence is not useful for classification
+          \end{itemize}
+
+
+          After the classifier has
           damaged the autoencoder, as expected, the shared weight cases suffers a much higher loss. This is
           because the classifier does not have access to the decoder weights if the weights are not shared and hence
-          changes fewer of the autoencoders parameters. The following sections all use shared weights due to this result.
-          {\color{red}TODO: Make this clear}
+          changes fewer of the autoencoders parameters.
+
+          In conclusion the following sections use shared weights as they are evidentenly better for classification purposes.
         %
         %
         %
@@ -238,8 +264,13 @@
         \newpage
         \section{Local Contrast Normalisation}
 
-          The local contrast normalisation scheme as described in section \ref{sec:lrn}
+          The local contrast normalisation scheme
+          as described in section \ref{sec:lrn}
+          and
           was applied to the three test networks.
+
+          Since some networks can have more than one LRN layer, the effect of
+          using more deeper in the network is also tested.
 
           \begin{table}[!h] \centering
             \footnotesize{
@@ -270,9 +301,12 @@
             \label{tab:lrn}
           \end{table}
 
-          Table \ref{tab:lrn} provides some improvement in performance for network 4 and seems
+          Table \ref{tab:lrn} shows that LRN provides some improvement in performance for network 4 and seems
           not to effect the other networks by much. It is interested that the larger network
           is less likely to reduce autoencoder loss with the LRN layers.
+
+          For these reasons, as LRN seems to improve the bigger networks perfomrance and
+          would therefore be good to include in a final model.
 
           \newpage
         %
@@ -420,7 +454,7 @@
         %
         %
         %
-        \section{Autoencoder transfer functions}
+      \section{Autoencoder classifier balancing functions}
         This section investigates the autoencoder transfer functions described in section \ref{sec:autoalpha}.
         The classifier only situations are included as a baseline from which to compare
         what the autoencoder actually changes. The experimental question being asked here
@@ -495,3 +529,5 @@
           they often have very similar performance scores. So no substantial improvement is found.
 
           The losses for network 2 are plotted in appendix \ref{appendix2}.
+
+    \section{Qualitative results}

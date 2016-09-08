@@ -266,7 +266,7 @@
     down. However a recent trend \cite{Springenberg2015} has emerged where max pooling
     layers are not used, instead a convolutional layer with a large stride accomplishes
     the same amount of down-sampling.
-  \subsection{Autoencoders}
+  \subsection{Autoencoders} \label{sec:autoencoders}
     An autoencoder is at its bare minimum a artificial neural network which tries
     to reproduce its input as accurately as possible. So the cost function for the mean squared error becomes:
 
@@ -283,6 +283,8 @@
       threshold, typically a small value close to zero \cite{autong}
       \item Noise may be added to the input, this makes the network more likely
       to learn general features.
+      \item Weight sharing between encoder and decoder sections. This is possible since
+            the encoder and decoders are typically inverses of each other.
     \end{itemize}
     Lastly there are Variational Autoencoders which combine ideas from Bayesian inference
     to create networks which can not only reconstruct their input but also act as a
@@ -365,6 +367,16 @@
       as it firstly reduces the number of parameters available in each training step and secondly
       makes units less likely to become codependent. In order to maintain the same average activation
       of the layer, the output of a dropout layer must be scaled by $\frac{1}{p}$.
+
+      \begin{figure}[h!]
+       \centering
+       \includegraphics[width=\textwidth]{illustrations/dropout.pdf}
+       \captionof{figure}{An illustration of the dropout method. The final network represents
+       a possible neural network of 2 input neurons, 5 hidden neurons and 2 output neurons.
+       During the training the network becomes thinned via the dropout, different neurons
+       are deactivated for each training batch.}
+      \end{figure}
+
     \subsubsection{Early Stopping}
       Early stopping is a form of regularisation where training is stopped early
       to avoid overfitting to the train set (for example, memorisation of examples via high valued weights).
