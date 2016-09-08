@@ -33,14 +33,14 @@
     the git repository used for this project is found at \url{https://github.com/lotka/autofaces}}, which was used for version control.
     One use case of git was to identify, with a git commit id each experiment which was run, so that in the future
     anyone can see exactly which bits of python code at which time generated particular experimental results.
-    SSH\footnote{Secure Shell (SSH) is a cryptographic network protocol used for interfacing with remote machines.} provided a convinent way to start jobs on machines remotely and tmux \footnote{Tmux is a terminal
+    SSH\footnote{Secure Shell (SSH) is a cryptographic network protocol used for interfacing with remote machines.} provided a convenient way to start jobs on machines remotely and tmux \footnote{Tmux is a terminal
     multiplexer which can keep SSH sessions active} was used to manage multiple jobs on multiple machines.
 
     For visualisation matplotlib was the staple tool used to plot graphs and images. iPython notebooks
     which can display many matplotlib graphs interspersed with text and code were heavily used to
     provide a simple direct way to analyse the output of a job. This quickly became the most convenient way to
     share and interpret experimental data. Tensorboard is part of tensorflow which allows the monitoring of a
-    modell training session and some analysis, this was initially interesting but became too limited for the required perposes.
+    model training session and some analysis, this was initially interesting but became too limited for the required purposes.
   \section{Reproducing results} \label{sec:GPU}
     Due to a slight limitation in tensorflow\footnote{\url{https://github.com/tensorflow/tensorflow/issues/2732}}, results would often be non-deterministic by a small degree. This generally slowed
     the process of experimentation as some large computations had to be repeated in order to calculate a standard error in the metrics used.
@@ -89,7 +89,7 @@
                   \item {\bf tidy.py }
                   \begin{sloppypar} \textit{Deletes incomplete experiments.}\end{sloppypar}
                   \item {\bf results.py }
-                  \begin{sloppypar} \textit{Used by viewResult.ipynb and compareResults.ipynb to open an exisiting experiment, plot it's results and load it's results.}\end{sloppypar}
+                  \begin{sloppypar} \textit{Used by viewResult.ipynb and compareResults.ipynb to open an existing experiment, plot it's results and load it's results.}\end{sloppypar}
                   \item {\bf main.py }
                   \begin{sloppypar} \textit{Trains and evaluates models, calling all python scripts listed below. It requires a configuration file, a device and a flag which chooses whether to train multiple models while varying parameters or to just train one model.}\end{sloppypar}
                   \item {\bf alpha.py }
@@ -130,7 +130,7 @@
                     \label{fig:viewresult}
                     \end{figure}
                   \item {\bf DisfaTest.ipynb }
-                  \begin{sloppypar} \textit{Generates the graphs shown in section \ref{sec:methods}, this serves the perpose of
+                  \begin{sloppypar} \textit{Generates the graphs shown in section \ref{sec:methods}, this serves the purpose of
                     testing the preprocessing methods.}\end{sloppypar}
                 \end{itemize}
 

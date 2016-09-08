@@ -187,31 +187,31 @@
       J(\tilde{\mathbf{x}},\tilde{\mathbf{y}},\mathbf{y}) = \frac{1}{N}\left |\mathbf{y}(\tilde{\mathbf{x}})-\tilde{\mathbf{y}}\right | ^2
     \end{equation}
     this is called the mean squared error, here $\tilde{\mathbf{x}}$ and $\tilde{\mathbf{y}}$ could
-    be the images and labels of a dataset respecitvely and $\mathbf{y}$ represents the network we are evaluating (equation \ref{eq:ynn}). Another popular cost function is
+    be the images and labels of a dataset respectively and $\mathbf{y}$ represents the network we are evaluating (equation \ref{eq:ynn}). Another popular cost function is
     the cross entropy:
     \begin{equation}
       J(\tilde{\mathbf{x}},\tilde{\mathbf{y}},\mathbf{y}) = -\frac{1}{N}\tilde{\mathbf{y}}\cdot\log(\mathbf{y}(\tilde{\mathbf{x}}))
     \end{equation}
 
-    This has the property of giving high costs when a postive exampe is incorrectly classified as negative: $\lim _{y\rightarrow0}\frac{1}{N}1\cdot \log(y) = \infty$
+    This has the property of giving high costs when a positive example is incorrectly classified as negative: $\lim _{y\rightarrow0}\frac{1}{N}1\cdot \log(y) = \infty$
     and not adjusting the weights otherwise.
 
   \subsection{Training}
       This report will often refer to the process of training, the objective of training is to find
-      a $\tilde{\mathbf{y}}^* \in \mathbb{R}^{N\times M...}$ that satisifies the following definition:
+      a $\tilde{\mathbf{y}}^* \in \mathbb{R}^{N\times M...}$ that satisfies the following definition:
 
       \begin{equation}
         J(\tilde{\mathbf{x}},\tilde{\mathbf{y}},\mathbf{y}^*) \leq J(\tilde{\mathbf{x}},\tilde{\mathbf{y}},\mathbf{y}) \quad \forall \mathbf{y} \in \mathbf{Y}
       \end{equation}
 
-      Where $\mathbf{Y}$ is defined as the set of all possible $\mathbf{y}$ functions which are constructed with a series $\mathbf{W}$ and $\mathbf{b}$ matrixes as defined used in the previous section.
-      As $J$ cannot be known fully and is unlikely to be convex \footnote{Which would garuentee a global minimum, for example a parabola $y(x)=x^2$ is convex and has a minimum at $y(0)$}
-      , this is impracticle to achieve in practice.
+      Where $\mathbf{Y}$ is defined as the set of all possible $\mathbf{y}$ functions which are constructed with a series $\mathbf{W}$ and $\mathbf{b}$ matrices as defined used in the previous section.
+      As $J$ cannot be known fully and is unlikely to be convex \footnote{Which would guarantee a global minimum, for example a parabola $y(x)=x^2$ is convex and has a minimum at $y(0)$}
+      , this is impracticable to achieve in practice.
       Training is therefore the process of finding a local minimum by taking a path through $J$ by varying
-      the function $ \mathbf{y} $, the different stratergies by which $J$ is explored are called
+      the function $ \mathbf{y} $, the different strategies by which $J$ is explored are called
       training algorithms or optimizers.
 
-      This is actualisied by taking the derivative, with respect to each weight variable
+      This is actualised by taking the derivative, with respect to each weight variable
       in the network, $i$ and updating those variables in order to reduce $J$:
 
       \begin{equation}
@@ -219,15 +219,10 @@
       \end{equation}
 
       This occurs for every $i$ where $w_i$ is some trainable variable in $\mathbf{y}$.
-      This is the simplest way to achieve training or gradient descent, this is refered to as backpropagation
+      This is the simplest way to achieve training or gradient descent, this is referred to as backpropagation
       because computing the derivative requires the repeated use of the chain rule.
-
-      If $\tilde{x}$ is a set of examples then this is batch gradient descent, if the examples
-      are randomly selected from the dataset then it is stocastic gradient descent.
-
-      \todo{Adam}
-
-
+      Advanced versions of this are used in the project, in particular the Adam algorithm
+      which is descried in \cite{adam}.
 
       %
       % The derivative of these cost functions with respect to each weight and bias variable
@@ -325,7 +320,7 @@
     \end{displayquote}
 
     This is done by normalising over the feature maps which are computed by the different convolutional kernels (or filters).
-    The following equation shows the proceedure applied to the output of a convolutional layer:
+    The following equation shows the procedure applied to the output of a convolutional layer:
 
     \begin{equation} \label{eq:lrn}
       \mathbf{a}(\mathbf{x})_{ijk}
@@ -337,20 +332,44 @@
     $k=2,n=5,\alpha=10^{-4}$ and $\beta=0.75$.
 
   \subsection{Overfitting and Regularisation}
-  A machine learning model will always perform better on the set used
-  to train it,
-  % http://neuralnetworksanddeeplearning.com/chap3.html#overfitting_and_regularization
-  \subsubsection{Denoising}
-    {\color{red} TODO}
-  \subsubsection{Regularisers}
-    {\color{red} TODO}
-  \subsubsection{Dropout Layers} \label{sec:dropout}
-    A layer with dropout applied to it randomly turns neurons off, making it more
-    difficult for the network to overfit data. There is a dropout probability
-    which determines how often neurons are disabled, it is typically under 20\%
-    {\color{red} TODO: Add some references}
-  \subsubsection{Early Stopping}
-    {\color{red} TODO}
+    Unless a machine learning model can learn a truly general hypothesis, it will always perform
+    better on the data used to train it than on the data on which it is tested. This is
+    called overfitting, this can be avoided by choosing hypotheses which are lie somewhere
+    in some ideal region between very simple and very complex.
+
+    Regularisation is the process of constraining or augmenting
+    the loss function of a model \cite{Bishop2006} somehow in order to improve its performance.
+    Some of these techniques for neural networks are described in this section
+    % http://neuralnetworksanddeeplearning.com/chap3.html#overfitting_and_regularization
+    \subsubsection{Denoising}
+      For autoencoders, a noise term can be added to the loss function (equation \ref{eq:autoencoder_cost}) as follows:
+      \begin{equation} \label{eq:autoencoder_cost_noise}
+        J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = \frac{1}{N}\left |\mathbf{y}(\tilde{\mathbf{x}}+\mathbf{n})-\tilde{\mathbf{x}}\right | ^2\quad \mathbf{n} \sim \mathbf{\mathcal{N}}(0,\sigma^2)
+      \end{equation}
+      such noise terms can also be added between the layers of the network. This
+      has been shown to improve the number of quality of features learnt by an auteoncoder \cite{stacks,Vincent2008a}.
+    \subsubsection{L1 and L2 Regularises}
+      An additional term can be added to a loss function as follows \cite{Ng2004a}:
+      \begin{equation}
+        J'(\tilde{\mathbf{x}},\tilde{\mathbf{y}},\mathbf{y}) = J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) + \beta R(\mathbf{W})
+      \end{equation}
+      Where $\mathbf{W}$ represents all the weights in $\mathbf{y}$ For L1 Regularisation $R = ||W||_1$ and for L2 $R = ||W||_2^2$.
+      This term forces the network to use smaller weights in order to reduce $R$
+      and hence reduces the complexity of a model. A simple way to imagine is this
+      with a simple model such as a polynomial, $f(x)=\sum_{n=0}^N a_n x^n$, by imposing a
+      penalty on the sizes of the $a_n$ terms, simpler polynomials curves will be favoured in
+      any training situation.
+    \subsubsection{Dropout Layers} \label{sec:dropout}
+      Dropout \cite{Srivastava2014} is a technique where neurons on a layer are
+      randomly deactivated during training with some probability $p$. This reduce overfitting
+      as it firstly reduces the number of parameters available in each training step and secondly
+      makes units less likely to become codependent. In order to maintain the same average activation
+      of the layer, the output of a dropout layer must be scaled by $\frac{1}{p}$.
+    \subsubsection{Early Stopping}
+      Early stopping is a form of regularisation where training is stopped early
+      to avoid overfitting to the train set (for example, memorisation of examples via high valued weights).
+      Often by tracking the losses on
+      a validation set an ideal moment to stop can be found \cite{Prechelt2012a}.
 \section{Model Evaluation} \label{sec:eval}
   With any kind of classification model it is crucial to be able to evaluate its
   performance in a standard and reproducible way. For the problem of classifying
@@ -361,7 +380,7 @@
   \subsection{Recall, Precision and F1}
     Naively the first metric one might use for measuring the performance of a classifier
     might be the accuracy, this is good for datasets which are evenly balanced however
-    the datasets of interest in this report typically have many more negative labels than postive labels.
+    the datasets of interest in this report typically have many more negative labels than positive labels.
     A classifier that simply labels all examples negative might then get a very high accuracy. This motivates
     defining a matrix called the confusion matrix whose elements express accuracy from various angles.
     For a binary problem the confusion matrix is defined as:
@@ -391,7 +410,7 @@
 
     Hence recall is decreased by false negatives, i.e not being able to recall the class
     when presented with it. Precision is decreased by false positives i.e stating the class
-    is present when it is not. Both measures describe a different aspect of the accruacy. This
+    is present when it is not. Both measures describe a different aspect of the accuracy. This
     motivates defining the F1 score which is the harmonic mean between the precision and recall
     (the harmonic mean is used to ensure that case where $R=1$ and $P=0$ R,P being Recall and Precision, gives
     a very low score  as achieving $R=1$ is trivial.) The F1 is the quantity this report will seek to maximise and use to compare
@@ -408,7 +427,7 @@
       Note: It is typically only in strange cases that $ROC< 0.5$ but is possible.} \label{my-label}
       \begin{tabular}{rl}
         \hline
-        Range & Classifier quailty \\ \hline
+        Range & Classifier quality \\ \hline
         $0 \leq ROC \leq 0.6$   & Fail               \\
         $0.6 \leq ROC    < 0.7$   & Poor               \\
         $0.7 \leq ROC    < 0.8$   & Fair               \\

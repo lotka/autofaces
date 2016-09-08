@@ -1,26 +1,27 @@
 
 \chapter{Evaluation}
-  \section{Evaluation Methdology}
-    \begin{table}[h!]
-      \centering
-      {\footnotesize
-      \begin{tabular}{|l|l|}
-      \hline
-      set & subjects   \\
-      \hline
-       Train          & 2,4,6,8,10,12,16,18,23,25,27,29,31      \\
-      \hline
-      Test      & 1,3,5,7,9,11,13,17,21,24,26,28,30,32 minus validation set     \\
-      \hline
-      Validation           & 500 chosen randomly taken from test set      \\
-     \hline
-      \end{tabular}
-      \caption{Typical split of the DISFA dataset for experimentation purposes}
-      \label{tab:splitting}  }
-    \end{table}
+  \section{Evaluation Methodology}
+  For all of the experiments the data was partitioned in a 50/50 split as shown in table \ref{sec:splitting}:
+  \begin{table}[h!]
+    \centering { \footnotesize
+    \begin{tabular}{|l|l|}
+    \hline
+    Set & Subjects   \\
+    \hline
+     Train          & 2,4,6,8,10,12,16,18,23,25,27,29,31      \\
+    \hline
+    Validation      & 1,3,5,7,9,11,13,17,21,24,26,28,30,32 minus test set     \\
+    \hline
+    Test           & 500 chosen randomly taken from validation set      \\
+   \hline
+    \end{tabular}
+    \caption{The split of the DISFA dataset used in the experiments.}
+    \label{sec:splitting} }
+  \end{table}
+
+  For the labels AU intensities 1-5 counted as a positive example and AU intensity 0 counted as a negative one.
   \section{Joint Classification}
-    Table \ref{net:classcompnet} compares how each of these solutions perform using the network described in
-    tables \ref{tab:binsoftcomp}, this network was chosen because it contains all of the main
+    Table \ref{tab:binsoftcomp} compares how each of these solutions perform using the network 2, this network was chosen because it contains all of the main
     components of larger networks typically used for classification tasks, such as a convolutional
     layer, max pool layer and fully connected layer. It contains the autoencoder section which will be
     explored later on in the section mainly out of interest.
@@ -186,7 +187,7 @@
           function and hence cannot fully reconstruct the input image which has values well outside the
           range $[-1,1]$ hence linear activation function is chosen to ensure the potential for full reconstruction is there.
           Also since this preprocessing method encodes high activations as AUs these should be
-          an importnt focus of the reconstruction, the tanh functions might focus more on the smaller values which
+          an important focus of the reconstruction, the tanh functions might focus more on the smaller values which
           do not encode as much AU information.
 
         %
@@ -196,7 +197,7 @@
         %
         \newpage
         \section{Shared Weights}
-        
+
           Table \ref{tab:sharedweights} shows
           for three networks the effect of having and not having shared weights.
 
@@ -420,7 +421,7 @@
         %
         %
         \section{Autoencoder transfer functions}
-        This section investgiates the autoencoder transfer functions described in section \ref{sec:autoalpha}.
+        This section investigates the autoencoder transfer functions described in section \ref{sec:autoalpha}.
         The classifier only situations are included as a baseline from which to compare
         what the autoencoder actually changes. The experimental question being asked here
         is whether the inclusion of the autoencoder can improve classification performance.
@@ -434,33 +435,33 @@
                                &                      &                                                                              &                                                                              & \multicolumn{1}{r|}{}                                                       & \multicolumn{3}{c|}{Early Model}                                   & \multicolumn{3}{c|}{Final Model}                                   \\ \hline
           i                    & Network              & \multirow{2}{*}{\begin{tabular}[c]{@{}r@{}}Transfer \\ Function\end{tabular}} & \multirow{2}{*}{\begin{tabular}[c]{@{}r@{}}Total \\ Iterations\end{tabular}} & \multirow{2}{*}{\begin{tabular}[c]{@{}r@{}}Early \\ Iteration\end{tabular}} & ROC                  & F1                   & AE Loss              & ROC                  & F1                   & AE Loss              \\
           \multicolumn{1}{l}{} & \multicolumn{1}{l}{} &                                                                              &                                                                              &                                                                             & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} \\ \hline
-          2.1                 & 2                    &  step                 & 1500           & 1000    & 0.59  & 0.19 & 0.03  & 0.82 & 0.47 & 0.08  \\
-          2.2                  & 2                    & alternate            & 1500           & 1000    & 0.81  & 0.46 & 0.1   & 0.82 & 0.47 & 0.12  \\
-          2.3                  & 2                    & constant 0.5         & 1500           & 750     & 0.81  & 0.48 & 0.03  & 0.8  & 0.46 & 0.03  \\
-          2.4                  & 2                    & sigmoid              & 1500           & 1000    & 0.8   & 0.46 & 0.03  & 0.79 & 0.46 & 0.03  \\
           2.5                  & 2                    & constant 0.0         & 1500           & 1000    & 0.8   & 0.47 & 0.56  & 0.79 & 0.46 & 0.64  \\
+          2.3                  & 2                    & constant 0.5         & 1500           & 750     & 0.81  & 0.48 & 0.03  & 0.8  & 0.46 & 0.03  \\
+          2.1                  & 2                    & step                 & 1500           & 1000    & 0.59  & 0.19 & 0.03  & 0.82 & 0.47 & 0.08  \\
+          2.4                  & 2                    & sigmoid              & 1500           & 1000    & 0.8   & 0.46 & 0.03  & 0.79 & 0.46 & 0.03  \\
           2.6                  & 2                    & polynomial           & 1500           & 750     & 0.79  & 0.46 & 0.03  & 0.77 & 0.44 & 0.03  \\
+          2.2                  & 2                    & alternate            & 1500           & 1000    & 0.81  & 0.46 & 0.1   & 0.82 & 0.47 & 0.12  \\
           \hline
-          3.1                  & 3                    & step                 & 1500           & 1000    & 0.38  & 0.19 & 0.03  & 0.81 & 0.45 & 0.18  \\
+          3.5                  & 3                    & constant 0.0         & 1500           & 1000    & 0.81  & 0.43 & 2.38  & 0.79 & 0.42 & 2.61  \\
           3.2                  & 3                    & constant 0.5         & 1500           & 750     & 0.81  & 0.46 & 0.03  & 0.81 & 0.46 & 0.03  \\
+          3.1                  & 3                    & step                 & 1500           & 1000    & 0.38  & 0.19 & 0.03  & 0.81 & 0.45 & 0.18  \\
           3.3                  & 3                    & sigmoid              & 1500           & 1000    & 0.8   & 0.46 & 0.03  & 0.8  & 0.44 & 0.04  \\
           3.4                  & 3                    & polynomial           & 1500           & 750     & 0.78  & 0.45 & 0.02  & 0.79 & 0.44 & 0.03  \\
-          3.5                  & 3                    & constant 0.0         & 1500           & 1000    & 0.81  & 0.43 & 2.38  & 0.79 & 0.42 & 2.61  \\
           3.6                  & 3                    & alternate            & 1500           & 1000    & 0.69  & 0.32 & 0.1   & 0.77 & 0.37 & 0.23  \\
           \hline
           4.1                  & 4                    & constant 0.0         & 1500           & 1000    & 0.78  & 0.38 & 16.31 & 0.78 & 0.39 & 14.5  \\
-          4.2                  & 4                    & step                 & 1500           & 1000    & 0.42  & 0.19 & 0.03  & 0.77 & 0.4  & 0.7   \\
           4.3                  & 4                    & constant 0.5         & 1500           & 750     & 0.73  & 0.33 & 0.03  & 0.75 & 0.36 & 0.03  \\
+          4.2                  & 4                    & step                 & 1500           & 1000    & 0.42  & 0.19 & 0.03  & 0.77 & 0.4  & 0.7   \\
           4.4                  & 4                    & sigmoid              & 1500           & 1000    & 0.74  & 0.36 & 0.03  & 0.74 & 0.36 & 0.03  \\
           4.5                  & 4                    & polynomial           & 1500           & 750     & 0.52  & 0.21 & 0.09  & 0.67 & 0.3  & 0.04  \\
           4.6                  & 4                    & alternate            & 1500           & 1000    & 0.6   & 0.26 & 0.06  & 0.61 & 0.27 & 0.07  \\
           \hline
           \end{tabular}
           }
-          \caption{Sorted by ROC perfomrance and secondarily by autoencoder loss.
+          \caption{Sorted by ROC performance and secondarily by autoencoder loss.
           A comparison of the the autoencoder transfer functions with 0.8 dropout and local contrast normalisation layers (one for network 2 and two for networks 3 \& 4).
           Constant 0.5 means each cost function is trained equally, while constant 0.0 means training only of the classifier.
-          Early model is just the evaulation at the early iteration and the final model is the evaluation of the network at the total number of iterations.
+          Early model is just the evaluation at the early iteration and the final model is the evaluation of the network at the total number of iterations.
           The step function has its step at iteration 1000.
           The sigmoid function is $\alpha_{\text{sigmoid},1500,2/3,20}$
           The polynomial function is $\alpha_{\text{poly},1500,6}$.
