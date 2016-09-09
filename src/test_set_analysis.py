@@ -116,29 +116,50 @@ def test_model(name,data,config,path):
     i_big   = data.validation.images[idx_big,   :,:]
     i_small = data.validation.images[idx_small, :, :]
     i_mean  = data.validation.images[idx_mean,  :, :]
+    print data.validation.idx_interesting
+    idx_interesting = list(data.validation.idx_interesting)
+    print idx_interesting
+    i_interesting = data.validation.images[idx_interesting,:,:]
+
+    t_big = data.validation.labels[idx_big,:]
+    t_small = data.validation.labels[idx_small,:]
+    t_mean = data.validation.labels[idx_mean,:]
+    t_interesting = data.validation.labels[idx_interesting,:]
+
     if hasattr(data.validation, 'images_original'):
         i_big_original   = data.validation.images_original[idx_big,   :,:]
         i_small_original = data.validation.images_original[idx_small, :, :]
         i_mean_original  = data.validation.images_original[idx_mean,  :, :]
+        i_interesting_original  = data.validation.images_original[idx_interesting,  :, :]
     else:
         # Just so we don't always have to have these images
         i_big_original   = np.zeros(i_mean.shape)
         i_small_original = np.zeros(i_mean.shape)
         i_mean_original  = np.zeros(i_mean.shape)
+        i_interesting_original = np.zeros(i_mean.shape)
 
-    o_big   = sess.run(model['y_image'], feed_dict={x: i_big,   keep_prob: 1.0, alpha: 1.0, mask : mask_batch})[:, :, :, 0]
-    o_small = sess.run(model['y_image'], feed_dict={x: i_small, keep_prob: 1.0, alpha: 1.0, mask : mask_batch})[:, :, :, 0]
-    o_mean  = sess.run(model['y_image'], feed_dict={x: i_mean,  keep_prob: 1.0, alpha: 1.0, mask : mask_batch})[:, :, :, 0]
+    o_big,   p_big   = sess.run([model['y_image'],model['y_conv']], feed_dict={x: i_big,   keep_prob: 1.0, alpha: 1.0, mask : mask_batch})
+    o_small, p_small = sess.run([model['y_image'],model['y_conv']], feed_dict={x: i_small, keep_prob: 1.0, alpha: 1.0, mask : mask_batch})
+    o_mean,  p_mean  = sess.run([model['y_image'],model['y_conv']], feed_dict={x: i_mean,  keep_prob: 1.0, alpha: 1.0, mask : mask_batch})
+    o_interesting,  p_interesting  = sess.run([model['y_image'],model['y_conv']], feed_dict={x: i_interesting,  keep_prob: 1.0, alpha: 1.0, mask : mask_batch})
+
+    o_big   = o_big[:, :, :, 0]
+    o_small = o_small[:, :, :, 0]
+    o_mean  = o_mean[:, :, :, 0]
+    o_interesting = o_interesting[:,:,:,0]
 
     i_big       = (i_big_original, i_big.copy(),       data.validation.inverse_process(i_big.copy(),idx=idx_big))
     i_small     = (i_small_original, i_small.copy(),     data.validation.inverse_process(i_small.copy(),idx=idx_small))
     i_mean      = (i_mean_original, i_mean.copy(),      data.validation.inverse_process(i_mean.copy(),idx=idx_mean))
+    i_interesting      = (i_interesting_original, i_interesting.copy(),      data.validation.inverse_process(i_interesting.copy(),idx=idx_interesting))
     label_big   = data.validation.labels[idx_big,:]
     label_small = data.validation.labels[idx_small,:]
     label_mean  = data.validation.labels[idx_mean,:]
+    label_interesting = data.validation.labels[idx_interesting,:]
     o_big       = (o_big.copy()     ,  data.validation.inverse_process(o_big.copy(),idx=idx_big))
     o_small     = (o_small.copy()   ,  data.validation.inverse_process(o_small.copy(),idx=idx_small))
     o_mean      = (o_mean.copy()    ,  data.validation.inverse_process(o_mean.copy(),idx=idx_mean))
+    o_interesting      = (o_interesting.copy()    ,  data.validation.inverse_process(o_interesting.copy(),idx=idx_interesting))
 
     true_autoencoder_loss = true_losses.mean()
 
@@ -173,15 +194,27 @@ def test_model(name,data,config,path):
              i_big=i_big,
              i_small=i_small,
              i_mean=i_mean,
+             i_interesting=i_interesting,
+             t_big=t_big,
+             t_small=t_small,
+             t_mean=t_mean,
+             t_interesting=t_interesting,
              label_big=label_big,
              label_small=label_small,
              label_mean=label_mean,
+             label_interesting=label_interesting,
+             p_big=p_big,
+             p_small=p_small,
+             p_mean=p_mean,
+             p_interesting=p_interesting,
              o_big=o_big,
              o_small=o_small,
              o_mean=o_mean,
+             o_interesting=o_interesting,
              idx_small=idx_small,
              idx_big=idx_big,
              idx_mean=idx_mean,
+             idx_interesting=idx_interesting,
              valid_subject_idx=data.validation.subject_idx,
              train_subject_idx=data.train.subject_idx,
              auto_images=(train_images,validation_images))

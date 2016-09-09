@@ -51,7 +51,11 @@ def conv_vis(i, sess, hconv, w, path, x, batch_x, keep_prob):
     plt.figure(figsize=(8, 8))
     plt.imshow(v, cmap="Greys_r", interpolation='nearest')
     plt.colorbar()
-    plt.savefig(join(path, 'images/conv_weights_' + prefix(i, 4) + '.png'), dpi=400)
+    p = join(path, 'images/conv_weights_' + prefix(i, 4))
+    np.savetxt(p + '.csv',v)
+    plt.savefig(p + '.png', dpi=400)
+    plt.savefig(p, dpi=400)
+    print p
 
     #  h_conv1 - processed image
     # print vv2.shape
@@ -62,9 +66,17 @@ def conv_vis(i, sess, hconv, w, path, x, batch_x, keep_prob):
     plt.figure(figsize=(8, 8))
     plt.imshow(v, cmap="Greys_r", interpolation='nearest')
     plt.colorbar()
-    plt.savefig(join(path, 'images/conv_out_' + prefix(i, 4) + '.png'), dpi=400)
+    p = join(path, 'images/conv_out_' + prefix(i, 4))
+    np.savetxt(p + '.csv',v)
+    plt.savefig(p+ '.png', dpi=400)
+    print p
 
     plt.close('all')
+    print '##############'
+    print '##############'
+    print '##############'
+
+
 
 
 def prefix(i, zeros):
@@ -214,6 +226,8 @@ def run(data, config):
         alpha_function = lambda x, N: alpha_sigmoid(x,N,a=a,b=b)
     elif config['autoencoder']['function'] == 'flip':
         alpha_function = lambda x, N: alpha_flip(x,N,p=config['autoencoder']['flip_frequency'])
+    elif config['autoencoder']['function'] == 'classonly':
+        alpha_function = lambda x, N: 0.0
     else:
         print 'INCORRECT ALPHA FUNCTION'
         exit()
@@ -253,20 +267,22 @@ def run(data, config):
             r = pi.time_remaining()
             print  i, '/', N,
             if config['data']['dataset'] == 'disfa':
-                print ' | ',data.train.batch_counter,'/',data.train.nSamples,
+                print ' | ', data.train.batch_counter, '/', data.train.nSamples,
             print ' | Time elapsed:', nice_seconds(e), 'time remaining:', nice_seconds(r)
-
 
         batch_x, batch_y = data.train.next_batch(batch_size)
 
         if config['binary_softmax']:
-            train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: dropout_rate, alpha : alpha_function(i,N), mask :  train_mask_batch}
-            _train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: 1.0, alpha : alpha_function(i,N) , mask :  train_mask_batch}
+            train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: dropout_rate, alpha: alpha_function(i, N),
+                     mask: train_mask_batch}
+            _train = {x: batch_x, y_: expand_labels(batch_y), keep_prob: 1.0, alpha: alpha_function(i, N),
+                      mask: train_mask_batch}
         else:
-            train = {x: batch_x, y_: batch_y, keep_prob: dropout_rate, alpha : alpha_function(i,N) , mask :  train_mask_batch}
-            _train = {x: batch_x, y_: batch_y, keep_prob: 1.0, alpha : alpha_function(i,N) , mask :  train_mask_batch}
+            train = {x: batch_x, y_: batch_y, keep_prob: dropout_rate, alpha: alpha_function(i, N),
+                     mask: train_mask_batch}
+            _train = {x: batch_x, y_: batch_y, keep_prob: 1.0, alpha: alpha_function(i, N), mask: train_mask_batch}
 
-        if (i + 1*0) % test_period == 0:
+        if (i + 1 * 0) % test_period == 0:
             j = i / test_period
 
             x_axis[j] = i
@@ -296,28 +312,28 @@ def run(data, config):
             cent = 0.0
             accu = 0.0
             auto = 0.0
-            validation_y_out = np.zeros((validation_batch_size,output_dim))
+            validation_y_out = np.zeros((validation_batch_size, output_dim))
 
-            assert validation_batch_size/batch_size != 0, 'validation/train batch size must be an integer'
+            assert validation_batch_size / batch_size != 0, 'validation/train batch size must be an integer'
 
-            for k in xrange(validation_batch_size/batch_size):
-                vbatch_x, vbatch_y = data.validation.next_batch(batch_size,part=k,parts=validation_batch_size/batch_size)
+            for k in xrange(validation_batch_size / batch_size):
+                vbatch_x, vbatch_y = data.validation.next_batch(batch_size, part=k,parts=validation_batch_size / batch_size)
                 if config['binary_softmax']:
-                    _validation = {x: vbatch_x, y_: expand_labels(vbatch_y), keep_prob: 1.0, alpha: alpha_function(i,N), mask :  validation_mask_batch}
+                    _validation = {x: vbatch_x, y_: expand_labels(vbatch_y), keep_prob: 1.0,alpha: alpha_function(i, N), mask: validation_mask_batch}
                 else:
-                    _validation = {x: vbatch_x, y_: vbatch_y, keep_prob: 1.0, alpha: alpha_function(i,N), mask :  validation_mask_batch}
+                    _validation = {x: vbatch_x, y_: vbatch_y, keep_prob: 1.0, alpha: alpha_function(i, N),mask: validation_mask_batch}
 
                 out = (sess.run(lmsq_loss, feed_dict=_validation),
                        sess.run(cross_entropy, feed_dict=_validation),
                        sess.run(accuracy, feed_dict=_validation),
                        sess.run(auto_loss, feed_dict=_validation),
                        sess.run(y_conv, feed_dict=_validation))
-                _lmsq,_cent,_accu,_auto, _validation_y_out = out
+                _lmsq, _cent, _accu, _auto, _validation_y_out = out
 
-                lmsq_axis[0, j] += _lmsq/float(validation_batch_size/batch_size)
-                cent_axis[0, j] += _cent/float(validation_batch_size/batch_size)
-                accu_axis[0, j] += _accu/float(validation_batch_size/batch_size)
-                auto_axis[0, j] += _auto/float(validation_batch_size/batch_size)
+                lmsq_axis[0, j] += _lmsq / float(validation_batch_size / batch_size)
+                cent_axis[0, j] += _cent / float(validation_batch_size / batch_size)
+                accu_axis[0, j] += _accu / float(validation_batch_size / batch_size)
+                auto_axis[0, j] += _auto / float(validation_batch_size / batch_size)
                 validation_y_out[batch_size * k:batch_size * (k + 1), :] = _validation_y_out
                 # TENSORBOARD
                 # summary = sess.run(merged,
@@ -335,13 +351,13 @@ def run(data, config):
                    sess.run(accuracy, feed_dict=_train),
                    sess.run(auto_loss, feed_dict=_train),
                    sess.run(y_conv, feed_dict=_train))
-            lmsq_axis[1, j], cent_axis[1, j], accu_axis[1, j], auto_axis[1,j], train_y_out = out
+            lmsq_axis[1, j], cent_axis[1, j], accu_axis[1, j], auto_axis[1, j], train_y_out = out
             # train_writer.add_summary(summary, i)
 
             train_res, train_conf, _, _ = metric.multi_eval(train_y_out, batch_y)
             train_auac_axis[j, :, :] = train_res
 
-            validation_res, validation_conf, _, _ = metric.multi_eval(validation_y_out, data.validation.next_batch(validation_batch_size)[1])
+            validation_res, validation_conf, _, _ = metric.multi_eval(validation_y_out,data.validation.next_batch(validation_batch_size)[1])
             validation_auac_axis[j, :, :] = validation_res
 
             train_confusion.append(train_conf)
@@ -350,23 +366,23 @@ def run(data, config):
             # print(config.get_path(), ' Adding run metadata for', i)
             print  i, '/', N, ' | ',
             if config['data']['dataset'] == 'disfa':
-                print data.train.batch_counter,'/',data.train.nSamples,' | ',
+                print data.train.batch_counter, '/', data.train.nSamples, ' | ',
             prec = 4
             print round(lmsq_axis[0, j], prec), ' ',
             print round(lmsq_axis[1, j], prec), ' ',
-            print round(cent_axis[0, j], prec), ' ', #valid
-            print round(cent_axis[1, j], prec), ' ', #train
-            print round(auto_axis[0, j], prec), ' ', #valid
-            print round(auto_axis[1, j], prec), ' ', #train
-            alpha_axis[j] = alpha_function(i,N)
-            print alpha_function(i,N), ' ', #alpha
+            print round(cent_axis[0, j], prec), ' ',  # valid
+            print round(cent_axis[1, j], prec), ' ',  # train
+            print round(auto_axis[0, j], prec), ' ',  # valid
+            print round(auto_axis[1, j], prec), ' ',  # train
+            alpha_axis[j] = alpha_function(i, N)
+            print alpha_function(i, N), ' ',  # alpha
             if early_model_saved:
                 print '(early saved)'
             else:
                 print
             if not early_model_saved:
                 # early_condition_1 = (cent_axis[1, :] < cent_axis[0, :]).sum() > 2
-                early_condition_2 = float(i) >= float(N)*config.config['global']['early_stop_percent']
+                early_condition_2 = float(i) >= float(N) * config.config['global']['early_stop_percent']
                 if early_condition_2:
                     # Record the number at which the early model is saved
                     config.config['results']['early_stop_iteration'] = int(x_axis[j])
@@ -374,12 +390,17 @@ def run(data, config):
                     save_model(sess, config, 'early')
                     early_model_saved = True
 
-
         else:  # Record a summary
             sess.run(train_step, feed_dict=train)
             # TENSORBOARD
             # summary = sess.run(merged, feed_dict=_train)
             # train_writer.add_summary(summary, i)
+        if (i + 1 * 0) % (test_period * 10) == 0 or i == N - 1:
+            if config['vis_conv']:
+                l, w = model['conv1']
+                if l is not None and w is not None:
+                    v, _ = data.validation.next_batch(batch_size)
+                    conv_vis(i, sess, l, w, path, x, np.array(v), keep_prob)
 
     # print 'Test set analysis'
     #
@@ -622,12 +643,13 @@ if __name__ == "__main__":
             o['global:network'] = ['gudi_test_network_2','gudi_test_network_4','gudi_test_network_3']
             o['global:local_response_norm'] = [True]
             o['global:dropout_rate'] = [0.8]
-            o['global:iterations'] = [1500]
-            o['autoencoder:step_percent'] = [2.0/3.0]
-            o['global:early_stop_percent'] = [2.0/3.0]
+            o['global:l2_coeff'] = [0.001]
+            o['global:iterations'] = [2000]
+            o['autoencoder:step_percent'] = [0.5]
+            o['global:early_stop_percent'] = [0.5]
             o['global:noise_stddev'] = [0.0]
-            o['autoencoder:function'] = ['step','constant']
-            o['autoencoder:constant'] = [0.0]
+            o['autoencoder:function'] = ['step','constant','classonly','poly','sigmoid','alternate']
+            o['autoencoder:constant'] = [0.5]
             # o['autoencoder:activation'] = ['sigmoid']
     overwrite_dicts = get_all_experiments(o)
     for i,x in enumerate(overwrite_dicts):

@@ -560,6 +560,11 @@
 
           The losses for network 2 are plotted in appendix \ref{appendix2}, they show for each
           balance function the losses on the autoencoder and classifier.
+          They show that the alternate balancing and constant 0.0
+          function produces the least cooperation betwen autoencoder and classifier.
+          Balance functions which have both $1-\alpha(t)$ and $\alpha(t)$ non-zero
+          seem to all find configurations where both structures are fully trained.
+
 
     \section{Final Models and Qualitative Results}
 
@@ -761,7 +766,7 @@
         For the experiments in the last two sections a striking observation is that
         the classifier only experiment learns many more convolutional filters.
         This was the opposite of what was hoped for when motivating the structure
-        of the autoenocder.
+        of the autoencoder.
 
         However the classification rates of both experiments are almost the same,
         using the $\pm 0.02$ error rate which was found in section \ref{sec:psearch}.

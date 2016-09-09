@@ -1,23 +1,24 @@
-experiment_group: 'big_input'
+experiment_group: 'alpha'
 autoencoder:
   # constant, step, poly
-  function: step
-  constant : 1.0
-  step_percent: 0.666666666666666666666666666666
+  function: constant
+  constant : 0.0
+  step_percent: 0.5
   shared_weights : True
-  poly_order: 6
+  poly_order: 5
   flip_frequency : 6
-  sigmoid_a_b : [20,0.66666666666]
+  sigmoid_a_b : [20,0.5]
   # relu, linear, sigmoid, tanh
   activation : linear
   decoder: automatic
 global:
-    early_stop_percent: 0.666666666666666666666666666666
+    vis_conv : True
+    early_stop_percent: 0.5
     binary_softmax: True
     final_activation: softmax
     dump_frames: False
     path: data
-    iterations: 1500
+    iterations: 750
     # defunct:
     # ignore_empty_labels: False
     batch_size: 100
@@ -50,7 +51,7 @@ global:
 
     local_response_norm : True
 
-    noise : True
+    noise : False
     noise_stddev : 1.0
     noise_mean : 0.0
 weights:
@@ -81,7 +82,7 @@ data:
 #    test_subjects  : [2]
     batch_randomisation: True
     image_region: full
-    default_activation : 'relu'
+    default_activation : 'leaky_relu'
     normalisation : face_ps
     preprocessing:
       per_subject : True

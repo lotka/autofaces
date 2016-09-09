@@ -308,13 +308,6 @@ def cnn(config,train=True):
                          tf.mul(alpha,tf.random_normal(shape=x_.get_shape(),
                                                        mean=config['noise_mean'],
                                                        stddev=config['noise_stddev'])))
-        print '######################################################################'
-        print '########################| |############| |############################'
-        print '#################################.####################################'
-        print '######################################################################'
-        print '############################_________#################################'
-        print '######################################################################'
-        print '######################################################################'
     else:
         x_noise = x_
     x_noise.set_shape(shape_2)
@@ -461,7 +454,7 @@ def cnn(config,train=True):
 
         act = string_to_tf_function(config['autoencoder']['activation'])
 
-        print '\nDECODER:'
+        print '\nDECODER?:'
         s = 1
         for i in xrange(1, len(shape_2)):
             s *= int(shape_2[i])
@@ -543,6 +536,7 @@ def cnn(config,train=True):
                 w = None
             decoder.append( dcnn_layer(ll(decoder), [5, 5, 1, 64], x_.get_shape(), 'VALID', 'Deconvolution_1', config,strides=[1,1,1,1],act=act,weights=w) )
         elif config['autoencoder']['decoder'] == 'test':
+            print network
             decoder.append(nn_layer(ll(network), int(ll(network).get_shape()[1]), 2000, 'encoder', config, act=act))
             decoder.append(nn_layer(ll(decoder), int(ll(decoder).get_shape()[1]), shape_2[1]*shape_2[2], 'decoder', config, act=act))
         # elif config['autoencoder']['decoder'] == 'auto_cnn_4':
@@ -673,8 +667,7 @@ def cnn(config,train=True):
             train_step = tf.train.AdamOptimizer(r).minimize(combined_loss)
         else:
             train_step = tf.train.GradientDescentOptimizer(r).minimize(combined_loss)
-    del network
-    exit()
+
     return {'x' : x,
             'y' : y_,
             'train_step' : train_step,
@@ -690,4 +683,5 @@ def cnn(config,train=True):
             'alpha' : alpha,
             'auto_loss' : auto_loss,
             'mask' : mask,
-            'batch_size' : batch_size}
+            'batch_size' : batch_size,
+            'conv1': network[1]}

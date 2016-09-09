@@ -11,7 +11,10 @@ def plot_images(images,names=None,cmap='Spectral',interpolation='none',title=Non
         names = ['image_'+str(i) for i in xrange(len(images))]
 
     fig_size = matplotlib.rcParams['figure.figsize']
-    matplotlib.rcParams['figure.figsize'] = (20.0, 4.0)
+    if len(images) == 3:
+        matplotlib.rcParams['figure.figsize'] = (20.0, 7.0)
+    else:
+        matplotlib.rcParams['figure.figsize'] = (20.0, 4.0)
     matplotlib.rcParams['savefig.dpi'] = 600
     matplotlib.rcParams['font.size'] = 15
     matplotlib.rcParams['font.family'] = 'serif'
@@ -21,10 +24,8 @@ def plot_images(images,names=None,cmap='Spectral',interpolation='none',title=Non
     if title != None:
         fig.suptitle(title,fontsize=30)
 
-    print cmap
     if type(cmap) == str:
         cmap = [cmap for i in xrange(len(images))]
-    print cmap
 
 
     for i,image in enumerate(images):
@@ -72,7 +73,7 @@ def plot_images(images,names=None,cmap='Spectral',interpolation='none',title=Non
         print 'not saving nothing for you mate'
     plt.show()
 
-def plot_lines(lines,names=None,labels=None,title=None,ylim=None,save=None):
+def plot_lines(lines,names=None,labels=None,title=None,ylim=None,save=None,xlabels=None,ylabels=None):
 
     if names is None:
         names = [str(i) for i in xrange(len(lines))]
@@ -93,13 +94,18 @@ def plot_lines(lines,names=None,labels=None,title=None,ylim=None,save=None):
         x,ys = line
         plt.subplot(1,len(lines),i+1)
         plt.title(names[i])
-        for i,y in enumerate(ys):
+        for j,y in enumerate(ys):
             if labels is None:
                 plt.plot(x,y,label=None)
             else:
-                plt.plot(x, y, label=labels[i])
+                plt.plot(x,y,label=labels[j])
             if ylim != None:
                 plt.ylim(ylim[0],ylim[1])
+
+        if type(xlabels) == str:  plt.xlabel(xlabels)
+        if type(ylabels) == str:  plt.ylabel(xlabels)
+        if type(xlabels) == list: plt.xlabel(xlabels[i])
+        if type(ylabels) == list: plt.ylabel(ylabels[i])
 
     if len(lines)==3:
         horz = -0.8

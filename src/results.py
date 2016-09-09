@@ -45,9 +45,9 @@ class ListTable(list):
 
 fig_size = matplotlib.rcParams['figure.figsize']
 matplotlib.rcParams['figure.figsize'] = (20.0, 4.0)
-matplotlib.rcParams['savefig.dpi'] = 200
+matplotlib.rcParams['savefig.dpi'] = 400
 matplotlib.rcParams['font.size'] = 15
-matplotlib.rcParams['figure.dpi'] = 400
+matplotlib.rcParams['figure.dpi'] = 200
 
 
 def prefix(i, zeros):
@@ -298,7 +298,13 @@ class Results(object):
         lines.append((self.x_axis, (self.cent_axis[0, :], self.cent_axis[1, :], self.alpha_axis)))
         lines.append((self.x_axis, (self.auto_axis[0, :], self.auto_axis[1, :], self.alpha_axis)))
         fname = '../graphs/losses_' + self.date + '_' + prefix(self.id,3) + '.pdf'
-        helper.plot_lines(lines=lines,names=names,ylim=(-0.1,3.5),save=fname,labels=('validation loss', 'train loss', r'$\alpha$ coefficient'))
+        helper.plot_lines(lines=lines,
+                          names=names,
+                          ylim=(-0.1,3.5),
+                          save=fname,
+                          labels=('validation loss', 'train loss', r'$\alpha$ coefficient'),
+                          xlabels=['Iterations','Iterations'],
+                          ylabels=['Cross Entropy Loss', 'Mean Squared Loss'])
         print fname
 
 

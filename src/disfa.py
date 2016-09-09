@@ -71,7 +71,7 @@ class Batch:
                     del _conf[name]
             return hash(str(_conf))
 
-        hashing_enabled = False
+        hashing_enabled = True
 
         if hashing_enabled:
             h1 = hash_config(self.config)
@@ -110,6 +110,7 @@ class Batch:
             self.contrast_std = d['contrast_std']
             self.ranges = d['ranges']
             self.mean_image = d['mean_image']
+            self.idx_interesting = d['idx_interesting']
             assert (self.images.shape[0] + self.labels.shape[0]) == d['checksum']
             print 'LOADED FROM HASHED DATASET FILE', batch_type
         else:
@@ -155,6 +156,17 @@ class Batch:
                 self.labels = self.labels[idx, :]
             self.nSamples = self.images.shape[0]
 
+            # Collect some interesting indices for plotting
+            idx_interesting = []
+            for i,t in enumerate(list(self.raw_labels)):
+                if 5 in t and len(idx_interesting) < 50:
+                    idx_interesting.append(i)
+            for i,t in enumerate(list(self.raw_labels)):
+                if np.array(t).sum() == 0 and len(idx_interesting) < 100:
+                    idx_interesting.append(i)
+            self.idx_interesting = idx_interesting
+            print self.idx_interesting,len(self.idx_interesting)
+
             if hashing_enabled:
                 print 'SAVING HASHFILE FOR FUTURE USE', batch_type
                 checksum = self.images.shape[0] + self.labels.shape[0]
@@ -168,6 +180,7 @@ class Batch:
                                    contrast_std=self.contrast_std,
                                    absmax=self.absmax,
                                    mean_image=self.mean_image,
+                                   idx_interesting=self.idx_interesting,
                                    ranges=self.ranges,
                                    subject_idx=self.subject_idx,
                                    checksum=checksum)
