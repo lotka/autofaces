@@ -79,7 +79,8 @@
     and classifier can retain their functionality,
     this is shown in the L2 Regularisation section
     and when both objectives were trained
-    equally with constant balance.
+    equally with constant balance. However there is little evidence that the autoencoder structure which was used
+    helps classification. This is most likely because the autoencoder failed to learn enough features.
 
 
 
@@ -94,12 +95,12 @@
                                                      modelled well with just fully connected layers and regularisation techinques.
                                                      This was ignored as the literature mainly used convolutional layers, but might hold
                                                      interesting insights, in particular when combined with the proposed autoencoder classifier structure.
-      \item \textit{Start from autoencoders} -
+      \item \textit{Start from autoencoders:} -
             Instead of starting from classification structures, state of the art autoencoders
-            should be the starting point. These could include the follow techniques stacked architectures\cite{Zhou2014}, denoising architectures\cite{stacks,Vincent2008a} and variational autoencoders\cite{Kingma2013}.
-      \item \textit{Improved visualisation of autoencoder features} - As in \cite{Khorrami2015} the maximal excitation for different neurons in convolutional layers
+            should be the starting point. These could include the follow techniques stacked architectures\cite{Zhou2014}, denoising architectures\cite{stacks,Vincent2008a} or variational autoencoders\cite{Kingma2013}.
+      \item \textit{Improved visualisation of autoencoder features:} As in \cite{Khorrami2015} the maximal excitation for different neurons in convolutional layers
               could be found in order to gain greater insight into what features are being extracted.
-      \item \textit{  Artificially increasing the size of the training set -}
+      \item \textit{  Artificially increasing the size of the training set:}
             this would allow both the classifier and autoencoder to learn more
             general features. Some methods for doing this are as follows:
 
@@ -108,8 +109,7 @@
               \item Training the autoencoder with other datasets
               \item Including high intensity AU examples more often
             \end{itemize}
-      \item \textit{ Cross Validate the model:} this would allow the comparison of the results
-            to the literature.
+      \item \textit{ Perform a cross validatation:} this would allow the comparison of the results to the literature.
       \item \textit{ Incorporating temporal information:} facial expressions depend on context
             and are not of constant intensity in time. This information could be incorporated into
             a recurrent neural network structure as in \cite{Jaiswal2016}
@@ -129,4 +129,4 @@
   positive example. The method of per subject mean face normalisation was
   found to out perform other preprocessing methods conclusively and the
   classifier achieved competitive results on the DISFA dataset. Lastly the Binary Softmax
-  classifier proved to be a useful structure for jointly classifying AUs, allowing a maximum classification ROC of 0.83.
+  classifier proved to be a useful structure for jointly classifying AUs, giving a maximum average classification ROC of 0.83.
