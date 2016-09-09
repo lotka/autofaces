@@ -9,7 +9,7 @@
     recurrent networks).
      Therefore it is vital to try
     different pre-processing methods on the data.
-    Recalling of the aims of this project it is also vital to try a range of methods
+    It is also vital to try a range of methods
     because only a few
     might allow the autoencoder and classifier structures to cooperate with each other.
     This section describes some preprocessing methods which are to be
@@ -41,7 +41,7 @@
     Then three different methods of normalising and scaling
     the dataset are described, these can be combined to create further methods. In order to illustrate
     the effect of such operations figures such as figure \ref{fig:faces_none} are used which
-    show an example face and some statistically generated faces. The ideal method will
+    show an example face and some statistical faces. The ideal method might
     have minimum and maximum faces which express high degrees of facial expression, so that
     high pixel values can easily be correlated to various AUs in the classifier. Another motivation
     for trying this many methods is to improve the chances of finding an input format which works will with both an
@@ -57,12 +57,14 @@
       Where $F$ is the number of AUs and $N$ is the number of labelled images
       in the dataset.
 
-      Five is the highest intensity for an AU and zero is the absence of that AU.
-      Typically a neural network outputs values between zero and one so these values are divided by five to make them compatible.
-      For an intensity estimation problem that is all that is required, however for classification
-      the AU labels need to be binary so a threshold is chosen at which an AU is considered present.
-      Finally in the case of the Binary Softmax described in section \ref{sec:binsoft} the label vector
-      needs to be expanded to also contain the negative case, hence doubling its size.
+      Five is the highest intensity for an AU and zero is the absence of that
+      AU. Typically a neural network outputs values between zero and one so
+      these values are divided by five to make them compatible. For an intensity
+      estimation problem that is all that is required, however for
+      classification the AU labels need to be binary so a threshold is chosen at
+      which an AU is considered present. Finally in the case of the Binary
+      Softmax described in section \ref{sec:binsoft} the label vector needs to
+      be expanded to also contain the negative case, hence doubling its size.
 
   \section{Methods For Images} \label{sec:methods}
 
@@ -120,7 +122,7 @@
       correspond to a sample face, the minimum, the maximum,
       the mean and the standard deviation values of each pixel across
       the whole dataset. The images were downscaled by a factor of 0.8 before being processed.}
-      \label{fig:simple}
+      \label{fig:fsdfhdfh}
       \end{figure}
 
       For each image find the mean pixel value and standard deviation and then subtract the mean
@@ -233,12 +235,12 @@
       these pixels could just be removed from the system, however convolutional layers require
       rectangular inputs and so a solution is to apply a mask at the level of the cost function.
 
-      As this applies only to the autoencoder who has a cost function (equation \ref{eq:autoencoder_cost}):
+      This applies only to the autoencoder which has a cost function (equation \ref{eq:autoencoder_cost}):
       \begin{equation}
           J(\tilde{\mathbf{x}},\tilde{\mathbf{y}})
           = \frac{1}{N}\left |\mathbf{y}(\tilde{\mathbf{x}})-\tilde{\mathbf{x}}\right | ^2
       \end{equation}
-      Instead becomes:
+      Applying masking it becomes:
       \begin{equation}
           J(\tilde{\mathbf{x}},\tilde{\mathbf{y}})
           = \frac{1}{N}\left |\mathbf{y}(\tilde{\mathbf{x}}) \odot \mathbf{M}-\tilde{\mathbf{x}}\right | ^2

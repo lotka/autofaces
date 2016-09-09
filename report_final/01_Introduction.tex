@@ -15,7 +15,7 @@
   Facial Action Unit detection \cite{Corneanu2016} is chosen in this work due
   to it's popularity and available benchmarks.
   The Facial Action Coding System (FACS) developed by Ekman and Friesen,
-  provides a systematic way to study any kind of facial expression,
+  gives a systematic way to study any kind of facial expression,
   by representing them as a combination of individual facial muscle actions
   known as Action Units (AU). Automating the process of detecting AUs is difficult
   because they have non-linear interactions \cite{S.EleftheriadisO.Rudovic}
@@ -29,21 +29,22 @@
   observation that unlabelled datasets are far more abundant than labelled ones.
   In particular for AUs because manual AU
   annotation is laborious and requires trained expert coders.
-  Datasets containing AUs have a few key differences to datasets typically used with
+  Datasets containing AUs have a few key differences to ones typically used with
   deep networks, these are:
   \begin{enumerate}
-    \item The variation between images is lower than the datasets typically used
-    to train deep neural networks because AUs can be signified by subtle changes.
+    \item The variation between images is lower than in datasets typically used
+          to train deep neural networks because AUs can be signified by subtle changes.
     \item They contain fewer images, for example compared to ImageNet\cite{Deng2009} which has 3.2 million labelled images.
-    \item The possibility for AUs to occur simultaneously
+    \item AUs can occur simultaneously
     \item Non-uniform AU occurrence frequencies as many frames in a video may
     contain no AU occurrences (neutral faces) and some AUs may occur a lot less or a lot more than others.
   \end{enumerate}
 
   This project aims to tackle these issues by employing the use of autoencoders,
-  which are neural networks whose objective is to reproduce their input.
+  which are neural networks whose objective is to reproduce their input. Figure \ref{fig:idea} shows
+  the general concept.
   These are often used to pretrain the weights of classifying networks \cite{googlepretrain}.
-  This process of pretraining is generalised so that it can be performed simultaneously with
+  The process of pretraining is generalised so that it can be performed simultaneously with
   the classification training step. This results in a single cost function, which changes during training.
   The idea being that this joint training
   encourages the autoencoder to learn useful features. Furthermore a variety of preprocessing methods such as mean face subtraction and contrast normalisation
@@ -55,11 +56,11 @@
    \centering
    \includegraphics[width=0.8\textwidth]{illustrations/simple_network.pdf}
    \captionof{figure}{General structure of the proposed network. Each rectangle
-   represents many layers of neurons and the thin lines represent connections between layers.
+   represents potentially many layers of neurons and the thin lines represent connections between layers.
    This diagram serves as a very high level description of the structure this project will
-   investigate, the boxes in the hidden layers, called neural network structures may contain
+   investigate, the boxes which signify neural network structures may be made up of
    a variety of components including convolutional layers, fully connected layers, dropout layers
-   and so on.}
+   and so on.} \label{fig:idea}
   \end{figure}
 
   \section{Contributions}
@@ -68,7 +69,7 @@
     \begin{itemize}
       \item A set of pre-processing methods, such as mean face subtraction and contrast normalisation.
 
-      \item A variety of convolutional architectures and a fully connected networks.
+      \item A variety of convolutional architectures and fully connected networks.
 
       \item A balancing function, referred to as the alpha function, is introduced which evolves during
             training to balance the autoencoder and classifier losses.
@@ -83,7 +84,7 @@
     \end{itemize}
     % This paragraph could be a bit more detailed. You contribute:
     % - proposition of a of a novel network structure for joint autoencoder and classifier training
-    % - evaluation of different pre-processing methods, transfer functions, network structures, etc. (provide a detailed list)
+    % - evaluation of different pre-processing methods, balance functions, network structures, etc. (provide a detailed list)
     % To the end!
     % No substantial performance improvement is noted but interesting dynamics are observed.
 
@@ -92,7 +93,7 @@
       human face could have a multitude of application. Human computer interfaces (HCI)
       could benefit from a higher bandwidth interactions between computers and humans, adding
       an extra channel to the typical keyboard and mouse. The medical profession would benefit
-      as the ability to quantify psychological symptoms using facial expressions might lead to
+      as the ability to quantify psychological symptoms as using facial expressions might lead to
       quicker diagnoses of illness and more personalised care.
 
   \section{Thesis Outline}
@@ -106,7 +107,7 @@
             and contrast normalisation.
       \item {\bf Chapter 5} details the models that were evaluated in this project.
       \item {\bf Chapter 6} evaluates the models from Chapter 5 quantitatively and qualitatively.
-      \item {\bf Chapter 7} discusses the whole project,evaluating the strategies pursued and
+      \item {\bf Chapter 7} discusses the whole project, evaluating the strategies pursued and
             proposing future directions.
       \item {\bf Chapter 8} states the conclusions of the project.
   \end{itemize}

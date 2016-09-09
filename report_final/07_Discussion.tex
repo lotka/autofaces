@@ -4,11 +4,6 @@
   %%%%%%%%%%%%% The possibility for AUs to occur simultaneously %%%%%
   %%%%%%%%%%%%% Non-uniform AU occurrence %%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Discussion}
-  The structures in this report allow for the exploration of a hyperparameter
-  space which is very large. Each parameter has complex non-linear iteractions with
-  others, hence it is difficult to explore all options and configurations.
-  This work has explored a small seciton of this space with the guide of experimentation
-  and exisiting literature.
 
 
   \section{Methodology}
@@ -27,97 +22,105 @@
     This section discusses some of the problems encountered and solutions found
     to issues relating to methodology.
 
+    The structures in this report allow for the exploration of a hyperparameter
+    space which is very large. Each parameter has complex non-linear interactions with
+    others, hence it is difficult to explore all options and configurations.
+    This work has explored a small section of this space with the guide of experimentation
+    and existing literature.
+
     Good organisation of code and data allowed for the easy running
     and comparison of experiments which could take up to a day. These were easily transferred
     into the graphs in this report. Automating many of these tasks therefore seems worthwhile,
-    as once the initial overhead of implentation and testing is passed, they encourage experimentation.
+    as once the initial overhead of implementation and testing is passed, they encourage experimentation.
 
-    The number of iterations used to train a model posed a challenge. Different networks
-    and different configurations all need a different number of iterations to produce their
-    best possible model. The approach of this work was to fix the number of iterations
-    and use the fact that larger models need more iterations to their disadvantage.
-    Of course, this is unlikely to account for big effects, but incurrs a small
-    error in how comparable resultsa are between networks.
+    \subsection{Validity of results}
 
-    There was an overhead in trying to reproduce exisiting work in the literature
-    and only then to implement something new. It would have potentially been easier
-    to start from an exisiting state of the art model, however none were openly available
-    for the exact application many existed for other image classification tasks.
-    This would have posed some issues however, as inverting a very deep network
-    to create an autoencoder might have been feasible.
-
-    The ability to compare networks was reduced by the fact that tensorflow could
-    not perform determinsitic computations even when random number generators were
-    seeded.
-
-    The approach of taking classification networks from the literature and then
-    inverting them to create autoencoders was potentially not ideal, as they
-    were not designed with this purpose in mind. Advanced techniques to create robust
-    autoencoders might have been a better starting point, this is further discussed in future work.
+    \begin{itemize}
+      \item \textit{Training iterations: }
+        The number of iterations used to train a model posed a challenge. Different networks
+        and different configurations all need a different number of iterations to produce their
+        best possible model. The approach of this work was to fix the number of iterations
+        and use the fact that larger models need more iterations to their disadvantage.
+        It seems this did not cause a problem, because overfitting was not massively detrimental to the final score, each network could recieve enough iterations to converge.
+      \item \textit{Overhead in reproducing state of the art:}
+        There was an overhead in trying to reproduce existing work in the literature
+        and only then to implement something new. It would have potentially been easier
+        to start from an existing state of the art model, however none were openly available
+        for the exact required application, many existed for other image classification tasks.
+        This was avoided because inverting very deep convolutional networks might be difficult
+        and not achieve good performance as training such structures is difficult.
+        The approach of taking classification networks from the literature and then
+        inverting them to create autoencoders was potentially not ideal, as they
+        were not designed with this purpose in mind. Advanced techniques to create robust
+        autoencoders might have been a better starting point, this is further discussed in future work.
+      \item \textit{Non-deterministic computations:}
+        The ability to compare networks was reduced by the fact that TensorFlow could
+        not perform deterministic computations even when random number generators were
+        seeded.
+      \item \textit{Visualisation of convolutional layers:}
+        This provided a good way to diagnose and understand what the final to networks
+        were learning and helped reach more concrete conclusions.
+    \end{itemize}
+    % This would have posed some issues however, as inverting a very deep network
+    % to create an autoencoder might not have been feasible.
 
 
 
   \section{Results}
     One of the goals of the project was to find a way to increase the variation
     between images in the DISFA dataset in order to allow improved training of the network.
-    As is shown in the results, this is possibly the most important variable and per subject mean subtraction
-    comes out on top.
+    As is shown in the results (section \ref{tab:psearch}), this is the variable that has
+    the greatest effect on classification and autoencoding performance.
 
+    Joint classification of AUs was tackled by proposing the Binary Softmax layer,
+    which proved to perform better than the other available solutions.
 
-    Potentially deeper fully connected structures might have also been an option.
-    With the type of preprocessing chosen
-
-
-    The results show that there are cases where both the autoencoder and classifier can retain their functionality,
+    The results show that there are cases where both the autoencoder
+    and classifier can retain their functionality,
     this is shown in the L2 Regularisation section
+    and when both objectives were trained
+    equally with constant balance.
+
 
 
   \section{Future Work}
 
-    Instead of starting from classification structures, state of the art autoencoders
-    should be the starting point. These could be achieved with the following techinques
+
+
+
+
     \begin{itemize}
-      \item Stacked architectures
-      \item Denoising architectures
-      \item Variational autoencoders
-      \item More datasets so more training examples
+      \item \textit{Larger fully connected models} - Instead of using convolutional networks, the DISFA dataset might have been
+                                                     modelled well with just fully connected layers and regularisation techinques.
+                                                     This was ignored as the literature mainly used convolutional layers, but might hold
+                                                     interesting insights, in particular when combined with the proposed autoencoder classifier structure.
+      \item \textit{Start from autoencoders} -
+            Instead of starting from classification structures, state of the art autoencoders
+            should be the starting point. These could include the follow techniques stacked architectures\cite{Zhou2014}, denoising architectures\cite{stacks,Vincent2008a} and variational autoencoders\cite{Kingma2013}.
+      \item \textit{Improved visualisation of autoencoder features} - As in \cite{Khorrami2015} the maximal excitation for different neurons in convolutional layers
+              could be found in order to gain greater insight into what features are being extracted.
+      \item \textit{  Artificially increasing the size of the training set -}
+            this would allow both the classifier and autoencoder to learn more
+            general features. Some methods for doing this are as follows:
+
+            \begin{itemize}
+              \item Appyling random transformations to the input image (crops, displacements, etc.)
+              \item Training the autoencoder with other datasets
+              \item Including high intensity AU examples more often
+            \end{itemize}
+      \item \textit{ Cross Validate the model:} this would allow the comparison of the results
+            to the literature.
+      \item \textit{ Incorporating temporal information:} facial expressions depend on context
+            and are not of constant intensity in time. This information could be incorporated into
+            a recurrent neural network structure as in \cite{Jaiswal2016}
     \end{itemize}
-
-    Autoencoder features should be more throughly
-    Better exploration of the autoencoder features
-      - Reference that technique
-    Preprocessing
-      - Preprocess differently, resize afterwards
-
-
-      The training of the autoencoder was not stacked, instead it was joint which
-      has proven to be preferable in certain situations \cite{Zhou2014}. However,
-      in this case it might have been more reliable to perform stacked training of
-      the autoencoder to ensure useful features were picked out.
-
-      Artificially increasing the size of the training set seems like a big
-      priority, this would allow both the classifier and autoencoder to learn more
-      general features. Some methods for doing this are as follows:
-
-      \begin{itemize}
-        \item Courrupting the input image or hidden layer representations
-        \item Appyling random transformations to the input image (crops, displacements, etc.)
-        \item Training the autoencoder with other datasets
-        \item Including high intensity AUs examples more often
-      \end{itemize}
-
-    Do cross validaiton to compare to the literature
-
-    Fancy classifiers onto the softmax
-
-    Use temporal structures
 
 \chapter{Conclusion}
   The results have not shown that an autoencoder, in our particular setting,
   gives significant improvements to classification performance. However it has
   explored how preprocessing techniques and various neural network structures
-  interact, showing that with small datasets such as DISFA other techniques
-  may be more important. An unconventional part of this work, given the
+  interact, showing that with small datasets such as DISFA other considerations
+  are also important. An unconventional part of this work, given the
   excitement in the field of deep learning is that the smaller networks
   perform better. This is most probably due to the fact that the input data
   was too homogeneous and that the task of detecting AUs is difficult, in

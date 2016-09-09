@@ -2,9 +2,9 @@
   \section{Deep Learning Framework}
     TensorFlow \cite{tensorflow} was chosen as the deep learning framework for this
     project. Many others such as Caffe, Neon, Theano, and Torch are popular\cite{Bahrampour2016}.
-    The main advantages of tensorflow are flexibility with running code on diverse
+    The main advantages of TensorFlow are flexibility with running code on diverse
     hardware platforms and good support for visualisations
-    of computation graphs. The other frameworks infact are more efficient
+    of computation graphs. The other frameworks in fact are more efficient
     \footnote{TensorFlow even came last in one benchmark performed on the VGG-16 network, \url{https://github.com/aizvorski/vgg-benchmarks}}
     computationally due to their maturity\cite{Bahrampour2016}
     but this is not a major requirement in this project.
@@ -13,17 +13,17 @@
 % employing homogeneous/heterogeneous devices for the
 % various parts of the computational graph.
 
-    Similar to most other frameworks tensorflow uses python
+    Similar to most other frameworks TensorFlow uses python
     to define its computations and also has C++ interfaces for creating new operators.
-    A tensorflow application can run on either a GPU or CPU with no modification, this was
+    A TensorFlow application can run on either a GPU or CPU with no modification, this was
     a particularly nice feature as GPU resources are often scarce and if time is not an issue a CPU
     can perform the training and evaluation of a model in a reasonable time (1-5 hours). The GPU used in this project was a nVidia GTX Titan X.
   \section{Development Environment}
     The python scripts and notebooks produced were developed on two systems:
     \begin{itemize}
-      \item     Ubuntu 14.04.4 LTS with tensorflow 0.7.1, numpy 1.11.0. This setup typically utilised a GTX Titan X GPU with driver version 352.63, otherwise
+      \item     Ubuntu 14.04.4 LTS with TensorFlow 0.7.1, numpy 1.11.0. This setup typically utilised a GTX Titan X GPU with driver version 352.63, otherwise
                 an Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz or equivalent processor was used.
-      \item     Ubuntu 15.10 with tensorflow 0.9.0 and numpy 1.11.0. This setup had no GPU support but small models were still efficient to train on this set up
+      \item     Ubuntu 15.10 with TensorFlow 0.9.0 and numpy 1.11.0. This setup had no GPU support but small models were still efficient to train on this set up
                 despite the processor being a low power Intel® Core™ M-5Y10c CPU @ 0.80GHz.
     \end{itemize}
     Atom \footnote{Atom is a cross platform text editor - \url{https://atom.io/}}and PyCharm \footnote{PyCharm is a integrated development environment for the python language \url{https://www.jetbrains.com/pycharm/}} were used to edit all text and source files in the project.
@@ -39,10 +39,10 @@
     For visualisation matplotlib was the staple tool used to plot graphs and images. iPython notebooks
     which can display many matplotlib graphs interspersed with text and code were heavily used to
     provide a simple direct way to analyse the output of a job. This quickly became the most convenient way to
-    share and interpret experimental data. Tensorboard is part of tensorflow which allows the monitoring of a
+    share and interpret experimental data. Tensorboard is part of TensorFlow which allows the monitoring of a
     model training session and some analysis, this was initially interesting but became too limited for the required purposes.
   \section{Reproducing results} \label{sec:GPU}
-    Due to a slight limitation in tensorflow\footnote{\url{https://github.com/tensorflow/tensorflow/issues/2732}}, results would often be non-deterministic by a small degree. This generally slowed
+    Due to a slight limitation in TensorFlow\footnote{\url{https://github.com/tensorflow/tensorflow/issues/2732}}, results would often be non-deterministic by a small degree. This generally slowed
     the process of experimentation as some large computations had to be repeated in order to calculate a standard error in the metrics used.
   \section{Project Implementation}
     This project, in terms of software engineering, produced a piece of software which does the following:
@@ -54,17 +54,23 @@
       \item Store results in a format which allows them to be reproduced and understood in the future
     \end{enumerate}
 
-    This was achieved with the code structure shown in section \ref{sec:codestruct}.
-    This along with the code should be enough to explore the implementation, so a detailed
-    description is omitted here, however there are a couple of key features which are
-    relevant. Firstly, the code produces a folder containing as much information as possible
-    related to the training and evaluation of a model. The model is saved and can be loaded back into
-    memory for more training or evaluation. Another feature is that when a dataset is loaded and processed, it can be
-    saved along with a hash of the parameters that created it, so that for future runs the preprocessing does not have to be run again.
+    This was achieved with the code structure shown in section
+    \ref{sec:codestruct}. This along with the code should be enough to explore
+    the implementation, so a detailed description is omitted here, however there
+    are a couple of key features which are relevant. Firstly, the code produces
+    a folder containing as much information as possible related to the training
+    and evaluation of a model. The model is saved and can be loaded back into
+    memory for more training or evaluation. Another feature is that when a
+    dataset is loaded and processed, it can be saved along with a hash of the
+    parameters that created it, so that for future runs the preprocessing does
+    not have to be run again.
 
-    A set of notebooks facilitate the presentation of the evaluation results examples of this are figures \ref{fig:compareresults} and \ref{fig:viewresult} which show parts of a typical session which includes the inspecting of graphs and tables.
-
-    Currently only the DISFA dataset is supported in the code, but modification for more datasets would not pose much work.
+    A set of notebooks facilitate the presentation of the evaluation results,
+    examples of this are figures \ref{fig:compareresults} and
+    \ref{fig:viewresult} which show parts of a typical session which includes
+    the inspecting of graphs and tables. Currently only the DISFA dataset is
+    supported in the code, but modification for more datasets would not pose
+    much work.
 
 
 
@@ -93,7 +99,7 @@
                   \item {\bf main.py }
                   \begin{sloppypar} \textit{Trains and evaluates models, calling all python scripts listed below. It requires a configuration file, a device and a flag which chooses whether to train multiple models while varying parameters or to just train one model.}\end{sloppypar}
                   \item {\bf alpha.py }
-                  \begin{sloppypar} \textit{Defines the transfer functions shown in section \ref{sec:autoalpha} }\end{sloppypar}
+                  \begin{sloppypar} \textit{Defines the balance functions shown in section \ref{sec:autoalpha} }\end{sloppypar}
                   \item {\bf disfa.py }
                   \begin{sloppypar} \textit{Defines a class which on construction loads and preprocesses DISFA data}\end{sloppypar}
                   \item {\bf expman.py }
@@ -103,7 +109,7 @@
                   \item {\bf metric.py }
                   \begin{sloppypar} \textit{Implements the techniques described in section \ref{sec:eval} }\end{sloppypar}
                   \item {\bf model.py }
-                  \begin{sloppypar} \textit{Defines a tensorflow graph describing the neural networks used in this project.}\end{sloppypar}
+                  \begin{sloppypar} \textit{Defines a TensorFlow graph describing the neural networks used in this project.}\end{sloppypar}
                   \item {\bf test\_set\_analysis.py }
                   \begin{sloppypar} \textit{Runs the test set through a fully trained model and saves results. Is used in main.py and can be used on its own.}\end{sloppypar}
                 \end{itemize}

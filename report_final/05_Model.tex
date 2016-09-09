@@ -9,11 +9,12 @@
   % the primary metric (the classifier).
 
   This chapter details the models proposed in order to achieve the aims of the project.
-  First a set of common parameters for all models, then a set of possible
-  classification structures are defined. Next a set of networks inspired
-  by the literature and to span varying complexity.
-  Then process of adding a set of regularisation techniques is shown and finally the
-  various branch balancing functions are described.
+  Firstly a set of common parameters for all models is established and then a set of possible
+  classification structures is defined. Next is a set of networks inspired
+  by the literature spanning varying complexity.
+  Then the way in which sharing weights, loal contrast normalisation, dropout, l2 regularisation
+  and finally the autoencoder classifier balancing functions apply to the models is described. Figure \ref{fig:netII}
+  two shows an illustration of one of the networks defined in this section.
 
   \begin{figure}[h!]
    \centering
@@ -59,25 +60,25 @@
     as in done in some of the networks shown in \ref{tab:compnet}.
     The early model save percent states when the whole model should be saved early,
     this means for each experiment run there are two models to be evaluated. This
-    is useful for the evaluation of both autoencoder and classifier training in one go.
+    mechanism is often used to test autoencoder training and then subsequent classifier training.
 
     The mean squared error is chosen to train the autoencoder as there are few other alternatives
-    and the cross entropy for the classifer as it heavily penalises incorrect classifications,
+    and the cross entropy is chosen for the classifier as it heavily penalises incorrect classifications,
     unlike the mean squared error.
 
-  \section{Joint classification}
+  \section{Joint classification} \label{sec:joints}
 
     Typical deep neural networks are used to classify
     one image into only one category. The case with FAU detection is different, we
     would like to be able to classify the categories jointly,  putting one frame into more than
     one AU category. Ideally the network would output a confidence score between 0 and 1
     to signify if an AU is present and we would calculate some optimum threshold value
-    (ideally this would be 0.5).
+    (0.5 would be the most desirable threshold).
 
     The following list details three possible solutions to the joint classification problem:
 
     \begin{itemize} \label{sec:binsoft}
-      \item {\bf Softmax Layer} - This is a traditional, fully connected layer with
+      \item {\bf Softmax Layer} - This is a fully connected layer with
       a softmax activation function (see equation \ref{eq:softmax}).
       The issue with this is that it provides a probability distribution over AUs
       but the required quantity is a probability distribution for each AU.
@@ -105,32 +106,35 @@
     % inverse operations are performed, see appendix \label{appendix1} for full
     % details for networks \networkII, \networkIII\ and \networkIV.
 
-    Network \networkI\, acts as a baseline as it is the simplest
-    possible network to incorporate the proposed structure. It is defined in Table~\ref{tab:netI},
-    it contains one hidden layer of 12 neurons which is connected to the input image of 2209 pixels,
-    the output reconstruction of 2209 pixels and to the classifer, which is shown as the Binary Softmax
-    (preempting the results from chapter \ref{chap:Evaluation}). In order to
-    use the DISFA images with this network, they are flattened into an array 2209 sized array.
-    12 neurons
-    are chosen heuristically as there are 12 AU's and one might naively hope that the number of
-    neurons required in the hidden layer would be roughly equal to the number of features.
+    Network \networkI\ acts as a baseline as it is the simplest possible
+    network to incorporate the proposed autoencoder classifier (AC)
+    structure. It is defined in Table~\ref{tab:netI}, it contains one hidden
+    layer of 12 neurons which is connected to the input image of 2209 pixels,
+    the output reconstruction of 2209 pixels and to the classifier, which is
+    shown as the Binary Softmax (pre-empting the results from chapter
+    \ref{chap:Evaluation}). In order to use the DISFA images with this network,
+    they are flattened into an 2209 sized array. 12 neurons are chosen
+    heuristically as there are 12 AU's and one might naively hope that the
+    number of neurons required in the hidden layer would be roughly equal to the
+    number of features.
 
-    Network \networkII\ (Table~\ref{tab:netI} and figure \ref{fig:netII}) contains all of the indredients of a deep learning
-    algorithm a convolutional layer and secondly a $3\times 3$ max pooling layer.
+    Network \networkII\ (Table~\ref{tab:netI} and figure \ref{fig:netII})
+    contains all of the core ingredients of a deep learning algorithm: a
+    convolutional layer and secondly a $3\times 3$ max pooling layer, it only lacks the depth.
 
-    Networks \networkIII\ (Table~\ref{tab:netIII}) and \networkIV\ (Table~\ref{tab:netIV})
-    build on this by each adding an extra convolutional layer.
+    Networks \networkIII\ (Table~\ref{tab:netIII}) and \networkIV\
+    (Table~\ref{tab:netIV}) build on this by each adding an extra convolutional
+    layer.
 
     Networks \networkII, \networkIII\ are \networkIV\ based off of networks in
-    the literature, but with the aditional decoder section which is achieved by
+    the literature, but with the additional decoder section which is achieved by
     using deconvolutional layers. These deconvolutions are actually transposed
     convolutions, so on the final layer in order to reconstruct an image, all of
-    the feature maps are averaged together to create
-    the final image.
+    the feature maps are averaged and put through an activation function (linear, relu, sigmoid or tanh).
 
     The cost function of these networks is:
 
-    \begin{equation} \label{eq:l2_cost_model}
+    \begin{equation} \label{eq:l2_cost_model1}
         J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = -\frac{1-\alpha(t)}{2FN}\tilde{\mathbf{y}}\cdot\log(\mathbf{y}(\tilde{\mathbf{x}}))
         + \frac{\alpha(t)}{N}\left |\mathbf{y}(\tilde{\mathbf{x}}) \odot \mathbf{M}-\tilde{\mathbf{x}}\right | ^2
     \end{equation}
@@ -162,21 +166,22 @@
       \item Network \networkIV  : applied onto $y_2$ and fed into $L_3$ and applied onto $y_5$ and fed into $L_5$
     \end{itemize}
   \section{Dropout}
-    All of the networks contain dropout, although in different experiments it's
+    All of the networks contain dropout, although in different experiments its
     value is between 0.8 and 1 (this is the probability of a neuron staying
     active). Dropout is always at the bottleneck layer, the layer which
-    connnects to the encoder, decoder and classifiers.
-  \section{L2 Regularisation}
+    connects to the encoder, decoder and classifiers.
+  \section{L2 Regularisation} \label{sec:modl2}
     L2 Regularisation incurs a penalty to using weights which have high values.
-    This was implemented by adding L2 loss terms for all weight variables. The
+    This was implemented by adding L2 loss terms for all weight variables (not biases). The
     new cost function becomes:
 
-    \begin{equation} \label{eq:l2_cost_model}
-        J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = -\frac{1-\alpha(t)}{2FN}\tilde{\mathbf{y}}\cdot\log(\mathbf{y}(\tilde{\mathbf{x}}))
-        + \frac{\alpha(t)}{N}\left |\mathbf{y}(\tilde{\mathbf{x}}) \odot \mathbf{M}-\tilde{\mathbf{x}}\right | ^2
+    \begin{equation} \label{eq:l2_cost_model2}
+        J(\tilde{\mathbf{x}},\tilde{\mathbf{y}}) = -\frac{1-\alpha(t)}{2FN_B}\tilde{\mathbf{y}}\cdot\log(\mathbf{y}(\tilde{\mathbf{x}}))
+        + \frac{\alpha(t)}{N_BN_P}\left |\mathbf{y}(\tilde{\mathbf{x}}) \odot \mathbf{M}-\tilde{\mathbf{x}}\right | ^2
         + \beta \sum_i^{\text{weights}}||\mathbf{W}_i||^2
     \end{equation}
 
+    $N_B$ and $N_P$ are the batch size and number of pixels respectively.
     Where $\beta$ is some positive balancing factor and $\mathbf{W}$ signifies
     a weight tensor from any type of layer in the network.
 
@@ -192,7 +197,7 @@
     \end{equation}
 
     The function $\alpha(t)$ might be constant $\left ( \alpha_{\text{constant}}(t)=\frac{1}{2} \right )$ or
-    some sort of polynomial which stays in the range $[0,1]$. $N_B$ and $N_P$ are the batch size and number of pixels respectively.
+    some sort of polynomial which stays in the range $[0,1]$.
 
     For much of the initial investigations we employ:
     \begin{equation}
@@ -231,6 +236,8 @@
         \alpha_{\text{alternate}}(t-|T/p|,T,-p)           & \text{otherwise} \\
       \end{cases}
     \end{equation}
+    Whose purpose is to see if repeated pretraining and then destruction of autoencoding ability
+    produces different behaviour.
 
     Examples of such functions are plotted in figure \ref{fig:alpha_functions}.
 

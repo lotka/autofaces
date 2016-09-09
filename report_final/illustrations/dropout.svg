@@ -57,8 +57,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8"
-     inkscape:cx="189.37361"
-     inkscape:cy="69.177519"
+     inkscape:cx="80.843989"
+     inkscape:cy="79.243587"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -373,17 +373,6 @@
        r="10.30408" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:13.99625778px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="135.3474"
-       y="496.37677"
-       id="text4490"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan4492"
-         x="135.3474"
-         y="496.37677">Final Network</tspan></text>
-    <text
-       xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:6.18592405px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="359.1918"
        y="598.11755"
@@ -428,15 +417,27 @@
        inkscape:connector-curvature="0" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="268.57144"
-       y="497.00507"
+       style="font-style:normal;font-weight:normal;font-size:31.82618713px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="284.38657"
+       y="497.83926"
        id="text5419"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5421"
-         x="268.57144"
-         y="497.00507"
-         style="font-size:13.75px">During Training</tspan></text>
+         x="284.38657"
+         y="497.83926"
+         style="font-size:8.95111465px">During Training</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:31.82618713px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="148.99417"
+       y="496.09259"
+       id="text5419-3"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan5421-6"
+         x="148.99417"
+         y="496.09259"
+         style="font-size:8.95111465px">During Testing</tspan></text>
   </g>
 </svg>

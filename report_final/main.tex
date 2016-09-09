@@ -63,6 +63,21 @@
   %   (3) finally describe the experiments and the results
 
 
+  Datasets available for Facial Action Unit (AU) recognition are typically small
+  in size and difficult to model as detecting AUs requires sensitivity to subtle
+  facial changes. To address this a neural network structure which combines an
+  autoencoder and classifier is proposed. The aim for the autoencoder is to be
+  able to learn facial features from the face images, potentially from other
+  datasets. However this work only uses the DISFA dataset for testing. This work
+  includes a generalisation of pretraining where the contribution from the
+  autoencoder and classfier changes during training. L2 Regularisation, Dropout
+  and Local Response Normalsation and a series of preprocessing methods are
+  tested with this structure. The results show that while the proposed structure
+  in this particular setting shows little or no improvement in classification
+  performance one of the proposed preprocessing methods, mean face subtraction
+  offers significant improvements in classification performance.
+
+
 
 
 \end{abstract}
