@@ -80,6 +80,8 @@ def conv_vis(i, sess, hconv, w, path, x, batch_x, keep_prob):
 
 
 def prefix(i, zeros):
+    # example: prefix(4,2) = 04
+    #          prefix(10,2) = 10
     s = str(i)
     while (len(s) < zeros):
         s = '0' + s
