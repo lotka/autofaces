@@ -1,0 +1,36 @@
+FAU detection is a problem which
+has motivated a lot of machine leanring research.
+
+Deep learning is also big at the moment.
+
+There have been works where these are combined.
+
+FAU poses unique challenges:
+
+1. The variation between images is lower than in datasets typically used to train deep
+neural networks because AUs can be signified by subtle changes.
+2. They contain fewer images, for example compared to ImageNet[9] which has 3.2 mil-
+lion labelled images.
+3. AUs can occur simultaneously
+4. Non-uniform AU occurrence frequencies as many frames in a video may contain no
+AU occurrences (neutral faces) and some AUs may occur a lot less or a lot more than
+others.
+
+4. Change data blaancing
+3. Binary softmax stuff
+2.
+
+
+
+
+### take 2
+
+
+This presentation describes the work I did for my masters thesis,
+it is structured in the following way. First I will describe some of the background
+related to FAU detection, the problems it poses and how they can be addressed
+with deep learning or neural networks. Then I will talk about some of the models
+we proposed to address these problems, introducing some deep learning background along the way.
+
+Then  some indepth results on how these structures performed for classification.
+s
