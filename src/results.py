@@ -46,7 +46,7 @@ class ListTable(list):
 fig_size = matplotlib.rcParams['figure.figsize']
 matplotlib.rcParams['figure.figsize'] = (20.0, 4.0)
 matplotlib.rcParams['savefig.dpi'] = 400
-matplotlib.rcParams['font.size'] = 15
+matplotlib.rcParams['font.size'] = 11
 matplotlib.rcParams['figure.dpi'] = 200
 
 

@@ -12,10 +12,10 @@ def plot_images(images,names=None,cmap='Spectral',interpolation='none',title=Non
 
     fig_size = matplotlib.rcParams['figure.figsize']
     if len(images) == 3:
-        matplotlib.rcParams['figure.figsize'] = (20.0, 7.0)
+        matplotlib.rcParams['figure.figsize'] = (20.0, 4.0)
     else:
         matplotlib.rcParams['figure.figsize'] = (20.0, 4.0)
-    matplotlib.rcParams['savefig.dpi'] = 600
+    matplotlib.rcParams['savefig.dpi'] = 400
     matplotlib.rcParams['font.size'] = 15
     matplotlib.rcParams['font.family'] = 'serif'
     matplotlib.rcParams['figure.dpi'] = 400
@@ -69,6 +69,10 @@ def plot_images(images,names=None,cmap='Spectral',interpolation='none',title=Non
         # plt.tight_layout()
         print 'save to', save
         plt.savefig(save,bbox_inches='tight', pad_inches=0.1)
+        if save[-4:] == '.pdf':
+            save = save[:-4]+'.png'
+            print 'also save to ',save
+            plt.savefig(save,bbox_inches='tight', pad_inches=0.1)
     else:
         print 'not saving nothing for you mate'
     plt.show()
