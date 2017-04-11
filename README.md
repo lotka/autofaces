@@ -36,7 +36,7 @@ This will run the test set analysis, to run it agian:
 ``` python test_set_analysis.py path_to_results model```   *model*=final or early
 
 To visualize the results run the `viewResults.ipynb` notebook in the notebooks folder,
-to compare multiple runs use 'compareResults.ipynb'.
+to compare multiple runs use `compareResults.ipynb`.
 
 To run multiple experiments:
 
